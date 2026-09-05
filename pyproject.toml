@@ -27,6 +27,7 @@ dependencies = [
     "nest-asyncio>=1.6.0",
     "pdfminer>=20191125",
     "pdfminer-six>=20260107",
+    "prompt-inspector-ux>=0.1.4",
     "psycopg-binary>=3.3.4",
     "pypdf>=6.11.0",
     "python-dotenv>=1.2.2",
