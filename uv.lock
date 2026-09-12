@@ -68,7 +68,7 @@ requires-dist = [
     { name = "nest-asyncio", specifier = ">=1.6.0" },
     { name = "pdfminer", specifier = ">=20191125" },
     { name = "pdfminer-six", specifier = ">=20260107" },
-    { name = "prompt-inspector-ux", specifier = ">=0.1.4" },
+    { name = "prompt-inspector-ux", specifier = ">=0.1.6" },
     { name = "psycopg-binary", specifier = ">=3.3.4" },
     { name = "pypdf", specifier = ">=6.11.0" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
@@ -2813,7 +2813,7 @@ wheels = [
 
 [[package]]
 name = "prompt-inspector-ux"
-version = "0.1.4"
+version = "0.1.6"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click" },
@@ -2826,9 +2826,9 @@ dependencies = [
     { name = "uvicorn" },
     { name = "websockets" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/70/f6/efd26725fa1b2d9ece65a58e371e8445debee9b33baafd83c3b84bedfaa6/prompt_inspector_ux-0.1.4.tar.gz", hash = "sha256:eb016ef4084d38112df96f1519db0ef2c212f9853fccc5f005874e4af3088ade", size = 15197143, upload-time = "2026-08-31T14:46:25.549Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/23/7d/0dd39deb74767e07e32560c856c7173888a8119a5184b519f8bcc9b8c749/prompt_inspector_ux-0.1.6.tar.gz", hash = "sha256:fc4d8ed163332b034dac4804581f7f40c3b16ae8023b971fe29859e592e7b4b2", size = 19405385, upload-time = "2026-08-31T19:37:26.203Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/72/d0/55df8515dc33992f04b775765875476a1d5df35626b04aa5aabced2cea14/prompt_inspector_ux-0.1.4-py3-none-any.whl", hash = "sha256:8a805f1c81f3aecb6e5e8dc340f1cef90f61bc5830f07d7f802024348381a443", size = 200507, upload-time = "2026-08-31T14:46:23.978Z" },
+    { url = "https://files.pythonhosted.org/packages/6d/d6/b0305e2e2effa915b2fd514aaa4bd63479470b11f0f911be77b702d9ec28/prompt_inspector_ux-0.1.6-py3-none-any.whl", hash = "sha256:16ca942b0075986e7c6cc048285dcf329a8b129376ed46072234cd407b720a98", size = 200771, upload-time = "2026-08-31T19:37:24.078Z" },
 ]
 
 [[package]]

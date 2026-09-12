@@ -116,7 +116,7 @@ class ReActAgent:
                 # Check tool support
                 if action_name in self.tools:
                     console.print(f"[yellow]Executing Tool:[/yellow] [bold cyan]{action_name}[/bold cyan] with input [bold cyan]'{action_input}'[/bold cyan]...")
-                    tool_func = self.tools[action_name]
+                    tool_func = self.tools[action_name] ## get_weather
                     observation = tool_func(action_input)
                     
                     # Print results
