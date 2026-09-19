@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Self-RAG vs Corrective RAG (CRAG) - Visual Architecture</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+    
+    .tab-active { border-bottom: 2px solid #6366f1; color: #4f46e5; font-weight: 700; background-color: rgba(99, 102, 241, 0.08); }
+    
+    .glow-amber { box-shadow: 0 0 15px rgba(245, 158, 11, 0.25); }
+    .glow-emerald { box-shadow: 0 0 15px rgba(16, 185, 129, 0.25); }
+    .glow-blue { box-shadow: 0 0 15px rgba(59, 130, 246, 0.25); }
+    .glow-rose { box-shadow: 0 0 15px rgba(244, 63, 94, 0.25); }
+    
+    .arch-card {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .arch-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    }
+    
+    @keyframes pulseLoop {
+      0%, 100% { opacity: 0.6; stroke-dashoffset: 0; }
+      50% { opacity: 1; stroke-dashoffset: 12; }
+    }
+    .anim-dash {
+      stroke-dasharray: 6 4;
+      animation: pulseLoop 2s linear infinite;
+    }
+  </style>
+</head>
+<body class="bg-slate-900 text-slate-100 antialiased min-h-screen p-4 sm:p-6 lg:p-8">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Header -->
+    <header class="bg-slate-800/90 backdrop-blur border border-slate-700 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <div class="flex items-center gap-3">
+          <span class="p-3 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white font-black text-2xl shadow-lg shadow-indigo-500/30">
+            ⚡
+          </span>
+          <div>
+            <h1 class="text-xl sm:text-2xl font-black tracking-tight text-white flex items-center gap-2">
+              Visual Architecture: Self-RAG vs Corrective RAG (CRAG)
+            </h1>
+            <p class="text-xs sm:text-sm text-slate-400">
+              Interactive structural comparison of self-reflection loops vs. confidence-based web search fallback
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <span class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          Self-RAG: 4 Reflection Checkpoints
+        </span>
+        <span class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+          CRAG: 3 Fallback Lanes
+        </span>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <div class="bg-slate-800/80 border border-slate-700/80 rounded-2xl p-1.5 shadow-lg flex flex-wrap gap-1 text-xs sm:text-sm font-semibold">
+      <button onclick="switchView('diagram-selfrag')" id="tab-selfrag" class="tab-btn tab-active px-4 py-2.5 rounded-xl transition flex items-center gap-2">
+        <span>🧠</span> Self-RAG Architecture Diagram
+      </button>
+      <button onclick="switchView('diagram-crag')" id="tab-crag" class="tab-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white transition flex items-center gap-2">
+        <span>🛡️</span> Corrective RAG (CRAG) Diagram
+      </button>
+      <button onclick="switchView('comparison-dual')" id="tab-dual" class="tab-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white transition flex items-center gap-2">
+        <span>⚔️</span> Side-by-Side Dual Diagram
+      </button>
+      <button onclick="switchView('matrix')" id="tab-matrix" class="tab-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white transition flex items-center gap-2">
+        <span>📊</span> Feature Comparison Matrix
+      </button>
+      <button onclick="switchView('decision-guide')" id="tab-guide" class="tab-btn px-4 py-2.5 rounded-xl text-slate-400 hover:text-white transition flex items-center gap-2">
+        <span>🎯</span> When to Use Which?
+      </button>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 1: COLORFUL SELF-RAG ARCHITECTURE DIAGRAM                        -->
+    <!-- ===================================================================== -->
+    <div id="view-diagram-selfrag" class="view-panel space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 lg:p-8 shadow-2xl space-y-8">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700/80 pb-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <span class="text-emerald-400">Self-Reflective RAG (Self-RAG)</span> Architecture
+            </h2>
+            <p class="text-xs text-slate-400">
+              Cyclic state graph featuring adaptive retrieval, relevance grading, hallucination revision loops, and question rewriting.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 font-mono border border-amber-500/30">Reflection Tokens</span>
+            <span class="px-2.5 py-1 rounded-lg bg-rose-500/20 text-rose-300 font-mono border border-rose-500/30">Feedback Loops</span>
+          </div>
+        </div>
+
+        <!-- Visual Canvas -->
+        <div class="relative max-w-5xl mx-auto py-4">
+
+          <!-- LEVEL 1: START & RETRIEVAL DECISION -->
+          <div class="flex flex-col items-center space-y-4">
+            
+            <!-- Node: Start -->
+            <div class="arch-card px-5 py-2.5 rounded-2xl bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-mono text-xs font-black shadow-lg shadow-indigo-500/20 border border-indigo-400/40 flex items-center gap-2">
+              <span>🚀</span> <code>__start__ (User Query)</code>
+            </div>
+
+            <!-- Arrow Down -->
+            <div class="w-0.5 h-6 bg-slate-600"></div>
+
+            <!-- Node: decide_retrieval (Diamond / Evaluator) -->
+            <div class="arch-card max-w-md w-full p-4 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50 glow-amber text-center space-y-1">
+              <div class="flex justify-between items-center text-[11px] font-bold text-amber-300 uppercase tracking-wider">
+                <span>Checkpoint 1</span>
+                <span class="bg-amber-500/30 px-2 py-0.5 rounded text-amber-200 font-mono">[Retrieve?]</span>
+              </div>
+              <h3 class="text-sm font-black text-white">decide_retrieval</h3>
+              <p class="text-[11px] text-slate-300">Does this query require external factual knowledge?</p>
+            </div>
+
+            <!-- Two Branches From decide_retrieval -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-8 pt-2">
+
+              <!-- Left Branch: NO (Direct Generate) -->
+              <div class="flex flex-col items-center space-y-4 border-l-2 border-dashed border-slate-700 pl-4">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/40">
+                  NO (Parametric Memory Sufficient)
+                </span>
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+                <div class="arch-card p-4 rounded-2xl bg-slate-800 border border-slate-600 text-center w-full max-w-xs space-y-1">
+                  <div class="text-[11px] font-bold text-slate-400">Direct Synthesis</div>
+                  <div class="text-sm font-bold text-white">generate_direct</div>
+                  <p class="text-[10px] text-slate-400">LLM generates answer directly from internal training weights.</p>
+                </div>
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+                <div class="arch-card px-4 py-2 rounded-xl bg-slate-700/80 text-slate-300 font-mono text-xs border border-slate-600">
+                  🏁 <code>__end__</code>
+                </div>
+              </div>
+
+              <!-- Right Branch: YES (Retrieve Knowledge) -->
+              <div class="flex flex-col items-center space-y-4">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-black bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">
+                  YES (Needs Knowledge Chunks)
+                </span>
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+
+                <!-- Node: retrieve -->
+                <div class="arch-card max-w-xs w-full p-4 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-500/20 border border-cyan-500/50 glow-blue text-center space-y-1">
+                  <div class="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">Vector Store Query</div>
+                  <h4 class="text-sm font-black text-white">retrieve (d₁, d₂, d₃)</h4>
+                  <p class="text-[10px] text-slate-300">Retrieves candidate document chunks from Vector DB.</p>
+                </div>
+
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+
+                <!-- Node: is_relevant -->
+                <div class="arch-card max-w-xs w-full p-4 rounded-2xl bg-gradient-to-br from-amber-500/20 to-orange-500/20 border-2 border-amber-500/50 glow-amber text-center space-y-1">
+                  <div class="flex justify-between items-center text-[10px] font-bold text-amber-300 uppercase">
+                    <span>Checkpoint 2</span>
+                    <span class="bg-amber-500/30 px-1.5 py-0.5 rounded font-mono">[Is Relevant?]</span>
+                  </div>
+                  <h4 class="text-sm font-black text-white">is_relevant</h4>
+                  <p class="text-[10px] text-slate-300">Grades chunk relevance against query context.</p>
+                </div>
+
+                <!-- Sub-Branching for Relevance -->
+                <div class="w-full flex justify-between gap-4 pt-1">
+                  <!-- Irrelevant Exit -->
+                  <div class="flex flex-col items-center text-center space-y-2">
+                    <span class="text-[10px] font-bold text-rose-400">NO relevant docs</span>
+                    <div class="w-0.5 h-4 bg-slate-600"></div>
+                    <div class="arch-card p-2.5 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                      no_answer_found ➔ __end__
+                    </div>
+                  </div>
+
+                  <!-- Relevant Proceed -->
+                  <div class="flex flex-col items-center text-center space-y-2">
+                    <span class="text-[10px] font-bold text-emerald-400">YES relevant docs</span>
+                    <div class="w-0.5 h-4 bg-slate-600"></div>
+                    <div class="arch-card p-3 rounded-2xl bg-gradient-to-br from-emerald-500/20 to-teal-500/20 border border-emerald-500/50 glow-emerald text-xs space-y-1">
+                      <div class="font-black text-white">generate_from_context</div>
+                      <div class="text-[10px] text-slate-300">Synthesizes draft answer using filtered chunks.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- LEVEL 3: GROUNDING / HALLUCINATION CHECK & REVISION LOOP -->
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+
+                <div class="arch-card max-w-sm w-full p-4 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border-2 border-purple-500/50 text-center space-y-1">
+                  <div class="flex justify-between items-center text-[10px] font-bold text-purple-300 uppercase">
+                    <span>Checkpoint 3 (Grounding)</span>
+                    <span class="bg-purple-500/30 px-1.5 py-0.5 rounded font-mono">[Is Supported?]</span>
+                  </div>
+                  <h4 class="text-sm font-black text-white">is_sup (Hallucination Check)</h4>
+                  <p class="text-[10px] text-slate-300">Are generated facts strictly supported by retrieved context?</p>
+                </div>
+
+                <!-- Loopback: revise_answer -->
+                <div class="w-full p-3 rounded-2xl bg-rose-950/40 border border-rose-500/40 flex items-center justify-between gap-3 text-xs">
+                  <div class="flex items-center gap-2 text-rose-300">
+                    <span class="text-base">🔁</span>
+                    <div>
+                      <span class="font-bold">Unsupported (Hallucination detected)</span>
+                      <p class="text-[10px] text-rose-200/70">Routes to <code>revise_answer</code> and re-tests <code>is_sup</code></p>
+                    </div>
+                  </div>
+                  <span class="px-2 py-1 rounded bg-rose-500/20 text-rose-200 font-mono text-[10px] font-bold">Feedback Loop</span>
+                </div>
+
+                <!-- LEVEL 4: UTILITY & QUESTION REWRITING LOOP -->
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+
+                <div class="arch-card max-w-sm w-full p-4 rounded-2xl bg-gradient-to-br from-amber-500/20 to-yellow-500/20 border-2 border-amber-500/50 glow-amber text-center space-y-1">
+                  <div class="flex justify-between items-center text-[10px] font-bold text-amber-300 uppercase">
+                    <span>Checkpoint 4 (Utility)</span>
+                    <span class="bg-amber-500/30 px-1.5 py-0.5 rounded font-mono">[Is Useful?]</span>
+                  </div>
+                  <h4 class="text-sm font-black text-white">is_use (Accept / Rewrite)</h4>
+                  <p class="text-[10px] text-slate-300">Does the final text resolve user query completely and helpfully?</p>
+                </div>
+
+                <!-- Rewrite Query Loopback Banner -->
+                <div class="w-full p-3.5 rounded-2xl bg-indigo-950/50 border border-indigo-500/40 flex items-center justify-between gap-3 text-xs">
+                  <div class="flex items-center gap-2 text-indigo-300">
+                    <span class="text-base">🔄</span>
+                    <div>
+                      <span class="font-bold">Not Useful ➔ rewrite_question</span>
+                      <p class="text-[10px] text-indigo-200/70">Reformulates query and loops all the way back to <code>retrieve</code></p>
+                    </div>
+                  </div>
+                  <span class="px-2 py-1 rounded bg-indigo-500/30 text-indigo-200 font-mono text-[10px] font-bold">Outer Loop</span>
+                </div>
+
+                <div class="w-0.5 h-6 bg-slate-600"></div>
+
+                <!-- Verified Success -->
+                <div class="arch-card px-6 py-3 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black text-xs shadow-lg shadow-emerald-500/20 flex items-center gap-2">
+                  <span>✅</span> <code>accept_answer ➔ __end__ (Grounded & Useful)</code>
+                </div>
+
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 2: COLORFUL CORRECTIVE RAG (CRAG) ARCHITECTURE DIAGRAM           -->
+    <!-- ===================================================================== -->
+    <div id="view-diagram-crag" class="view-panel hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 lg:p-8 shadow-2xl space-y-8">
+        
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 border-b border-slate-700/80 pb-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <span class="text-cyan-400">Corrective RAG (CRAG)</span> Architecture
+            </h2>
+            <p class="text-xs text-slate-400">
+              Decoupled confidence scoring with automated tri-branch routing: Internal Refinement, Web Search Fallback, and Hybrid Fusion.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs">
+            <span class="px-2.5 py-1 rounded-lg bg-cyan-500/20 text-cyan-300 font-mono border border-cyan-500/30">Retrieval Evaluator</span>
+            <span class="px-2.5 py-1 rounded-lg bg-blue-500/20 text-blue-300 font-mono border border-blue-500/30">Web Fallback</span>
+          </div>
+        </div>
+
+        <!-- Visual Canvas -->
+        <div class="relative max-w-5xl mx-auto py-4 space-y-6">
+
+          <!-- INGESTION & RETRIEVAL EVALUATOR -->
+          <div class="flex flex-col items-center space-y-4">
+            
+            <div class="flex items-center gap-3">
+              <div class="arch-card px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-600 text-slate-200 text-xs font-bold shadow">
+                👤 User Query
+              </div>
+              <span class="text-slate-500 font-mono">➔</span>
+              <div class="arch-card px-4 py-2.5 rounded-2xl bg-gradient-to-r from-blue-600 to-cyan-600 text-white text-xs font-bold shadow-lg shadow-blue-500/20">
+                🗄️ Vector Database Retrieval
+              </div>
+            </div>
+
+            <div class="w-0.5 h-6 bg-slate-600"></div>
+
+            <!-- Central Hub: Retrieval Evaluator -->
+            <div class="arch-card max-w-xl w-full p-5 rounded-3xl bg-gradient-to-br from-indigo-900/60 to-slate-900/80 border-2 border-indigo-500 glow-blue text-center space-y-3">
+              <div class="flex justify-between items-center text-xs font-bold text-indigo-300 uppercase">
+                <span class="flex items-center gap-1.5"><span>⚖️</span> Retrieval Evaluator (Lightweight Model / T5)</span>
+                <span class="bg-indigo-500/30 px-2 py-0.5 rounded text-indigo-200 font-mono">Confidence Scoring</span>
+              </div>
+              <h3 class="text-base font-black text-white">Evaluates Retrieved Chunks vs Query</h3>
+              
+              <!-- Confidence Gauge Scale -->
+              <div class="grid grid-cols-3 gap-2 text-center text-[10px] pt-1">
+                <div class="p-2 rounded-xl bg-red-500/20 border border-red-500/40 text-red-300 font-mono font-bold">
+                  Score &le; Lower Bound<br><span class="text-[9px] uppercase font-sans text-red-400">Irrelevant / Incorrect</span>
+                </div>
+                <div class="p-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 font-mono font-bold">
+                  Lower &lt; Score &lt; Upper<br><span class="text-[9px] uppercase font-sans text-amber-400">Ambiguous</span>
+                </div>
+                <div class="p-2 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 font-mono font-bold">
+                  Score &ge; Upper Bound<br><span class="text-[9px] uppercase font-sans text-emerald-400">Relevant / Correct</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- TRI-BRANCH LANES -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-4">
+
+            <!-- LANE 1: RELEVANT (CORRECT) -->
+            <div class="arch-card p-5 rounded-3xl bg-emerald-950/30 border-2 border-emerald-500/40 space-y-4 flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-emerald-400 uppercase tracking-wider">Lane 1: Correct</span>
+                  <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono font-bold">Internal</span>
+                </div>
+                <h4 class="text-sm font-bold text-white">Knowledge Refinement</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Extracts internal document chunks, decomposes them into sentences, filters out noise, and bundles key facts.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/60 border border-emerald-500/30 text-[11px] text-emerald-300 space-y-1">
+                <div class="font-bold flex items-center gap-1"><span>✂️</span> Sentence Stripping</div>
+                <div class="text-[10px] text-slate-400">Removes irrelevant filler, preserves high-signal context.</div>
+              </div>
+            </div>
+
+            <!-- LANE 2: IRRELEVANT (INCORRECT) -->
+            <div class="arch-card p-5 rounded-3xl bg-red-950/30 border-2 border-red-500/40 space-y-4 flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-rose-400 uppercase tracking-wider">Lane 2: Incorrect</span>
+                  <span class="px-2 py-0.5 rounded bg-rose-500/20 text-rose-300 text-[10px] font-mono font-bold">External Fallback</span>
+                </div>
+                <h4 class="text-sm font-bold text-white">Web Search Engine Fallback</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Internal knowledge is discarded. Triggers automated web search (Google / Bing) to retrieve live, accurate public documents.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/60 border border-red-500/30 text-[11px] text-rose-300 space-y-1">
+                <div class="font-bold flex items-center gap-1"><span>🌐</span> External Search API</div>
+                <div class="text-[10px] text-slate-400">Rewrites query into search terms ➔ queries web ➔ extracts snippets.</div>
+              </div>
+            </div>
+
+            <!-- LANE 3: AMBIGUOUS -->
+            <div class="arch-card p-5 rounded-3xl bg-amber-950/30 border-2 border-amber-500/40 space-y-4 flex flex-col justify-between">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-black text-amber-400 uppercase tracking-wider">Lane 3: Ambiguous</span>
+                  <span class="px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 text-[10px] font-mono font-bold">Hybrid Fusion</span>
+                </div>
+                <h4 class="text-sm font-bold text-white">Knowledge Fusion</h4>
+                <p class="text-xs text-slate-300 leading-relaxed">
+                  Retrieval evaluator is uncertain. Combines refined internal chunks alongside complementary web search results.
+                </p>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-900/60 border border-amber-500/30 text-[11px] text-amber-300 space-y-1">
+                <div class="font-bold flex items-center gap-1"><span>🔀</span> Dual-Source Synthesis</div>
+                <div class="text-[10px] text-slate-400">Merges internal + external context to ensure complete coverage.</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- SYNTHESIS & OUTPUT -->
+          <div class="flex flex-col items-center pt-2 space-y-3">
+            <div class="w-0.5 h-6 bg-slate-600"></div>
+            
+            <div class="arch-card max-w-md w-full p-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 text-center text-white shadow-xl shadow-indigo-500/20 border border-indigo-400 space-y-1">
+              <div class="text-[10px] uppercase tracking-wider text-indigo-200 font-bold">Final Synthesis Node</div>
+              <h3 class="text-sm font-black">Generator LLM</h3>
+              <p class="text-[11px] text-indigo-100">Produces response conditioned exclusively on vetted context.</p>
+            </div>
+
+            <div class="w-0.5 h-6 bg-slate-600"></div>
+
+            <div class="arch-card px-6 py-2.5 rounded-xl bg-emerald-500/20 border border-emerald-500/50 text-emerald-300 text-xs font-mono font-black flex items-center gap-2">
+              <span>🎯</span> Response Delivered (Zero Hallucination / Rescued Retrieval)
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 3: SIDE-BY-SIDE DUAL DIAGRAM                                     -->
+    <!-- ===================================================================== -->
+    <div id="view-comparison-dual" class="view-panel hidden space-y-6">
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Mini Self-RAG Flow -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+            <h3 class="text-base font-black text-emerald-400 flex items-center gap-2">
+              <span>🧠</span> Self-RAG Flow Pipeline
+            </h3>
+            <span class="text-[10px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded font-mono font-bold">State Machine</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>1. Adaptive Retrieval</span>
+              <span class="text-amber-400 font-mono font-bold">[decide_retrieval]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>2. Candidate Fetch</span>
+              <span class="text-cyan-400 font-mono font-bold">[retrieve (d₁, d₂, d₃)]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>3. Relevance Filter</span>
+              <span class="text-amber-400 font-mono font-bold">[is_relevant]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>4. Draft Generation</span>
+              <span class="text-emerald-400 font-mono font-bold">[generate_from_context]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 flex justify-between items-center text-rose-300">
+              <span>5. Grounding Check & Fix</span>
+              <span class="font-mono font-bold">[is_sup ➔ revise_answer]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/40 flex justify-between items-center text-indigo-300">
+              <span>6. Utility Check & Rewrite</span>
+              <span class="font-mono font-bold">[is_use ➔ rewrite_question]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex justify-between items-center text-emerald-300 font-bold">
+              <span>7. Final Acceptance</span>
+              <span class="font-mono">[accept_answer ➔ __end__]</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mini CRAG Flow -->
+        <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+            <h3 class="text-base font-black text-cyan-400 flex items-center gap-2">
+              <span>🛡️</span> CRAG Flow Pipeline
+            </h3>
+            <span class="text-[10px] bg-cyan-500/20 text-cyan-300 px-2 py-0.5 rounded font-mono font-bold">Tri-Branch DAG</span>
+          </div>
+
+          <div class="space-y-2.5 text-xs">
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>1. Vector DB Search</span>
+              <span class="text-cyan-400 font-mono font-bold">[Initial Retrieval]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-indigo-950/40 border border-indigo-500/40 flex justify-between items-center text-indigo-300">
+              <span>2. Confidence Scoring</span>
+              <span class="font-mono font-bold">[Retrieval Evaluator]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex justify-between items-center text-emerald-300">
+              <span>3a. If Score &ge; Upper</span>
+              <span class="font-mono font-bold">[Knowledge Refinement]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-rose-950/40 border border-rose-500/40 flex justify-between items-center text-rose-300">
+              <span>3b. If Score &le; Lower</span>
+              <span class="font-mono font-bold">[External Web Search Fallback]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-amber-950/40 border border-amber-500/40 flex justify-between items-center text-amber-300">
+              <span>3c. If Lower &lt; Score &lt; Upper</span>
+              <span class="font-mono font-bold">[Hybrid Knowledge Fusion]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-900 border border-slate-700 flex justify-between items-center">
+              <span>4. Context Bundling</span>
+              <span class="text-purple-400 font-mono font-bold">[Clean Prompt Assembly]</span>
+            </div>
+            <div class="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex justify-between items-center text-emerald-300 font-bold">
+              <span>5. Generation</span>
+              <span class="font-mono">[Generator LLM ➔ Response]</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 4: FEATURE COMPARISON MATRIX                                     -->
+    <!-- ===================================================================== -->
+    <div id="view-matrix" class="view-panel hidden space-y-6">
+      <div class="bg-slate-800/90 border border-slate-700 rounded-3xl p-6 shadow-2xl space-y-4">
+        <div>
+          <h2 class="text-lg font-black text-white">Full Architectural Feature Matrix</h2>
+          <p class="text-xs text-slate-400">Head-to-head comparison across execution patterns, latency, and failure handling.</p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="bg-slate-900 border-b border-slate-700 text-slate-400 uppercase tracking-wider text-[11px]">
+                <th class="p-3.5">Architectural Dimension</th>
+                <th class="p-3.5 text-emerald-400">Self-RAG (Self-Reflective)</th>
+                <th class="p-3.5 text-cyan-400">Corrective RAG (CRAG)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-700/60 text-slate-200">
+              <tr>
+                <td class="p-3.5 font-bold text-white">Core Philosophy</td>
+                <td class="p-3.5">Internal self-criticism & iterative correction loops.</td>
+                <td class="p-3.5">Decoupled evaluation & external knowledge fallback.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Handling Bad/Missing Retrieval</td>
+                <td class="p-3.5">Reformulates query (<code class="text-indigo-300">rewrite_question</code>) or aborts.</td>
+                <td class="p-3.5">Executes <b>External Web Search</b> (Google / Bing).</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Evaluator Role</td>
+                <td class="p-3.5">LLM itself evaluates via 4 specialized reflection tokens.</td>
+                <td class="p-3.5">Dedicated, lightweight evaluator model scoring confidence.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Document Granularity</td>
+                <td class="p-3.5">Chunk-level relevance grading.</td>
+                <td class="p-3.5">Sentence-level fine-grained <b>Knowledge Refinement</b>.</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Execution Topology</td>
+                <td class="p-3.5"><b>Cyclic State Graph</b> (loops on revise & rewrite).</td>
+                <td class="p-3.5"><b>Acyclic Directed Graph (DAG)</b> (tri-branch routing).</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Latency Profile</td>
+                <td class="p-3.5">Variable & higher (multiple LLM inferences per query).</td>
+                <td class="p-3.5">Predictable (fast internal, extra latency only on web search).</td>
+              </tr>
+              <tr>
+                <td class="p-3.5 font-bold text-white">Air-Gapped / Offline Use</td>
+                <td class="p-3.5"><span class="text-emerald-400 font-bold">✓ 100% Offline Compatible</span></td>
+                <td class="p-3.5"><span class="text-amber-400 font-bold">Requires Web Search API</span> for full corrective power</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- VIEW 5: WHEN TO USE WHICH? (DECISION GUIDE)                           -->
+    <!-- ===================================================================== -->
+    <div id="view-decision-guide" class="view-panel hidden space-y-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- When Self-RAG -->
+        <div class="bg-slate-800/90 border-2 border-emerald-500/40 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-2.5 text-emerald-400 font-black text-lg">
+            <span>🧠</span> When to Choose Self-RAG
+          </div>
+          <ul class="text-xs space-y-3 text-slate-300">
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold text-sm">✓</span>
+              <span><b>Strict Zero-Hallucination Mandates:</b> High-stakes regulatory domains (clinical diagnosis, financial auditing, contract law) where ungrounded claims are unacceptable.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold text-sm">✓</span>
+              <span><b>Confidential & Air-Gapped Data:</b> Internal enterprise knowledge bases where queries and documents cannot leave the private VPC to query Google/Bing.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-emerald-400 font-bold text-sm">✓</span>
+              <span><b>Complex Multi-Turn Reasoning:</b> Queries where initial retrieval often misses nuance and actively benefits from self-directed question rewriting.</span>
+            </li>
+          </ul>
+        </div>
+
+        <!-- When CRAG -->
+        <div class="bg-slate-800/90 border-2 border-cyan-500/40 rounded-3xl p-6 shadow-xl space-y-4">
+          <div class="flex items-center gap-2.5 text-cyan-400 font-black text-lg">
+            <span>🛡️</span> When to Choose Corrective RAG (CRAG)
+          </div>
+          <ul class="text-xs space-y-3 text-slate-300">
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 font-bold text-sm">✓</span>
+              <span><b>Incomplete or Evolving Knowledge Bases:</b> When your internal vector store does not contain all answers and web search fallback prevents "I don't know" responses.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 font-bold text-sm">✓</span>
+              <span><b>Noisy / Low-Signal Chunks:</b> Large corporate PDFs with boilerplate where sentence-level Knowledge Refinement prevents context pollution.</span>
+            </li>
+            <li class="flex items-start gap-2">
+              <span class="text-cyan-400 font-bold text-sm">✓</span>
+              <span><b>Public Customer Support & Market Research:</b> Public bots that need to answer questions about competitors, live product updates, and current trends.</span>
+            </li>
+          </ul>
+        </div>
+
+      </div>
+
+      <!-- Quick Executive Takeaway -->
+      <div class="p-5 rounded-3xl bg-gradient-to-r from-indigo-900/60 to-purple-900/60 border border-indigo-500/40 text-xs text-slate-200 space-y-1.5">
+        <h4 class="font-black text-sm text-indigo-300 flex items-center gap-1.5">
+          <span>⚡</span> Executive Takeaway
+        </h4>
+        <p class="leading-relaxed">
+          Use <b>Self-RAG</b> if your primary threat is <b>hallucination over private internal documents</b>.<br>
+          Use <b>Corrective RAG (CRAG)</b> if your primary threat is <b>retrieval failure and knowledge gaps</b> that require automated web fallback.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    function switchView(viewId) {
+      document.querySelectorAll('.view-panel').forEach(el => el.classList.add('hidden'));
+      document.getElementById('view-' + viewId.replace('view-', '')).classList.remove('hidden');
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('tab-active');
+        btn.classList.add('text-slate-400');
+      });
+
+      const tabMap = {
+        'diagram-selfrag': 'tab-selfrag',
+        'diagram-crag': 'tab-crag',
+        'comparison-dual': 'tab-dual',
+        'matrix': 'tab-matrix',
+        'decision-guide': 'tab-guide'
+      };
+
+      const activeBtn = document.getElementById(tabMap[viewId]);
+      if (activeBtn) {
+        activeBtn.classList.add('tab-active');
+        activeBtn.classList.remove('text-slate-400');
+      }
+    }
+  </script>
+</body>
+</html>
