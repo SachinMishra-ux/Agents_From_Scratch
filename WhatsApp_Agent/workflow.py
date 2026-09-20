@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, END, add_messages
@@ -10,16 +11,18 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 
 load_dotenv(override=True)
 
-def get_groq_llm():
-    return ChatOpenAI(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        base_url="https://api.groq.com/openai/v1",
-        api_key=os.getenv("GROQ_API_KEY"),
-        temperature=0.7,
-        max_tokens=2000
-    )
+# def get_groq_llm():
+#     return ChatOpenAI(
+#         model="openai/gpt-oss-120b",
+#         base_url="https://api.groq.com/openai/v1",
+#         api_key=os.getenv("GROQ_API_KEY"),
+#         temperature=0.7,
+#         max_tokens=2000
+#     )
 
-llm = get_groq_llm()
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)   
+
+# llm = get_groq_llm()
 
 sqlite_conn = sqlite3.connect(
     "whatsapp_bot_memory.sqlite",

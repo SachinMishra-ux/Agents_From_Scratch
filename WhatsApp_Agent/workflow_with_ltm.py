@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 import os
 import sqlite3
 
+from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
 from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import StateGraph, END, add_messages
@@ -18,16 +19,8 @@ load_dotenv(override=True)
 # -----------------------------
 # LLM
 # -----------------------------
-def get_groq_llm():
-    return ChatOpenAI(
-        model="meta-llama/llama-4-scout-17b-16e-instruct",
-        base_url="https://api.groq.com/openai/v1",
-        api_key=os.getenv("GROQ_API_KEY"),
-        temperature=0.7,
-        max_tokens=2000
-    )
+llm = ChatGoogleGenerativeAI(model="gemini-2.5-flash", temperature=0)  
 
-llm = get_groq_llm()
 
 # -----------------------------
 # Short-term memory (chat)
@@ -87,6 +80,19 @@ def chat_agent(state: WhatsAppState, config):
 def vision_agent(state: WhatsAppState, config):
     last_user_message = state["messages"][-1].content
 
+    user_id = config["configurable"]["thread_id"]
+
+    memories = read_user_memory(user_id, limit=5)
+    memory_text = "\n".join(m.value["data"] for m in memories) if memories else "None"
+    
+    system_msg = SystemMessage(
+        content=SYSTEM_PROMPT.format(memory=memory_text)
+    )
+
+    last_user_message_with_memory = system_msg+last_user_message
+        
+    
+
     response = llm.invoke([
         {
             "role": "user",
@@ -97,7 +103,7 @@ def vision_agent(state: WhatsAppState, config):
                 },
                 {
                     "type": "text",
-                    "text": last_user_message or "Describe this image"
+                    "text": last_user_message_with_memory or "Describe this image"
                 }
             ]
         }
