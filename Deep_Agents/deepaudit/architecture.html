@@ -1,0 +1,1209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepAudit-AI | Enterprise Multi-Agent Architecture Guide</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <!-- Google Fonts Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#070b14',
+                            900: '#0c1322',
+                            850: '#111a30',
+                            800: '#172340',
+                            700: '#213259',
+                            600: '#2f4577',
+                        },
+                        amber: {
+                            450: '#f59e0b',
+                            500: '#d97706',
+                        },
+                        cyan: {
+                            450: '#06b6d4',
+                            500: '#0891b2',
+                        },
+                        purple: {
+                            450: '#a855f7',
+                            500: '#9333ea',
+                        },
+                        emerald: {
+                            450: '#10b981',
+                            500: '#059669',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background: #070b14;
+            color: #f1f5f9;
+        }
+
+        /* Ambient Glow & Card Accents */
+        .card-executive {
+            background: linear-gradient(180deg, rgba(17, 26, 48, 0.85) 0%, rgba(12, 19, 34, 0.95) 100%);
+            border: 1px solid rgba(47, 69, 119, 0.45);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .card-executive:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+        }
+
+        .pill-active {
+            box-shadow: 0 0 15px -3px rgba(6, 182, 212, 0.4);
+        }
+
+        .glow-amber {
+            box-shadow: 0 0 35px -5px rgba(245, 158, 11, 0.25);
+            border-color: #f59e0b !important;
+        }
+
+        .glow-cyan {
+            box-shadow: 0 0 35px -5px rgba(6, 182, 212, 0.25);
+            border-color: #06b6d4 !important;
+        }
+
+        .glow-purple {
+            box-shadow: 0 0 35px -5px rgba(168, 85, 247, 0.25);
+            border-color: #a855f7 !important;
+        }
+
+        .glow-emerald {
+            box-shadow: 0 0 35px -5px rgba(16, 185, 129, 0.25);
+            border-color: #10b981 !important;
+        }
+
+        /* Flow pulse line */
+        @keyframes flowPulse {
+            0% { transform: translateY(-100%); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(200%); opacity: 0; }
+        }
+
+        .animate-flow-line {
+            animation: flowPulse 2.5s infinite linear;
+        }
+
+        /* Smooth scrollbars */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #070b14; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased text-base selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Executive Navigation Bar -->
+    <header class="border-b border-navy-700/60 bg-navy-950/90 backdrop-blur-md sticky top-0 z-50 px-6 py-4">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4">
+                <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-amber-500 via-purple-600 to-cyan-500 flex items-center justify-center text-white text-xl shadow-lg shadow-cyan-500/10">
+                    <i class="fa-solid fa-layer-group"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-lg tracking-tight text-white">DeepAudit<span class="text-cyan-400">AI</span></span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">Executive Architecture Guide</span>
+                        <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-300 border border-emerald-500/30">Enterprise Ready</span>
+                    </div>
+                    <p class="text-xs text-slate-400 mt-0.5">Autonomous Corporate Financial Due Diligence & Multi-Agent Forensic Architecture</p>
+                </div>
+            </div>
+
+            <!-- View Switchers & Dashboard Link -->
+            <div class="flex items-center gap-3">
+                <a href="/" class="px-4 py-2 rounded-lg text-xs font-semibold text-slate-200 bg-navy-800 hover:bg-navy-700 border border-navy-700 transition flex items-center gap-2 shadow-sm">
+                    <i class="fa-solid fa-terminal text-emerald-400"></i>
+                    <span>Live Audit Dashboard</span>
+                </a>
+                <div class="h-5 w-px bg-navy-700 hidden sm:block"></div>
+                <!-- Navigation Tabs -->
+                <div class="flex bg-navy-900 border border-navy-700/80 rounded-lg p-1 text-xs font-medium text-slate-300">
+                    <button onclick="switchTab('concept')" id="tab-btn-concept" class="px-3.5 py-1.5 rounded-md bg-cyan-500/20 text-cyan-300 font-bold transition">Mental Model</button>
+                    <button onclick="switchTab('diagram')" id="tab-btn-diagram" class="px-3.5 py-1.5 rounded-md hover:text-white transition">Architecture</button>
+                    <button onclick="switchTab('journey')" id="tab-btn-journey" class="px-3.5 py-1.5 rounded-md hover:text-white transition">7-Step Journey</button>
+                    <button onclick="switchTab('analyst')" id="tab-btn-analyst" class="px-3.5 py-1.5 rounded-md hover:text-white transition">Analyst Formulas</button>
+                    <button onclick="switchTab('matrix')" id="tab-btn-matrix" class="px-3.5 py-1.5 rounded-md hover:text-white transition">Agent Matrix</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 md:p-8 space-y-8">
+
+        <!-- ====================================================================== -->
+        <!-- TAB 1: THE MENTAL MODEL (EXECUTIVE & STUDENT INTRO) -->
+        <!-- ====================================================================== -->
+        <section id="tab-concept" class="space-y-8">
+            
+            <!-- Hero Introduction Banner -->
+            <div class="card-executive rounded-2xl p-8 relative overflow-hidden">
+                <div class="absolute -right-20 -top-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="max-w-4xl space-y-4">
+                    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/10 text-amber-300 border border-amber-500/30">
+                        <i class="fa-solid fa-lightbulb"></i> How to Explain This System to Your Team
+                    </div>
+                    <h1 class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight leading-tight">
+                        Think of DeepAudit-AI not as a single AI chatbot,<br/>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-amber-400 via-cyan-400 to-purple-400">but as a Real Wall Street Audit Deal Team.</span>
+                    </h1>
+                    <p class="text-base sm:text-lg text-slate-300 leading-relaxed">
+                        In a prestigious corporate audit or private equity acquisition, <strong>one person never does everything</strong>. 
+                        A Managing Partner plans and synthesizes, specialized analysts perform deep mathematical formulas in private spreadsheets, and an Investment Committee holds final approval.
+                    </p>
+                </div>
+            </div>
+
+            <!-- The Real-World Team Analogy (4 Visual Cards) -->
+            <div class="space-y-4">
+                <h2 class="text-xl font-bold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-people-group text-cyan-400"></i>
+                    The 4 Roles in the DeepAudit Deal Team
+                </h2>
+                <p class="text-sm text-slate-400">Each agent mirrors an indispensable human member of an institutional financial diligence committee.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 pt-2">
+                    
+                    <!-- Role 1: Managing Partner -->
+                    <div class="card-executive rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-amber-400 hover:glow-amber transition-all">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-crown"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-xs font-mono font-bold text-amber-400 uppercase tracking-wide">The Managing Partner</span>
+                                <h3 class="text-lg font-bold text-white">Lead Forensic Orchestrator</h3>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Formulates the 7-step audit plan, coordinates subagents, scans for regulatory fines, and writes the boardroom deal memorandum.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-navy-700/60 mt-4 space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>AI Brain:</span>
+                                <span class="font-mono font-bold text-white">Gemini 2.5 Pro</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>Key Trait:</span>
+                                <span class="text-amber-300 font-semibold">Strategic Planning</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role 2: Quant Analyst -->
+                    <div class="card-executive rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-cyan-400 hover:glow-cyan transition-all">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-calculator"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-wide">The Quant Associate</span>
+                                <h3 class="text-lg font-bold text-white">Quant Solvency Auditor</h3>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Pulls 3-year balance sheets, calculates the <strong>Altman Z-Score</strong> for bankruptcy distress, and checks Basel III CET1 capital adequacy.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-navy-700/60 mt-4 space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>AI Brain:</span>
+                                <span class="font-mono font-bold text-white">Gemini 2.5 Flash</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>Key Trait:</span>
+                                <span class="text-cyan-300 font-semibold">Bankruptcy Math</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role 3: Forensic Investigator -->
+                    <div class="card-executive rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-purple-400 hover:glow-purple transition-all">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-purple-500/20 text-purple-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-xs font-mono font-bold text-purple-400 uppercase tracking-wide">The Forensic Detective</span>
+                                <h3 class="text-lg font-bold text-white">Accruals & Manipulation Auditor</h3>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                Checks if reported profits are backed by actual cold cash. Calculates the <strong>Sloan Accrual Anomaly</strong> and <strong>Beneish M-Score</strong> indices.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-navy-700/60 mt-4 space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>AI Brain:</span>
+                                <span class="font-mono font-bold text-white">Gemini 2.5 Flash</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>Key Trait:</span>
+                                <span class="text-purple-300 font-semibold">Fraud & Accrual Check</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Role 4: Investment Committee (Human) -->
+                    <div class="card-executive rounded-2xl p-6 flex flex-col justify-between border-t-4 border-t-emerald-400 hover:glow-emerald transition-all">
+                        <div class="space-y-3">
+                            <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                                <i class="fa-solid fa-user-shield"></i>
+                            </div>
+                            <div class="space-y-0.5">
+                                <span class="text-xs font-mono font-bold text-emerald-400 uppercase tracking-wide">The Investment Committee</span>
+                                <h3 class="text-lg font-bold text-white">Human-in-the-Loop Auditor</h3>
+                            </div>
+                            <p class="text-sm text-slate-300 leading-relaxed">
+                                The human safety barrier. Reviews the generated deal memo, edits numbers or sentences directly, or instructs the AI to re-investigate before sign-off.
+                            </p>
+                        </div>
+                        <div class="pt-4 border-t border-navy-700/60 mt-4 space-y-2 text-xs">
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>Authority:</span>
+                                <span class="font-mono font-bold text-emerald-300">Final Decision Maker</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-400">
+                                <span>Safety:</span>
+                                <span class="text-emerald-300 font-semibold">Zero Unchecked AI</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- Why Monolithic AI Fails (The Technical Rationale in Plain English) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                
+                <div class="bg-red-950/20 border border-red-500/30 rounded-2xl p-6 space-y-3">
+                    <div class="flex items-center gap-2 text-red-400 font-bold text-base">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span>The Flaw with Single "All-in-One" AI Agents</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        If you feed a 300-page 10-K report into a single LLM prompt and ask it to do math, plan tasks, search the web, and write a memo all at once:
+                    </p>
+                    <ul class="space-y-2 text-sm text-slate-400 list-disc list-inside">
+                        <li><strong>Context Window Dilution:</strong> The LLM loses track of early instructions.</li>
+                        <li><strong>Arithmetic Hallucinations:</strong> LLMs are language models; they miscalculate complex formulas when drowning in text.</li>
+                        <li><strong>Token Waste:</strong> Storing hundreds of raw database rows bloats every single subsequent prompt iteration.</li>
+                    </ul>
+                </div>
+
+                <div class="bg-emerald-950/20 border border-emerald-500/30 rounded-2xl p-6 space-y-3">
+                    <div class="flex items-center gap-2 text-emerald-400 font-bold text-base">
+                        <i class="fa-solid fa-circle-check"></i>
+                        <span>The DeepAudit-AI Solution: Context Isolation</span>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        By delegating tasks to subagents running in isolated private scratchpads:
+                    </p>
+                    <ul class="space-y-2 text-sm text-slate-400 list-disc list-inside">
+                        <li><strong>Deterministic Math:</strong> Calculations are computed by verified Python code, not guessed by an LLM.</li>
+                        <li><strong>Clean Executive Memory:</strong> The Lead Orchestrator only receives a crisp 3-4 bullet synthesis. Raw tables are discarded.</li>
+                        <li><strong>Unshakable Focus:</strong> The Orchestrator stays at ~2,000 tokens, maintaining perfect reasoning and clarity.</li>
+                    </ul>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================================================== -->
+        <!-- TAB 2: INTERACTIVE ARCHITECTURE DIAGRAM -->
+        <!-- ====================================================================== -->
+        <section id="tab-diagram" class="hidden space-y-8">
+
+            <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                        <i class="fa-solid fa-sitemap text-cyan-400"></i>
+                        System Architecture & Component Inspector
+                    </h2>
+                    <p class="text-sm text-slate-400 mt-1">Click any component card below to inspect its operational responsibilities, tools, and context isolation boundary.</p>
+                </div>
+                <div class="text-xs font-mono text-slate-400 bg-navy-900 border border-navy-700 px-3 py-1.5 rounded-lg">
+                    <span>Active Protocol:</span> <span class="text-cyan-400 font-bold">FastMCP & LangGraph</span>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                
+                <!-- Main Diagram Canvas (7 Cols) -->
+                <div class="lg:col-span-7 space-y-6">
+
+                    <!-- Level 1: User & Interface -->
+                    <div onclick="showDetail('ui')" class="cursor-pointer card-executive rounded-2xl p-5 hover:border-emerald-500/60 transition group">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg">
+                                    <i class="fa-solid fa-desktop"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-mono font-bold text-emerald-400 uppercase">Layer 1: User Interface</div>
+                                    <h3 class="text-base font-bold text-white group-hover:text-emerald-300 transition">Bloomberg-Style Audit Dashboard</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono px-2.5 py-1 rounded bg-navy-900 text-slate-400 border border-navy-700">Port 8000</span>
+                        </div>
+                        <p class="text-xs text-slate-300 mt-3">Live execution terminal, real-time agent glow indicators, dynamic checklist, and interactive report editor.</p>
+                    </div>
+
+                    <!-- Flow Arrow Down -->
+                    <div class="flex justify-center -my-3">
+                        <div class="px-3 py-1 rounded-full bg-navy-900 border border-navy-700 text-xs font-mono text-slate-400 flex items-center gap-2">
+                            <i class="fa-solid fa-arrow-down text-cyan-400"></i> SSE Streaming & REST API
+                        </div>
+                    </div>
+
+                    <!-- Level 2: Lead Orchestrator -->
+                    <div onclick="showDetail('orch')" class="cursor-pointer card-executive rounded-2xl p-6 border-2 border-amber-500/50 glow-amber hover:border-amber-400 transition group">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <div class="w-12 h-12 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-2xl font-bold">
+                                    <i class="fa-solid fa-crown"></i>
+                                </div>
+                                <div>
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-mono font-bold text-amber-400 uppercase">Lead Orchestrator</span>
+                                        <span class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">Gemini 2.5 Pro</span>
+                                    </div>
+                                    <h3 class="text-lg font-bold text-white group-hover:text-amber-300 transition">DeepAudit-AI Autonomous Controller</h3>
+                                </div>
+                            </div>
+                            <span class="text-xs font-mono text-amber-300 bg-amber-500/10 border border-amber-500/30 px-2.5 py-1 rounded-full font-bold">Central Coordinator</span>
+                        </div>
+
+                        <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                            Directs the entire investigation. Maintains the high-level roadmap, queries corporate profiles, delegates deep analytics to subagents via <code class="text-cyan-300 font-mono text-xs">task()</code>, and compiles the final due diligence memo.
+                        </p>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs font-mono">
+                            <div class="bg-navy-900/80 p-2 rounded border border-navy-700 text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-list-check text-amber-400"></i> write_todos
+                            </div>
+                            <div class="bg-navy-900/80 p-2 rounded border border-navy-700 text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-share-nodes text-cyan-400"></i> task() (Delegate)
+                            </div>
+                            <div class="bg-navy-900/80 p-2 rounded border border-navy-700 text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-globe text-blue-400"></i> web_search
+                            </div>
+                            <div class="bg-navy-900/80 p-2 rounded border border-navy-700 text-slate-300 flex items-center gap-1.5">
+                                <i class="fa-solid fa-file-pen text-emerald-400"></i> write_file (HITL)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Flow Arrow Down (Split) -->
+                    <div class="flex justify-center -my-3">
+                        <div class="px-3 py-1 rounded-full bg-navy-900 border border-navy-700 text-xs font-mono text-purple-400 flex items-center gap-2">
+                            <i class="fa-solid fa-arrows-split-up-and-left rotate-180"></i> Dispatches to Isolated Subagents
+                        </div>
+                    </div>
+
+                    <!-- Level 3: The 2 Specialized Subagents -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        
+                        <!-- SubAgent 1: Quant -->
+                        <div onclick="showDetail('quant')" class="cursor-pointer card-executive rounded-2xl p-5 border-2 border-cyan-500/40 hover:glow-cyan transition group">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-10 h-10 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-calculator"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-mono text-cyan-400 font-bold uppercase">SubAgent 1</div>
+                                        <h4 class="text-sm font-bold text-white group-hover:text-cyan-300 transition">Quant Solvency Auditor</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                                Focuses purely on bankruptcy risk, liquidity, and regulatory capital:
+                            </p>
+                            <div class="space-y-1.5 text-xs font-mono">
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-cyan-300">
+                                    &bull; calculate_altman_z_score
+                                </div>
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-cyan-300">
+                                    &bull; calculate_cfo_quality_ratio
+                                </div>
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-slate-300">
+                                    &bull; query_financial_db (SQL)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SubAgent 2: Accrual Forensic -->
+                        <div onclick="showDetail('accrual')" class="cursor-pointer card-executive rounded-2xl p-5 border-2 border-purple-500/40 hover:glow-purple transition group">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-2.5">
+                                    <div class="w-10 h-10 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center text-lg">
+                                        <i class="fa-solid fa-magnifying-glass-chart"></i>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] font-mono text-purple-400 font-bold uppercase">SubAgent 2</div>
+                                        <h4 class="text-sm font-bold text-white group-hover:text-purple-300 transition">Accruals & Forensics</h4>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed mb-3">
+                                Focuses purely on earnings manipulation and cash flow anomalies:
+                            </p>
+                            <div class="space-y-1.5 text-xs font-mono">
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-purple-300">
+                                    &bull; calculate_sloan_accrual_anomaly
+                                </div>
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-purple-300">
+                                    &bull; calculate_beneish_forensic_indices
+                                </div>
+                                <div class="bg-navy-900 p-2 rounded border border-navy-700 text-slate-300">
+                                    &bull; query_financial_db (SQL)
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Level 4: Progressive Skills & FastMCP Database -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div onclick="showDetail('skills')" class="cursor-pointer card-executive rounded-2xl p-5 hover:border-purple-400/60 transition group">
+                            <div class="flex items-center gap-2.5 mb-2">
+                                <i class="fa-solid fa-book-bookmark text-purple-400 text-lg"></i>
+                                <h4 class="text-sm font-bold text-white group-hover:text-purple-300">Progressive Skills (/skills)</h4>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Standard Operating Procedures (SOPs) injected on-demand: <span class="font-mono text-purple-300">sec-10k-audit</span>, <span class="font-mono text-purple-300">forensic-accounting</span>, <span class="font-mono text-purple-300">ic-memo-generator</span>.
+                            </p>
+                        </div>
+
+                        <div onclick="showDetail('mcp')" class="cursor-pointer card-executive rounded-2xl p-5 hover:border-amber-400/60 transition group">
+                            <div class="flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-2.5">
+                                    <i class="fa-solid fa-server text-amber-400 text-lg"></i>
+                                    <h4 class="text-sm font-bold text-white group-hover:text-amber-300">FastMCP Server (Port 8001)</h4>
+                                </div>
+                                <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-500/10 text-amber-300 border border-amber-500/30">SSE Terminal 1</span>
+                            </div>
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Independent FastMCP server on port 8001. The DeepAgent loads database tools via <span class="font-mono text-amber-300">langchain_mcp_adapters</span> over SSE.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Level 5: HITL Checkpoint Barrier -->
+                    <div onclick="showDetail('hitl')" class="cursor-pointer card-executive rounded-2xl p-6 border-2 border-emerald-500/50 glow-emerald hover:border-emerald-400 transition group">
+                        <div class="flex items-center justify-between mb-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl font-bold">
+                                    <i class="fa-solid fa-shield-halved"></i>
+                                </div>
+                                <div>
+                                    <div class="text-xs font-mono font-bold text-emerald-400 uppercase">Human Oversight Barrier</div>
+                                    <h3 class="text-base font-bold text-white group-hover:text-emerald-300">LangGraph Checkpoint & HITL Gate</h3>
+                                </div>
+                            </div>
+                            <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 text-xs font-bold font-mono">SAFETY INTERCEPT</span>
+                        </div>
+                        <p class="text-sm text-slate-300 leading-relaxed">
+                            When the memo is drafted, execution completely stops before writing to disk. The human committee can edit the text, suggest AI revisions, and authorize final sign-off.
+                        </p>
+                    </div>
+
+                </div>
+
+                <!-- Detail Inspector Sidebar (5 Cols) -->
+                <div class="lg:col-span-5 sticky top-24">
+                    <div class="card-executive rounded-2xl p-6 space-y-5 border-cyan-500/30">
+                        <div class="flex items-center justify-between border-b border-navy-700/80 pb-3">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-circle-info text-cyan-400 text-base"></i>
+                                <h3 class="text-sm font-bold text-white uppercase tracking-wider">Executive Inspector</h3>
+                            </div>
+                            <span id="detail-tag" class="text-xs font-mono font-bold px-2.5 py-0.5 rounded bg-cyan-500/10 text-cyan-300 border border-cyan-500/30">CLICK ANY CARD</span>
+                        </div>
+
+                        <div id="detail-body" class="space-y-4 text-sm text-slate-300 leading-relaxed">
+                            <div class="text-center py-16 text-slate-400 space-y-3">
+                                <i class="fa-regular fa-hand-pointer text-3xl text-cyan-400/60 animate-bounce"></i>
+                                <p class="text-sm">Click on any role or component in the architecture diagram on the left to inspect its detailed specifications, tools, and business purpose.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================================================== -->
+        <!-- TAB 3: THE 7-STEP AUDIT JOURNEY (PRESENTATION SLIDES) -->
+        <!-- ====================================================================== -->
+        <section id="tab-journey" class="hidden space-y-8">
+            
+            <div class="card-executive rounded-2xl p-6 md:p-8 space-y-6">
+                
+                <!-- Journey Header with Controls -->
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-navy-700/80 pb-5">
+                    <div>
+                        <span class="text-xs font-mono font-bold text-cyan-400 uppercase tracking-widest">Walkthrough Presentation</span>
+                        <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5 mt-0.5">
+                            <i class="fa-solid fa-route text-emerald-400"></i>
+                            The 7-Step Corporate Due Diligence Lifecycle
+                        </h2>
+                    </div>
+
+                    <!-- Slide Controls -->
+                    <div class="flex items-center gap-2">
+                        <button onclick="changeStep(-1)" class="px-3.5 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-sm font-semibold text-slate-200 border border-navy-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-chevron-left text-xs"></i> <span>Previous</span>
+                        </button>
+                        <button id="journey-play-btn" onclick="togglePlay()" class="px-5 py-2 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-sm transition flex items-center gap-2 shadow-lg shadow-cyan-500/20">
+                            <i class="fa-solid fa-play"></i> <span>Auto Present</span>
+                        </button>
+                        <button onclick="changeStep(1)" class="px-3.5 py-2 rounded-lg bg-navy-800 hover:bg-navy-700 text-sm font-semibold text-slate-200 border border-navy-700 transition flex items-center gap-1.5">
+                            <span>Next</span> <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Progress Trackers -->
+                <div class="grid grid-cols-7 gap-2 text-center font-mono text-xs">
+                    <button onclick="jumpStep(0)" id="p-step-0" class="p-2.5 rounded-lg bg-cyan-500 text-navy-950 font-bold transition">1. Trigger</button>
+                    <button onclick="jumpStep(1)" id="p-step-1" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">2. Plan</button>
+                    <button onclick="jumpStep(2)" id="p-step-2" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">3. Database</button>
+                    <button onclick="jumpStep(3)" id="p-step-3" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">4. Quant</button>
+                    <button onclick="jumpStep(4)" id="p-step-4" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">5. Accruals</button>
+                    <button onclick="jumpStep(5)" id="p-step-5" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">6. Regulatory</button>
+                    <button onclick="jumpStep(6)" id="p-step-6" class="p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition">7. Sign-off</button>
+                </div>
+
+                <!-- Slide Content View -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start pt-2">
+                    
+                    <!-- Left: Narrative & Human Understanding (7 cols) -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <div class="space-y-2">
+                            <div class="flex items-center gap-2">
+                                <span id="j-step-pill" class="text-xs font-mono font-extrabold px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">STEP 1 OF 7</span>
+                                <span id="j-step-owner" class="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-user-check"></i> Initiated by Human Auditor
+                                </span>
+                            </div>
+                            <h3 id="j-step-title" class="text-2xl font-extrabold text-white">Target Engagement & Audit Activation</h3>
+                        </div>
+
+                        <!-- 3 Analyst Perspectives -->
+                        <div class="space-y-4">
+                            <!-- Perspective 1: Business Meaning -->
+                            <div class="card-executive rounded-xl p-4 space-y-1.5 border-l-4 border-l-cyan-400">
+                                <div class="text-xs font-bold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-briefcase"></i> 1. The Business & Deal Action
+                                </div>
+                                <p id="j-desc-business" class="text-sm text-slate-200 leading-relaxed">
+                                    The investment team initiates a formal forensic diligence inquiry on JPMorgan Chase & Co. (NYSE: JPM) for fiscal year 2023. The goal is to evaluate balance sheet health, asset quality post-First Republic acquisition, and detect any accounting gimmickry.
+                                </p>
+                            </div>
+
+                            <!-- Perspective 2: Multi-Agent Mechanics -->
+                            <div class="card-executive rounded-xl p-4 space-y-1.5 border-l-4 border-l-amber-400">
+                                <div class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-network-wired"></i> 2. What the AI Agents Do Behind the Scenes
+                                </div>
+                                <p id="j-desc-agent" class="text-sm text-slate-200 leading-relaxed">
+                                    The frontend calls <code class="font-mono text-amber-300 text-xs">POST /api/audit/start</code>. A new LangGraph thread is spawned with an isolated memory checkpointer. The Lead Orchestrator agent prepares to run its reasoning loop.
+                                </p>
+                            </div>
+
+                            <!-- Perspective 3: Diligence Finding -->
+                            <div class="card-executive rounded-xl p-4 space-y-1.5 border-l-4 border-l-emerald-400">
+                                <div class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-chart-line"></i> 3. Analyst Takeaway & Deliverable
+                                </div>
+                                <p id="j-desc-finding" class="text-sm text-slate-200 leading-relaxed">
+                                    An active session is locked in with a unique audit thread ID. Real-time telemetry begins streaming immediately to the Bloomberg dashboard via Server-Sent Events (SSE).
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Live Payload / Formula Preview (5 cols) -->
+                    <div class="lg:col-span-5 space-y-4">
+                        <div class="card-executive rounded-xl p-5 space-y-3">
+                            <div class="flex items-center justify-between border-b border-navy-700/80 pb-2">
+                                <span class="text-xs font-mono font-bold text-slate-400 uppercase">Step Telemetry & Payload</span>
+                                <span id="j-payload-tag" class="text-[11px] font-mono text-cyan-400">REST Payload</span>
+                            </div>
+                            <pre id="j-payload-box" class="bg-navy-950 p-4 rounded-lg font-mono text-xs text-emerald-300 overflow-x-auto leading-relaxed border border-navy-800">{
+  "action": "START_AUDIT",
+  "ticker": "JPM",
+  "company_name": "JPMorgan Chase & Co.",
+  "fiscal_year": 2023,
+  "model": "Gemini 2.5 Pro"
+}</pre>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================================================== -->
+        <!-- TAB 4: ANALYST FORMULAS & FORENSIC METRICS DEMYSTIFIED -->
+        <!-- ====================================================================== -->
+        <section id="tab-analyst" class="hidden space-y-8">
+            
+            <div class="space-y-2">
+                <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-calculator text-cyan-400"></i>
+                    Forensic Accounting Formulas & Analytical Benchmarks
+                </h2>
+                <p class="text-sm text-slate-400">Every corporate analyst must know these quantitative screening tests. Here is how our subagents evaluate them automatically.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                
+                <!-- Formula 1: Altman Z-Score -->
+                <div class="card-executive rounded-2xl p-6 space-y-5 border-t-4 border-t-cyan-400">
+                    <div class="flex items-center justify-between border-b border-navy-700/80 pb-3">
+                        <div class="space-y-0.5">
+                            <span class="text-xs font-mono font-bold text-cyan-400 uppercase">SubAgent 1 &bull; Solvency Analysis</span>
+                            <h3 class="text-lg font-bold text-white">Altman Z-Score Solvency Metric</h3>
+                        </div>
+                        <span class="text-xs font-mono text-slate-400 bg-navy-900 px-2.5 py-1 rounded border border-navy-700">Edward Altman (1968)</span>
+                    </div>
+
+                    <div class="bg-navy-950 p-4 rounded-xl border border-navy-800 text-center font-mono text-base font-bold text-cyan-300">
+                        Z = 1.2(X₁) + 1.4(X₂) + 3.3(X₃) + 0.6(X₄) + 0.999(X₅)
+                    </div>
+
+                    <div class="space-y-3 text-sm text-slate-300">
+                        <div class="flex items-start gap-2">
+                            <strong class="text-cyan-400 font-mono w-8">X₁:</strong>
+                            <div><strong>Working Capital / Total Assets:</strong> Measures short-term liquidity cushion against unexpected drawdowns.</div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <strong class="text-cyan-400 font-mono w-8">X₂:</strong>
+                            <div><strong>Retained Earnings / Total Assets:</strong> Measures cumulative historical profitability vs debt reliance.</div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <strong class="text-cyan-400 font-mono w-8">X₃:</strong>
+                            <div><strong>EBIT / Total Assets:</strong> Pure productivity of assets independent of tax or leverage variations.</div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <strong class="text-cyan-400 font-mono w-8">X₄:</strong>
+                            <div><strong>Market Cap / Total Liabilities:</strong> How much company value can decline before liabilities exceed assets.</div>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <strong class="text-cyan-400 font-mono w-8">X₅:</strong>
+                            <div><strong>Total Revenue / Total Assets:</strong> Asset turnover capability and revenue-generating efficiency.</div>
+                        </div>
+                    </div>
+
+                    <!-- Benchmark Zones -->
+                    <div class="grid grid-cols-3 gap-3 pt-3 text-center text-xs font-mono">
+                        <div class="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300">
+                            <div class="font-extrabold text-sm">Z > 2.99</div>
+                            <div class="text-[11px] font-sans text-emerald-400 font-semibold mt-1">SAFE ZONE</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Minimal bankruptcy risk</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300">
+                            <div class="font-extrabold text-sm">1.81 – 2.99</div>
+                            <div class="text-[11px] font-sans text-amber-400 font-semibold mt-1">GREY ZONE</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">Requires close monitoring</div>
+                        </div>
+                        <div class="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-300">
+                            <div class="font-extrabold text-sm">Z < 1.81</div>
+                            <div class="text-[11px] font-sans text-red-400 font-semibold mt-1">DISTRESS ZONE</div>
+                            <div class="text-[10px] text-slate-400 mt-0.5">High probability of default</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Formula 2: Sloan Accrual Anomaly & Beneish Indices -->
+                <div class="card-executive rounded-2xl p-6 space-y-5 border-t-4 border-t-purple-400">
+                    <div class="flex items-center justify-between border-b border-navy-700/80 pb-3">
+                        <div class="space-y-0.5">
+                            <span class="text-xs font-mono font-bold text-purple-400 uppercase">SubAgent 2 &bull; Forensics</span>
+                            <h3 class="text-lg font-bold text-white">Sloan Accrual Anomaly Ratio</h3>
+                        </div>
+                        <span class="text-xs font-mono text-slate-400 bg-navy-900 px-2.5 py-1 rounded border border-navy-700">Richard Sloan (1996)</span>
+                    </div>
+
+                    <div class="bg-navy-950 p-4 rounded-xl border border-navy-800 text-center font-mono text-base font-bold text-purple-300">
+                        Accrual Ratio = [(Net Income - Operating Cash Flow) / Avg Assets] × 100%
+                    </div>
+
+                    <div class="space-y-3 text-sm text-slate-300">
+                        <p class="leading-relaxed">
+                            <strong>Why It Matters to Investors:</strong> A company can report record "Net Income" on paper while burning cash. If net income rises but operating cash flows decline, earnings are distorted by non-cash receivables or deferred expenses.
+                        </p>
+                        
+                        <div class="bg-navy-900/80 p-3.5 rounded-xl border border-navy-700 space-y-2 text-xs font-mono">
+                            <div class="flex items-center justify-between text-emerald-300">
+                                <span>Ratio < -3.0%:</span>
+                                <span class="font-bold">High Cash Quality (Cash outpaces income)</span>
+                            </div>
+                            <div class="flex items-center justify-between text-slate-300">
+                                <span>-3.0% to +8.0%:</span>
+                                <span class="font-bold">Normal Seasonal Working Capital</span>
+                            </div>
+                            <div class="flex items-center justify-between text-red-400">
+                                <span>Ratio > +10.0%:</span>
+                                <span class="font-bold">Dangerous Accrual Anomaly (Paper Profits)</span>
+                            </div>
+                        </div>
+
+                        <div class="pt-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-white mb-2">Beneish Forensic Indices:</h4>
+                            <div class="grid grid-cols-3 gap-2 text-center text-xs font-mono">
+                                <div class="bg-navy-950 p-2.5 rounded-lg border border-navy-800">
+                                    <div class="text-purple-300 font-bold">SGI</div>
+                                    <div class="text-[10px] text-slate-400">Sales Growth Index</div>
+                                </div>
+                                <div class="bg-navy-950 p-2.5 rounded-lg border border-navy-800">
+                                    <div class="text-purple-300 font-bold">AQI</div>
+                                    <div class="text-[10px] text-slate-400">Asset Quality Index</div>
+                                </div>
+                                <div class="bg-navy-950 p-2.5 rounded-lg border border-navy-800">
+                                    <div class="text-purple-300 font-bold">TATA</div>
+                                    <div class="text-[10px] text-slate-400">Total Accruals/Assets</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ====================================================================== -->
+        <!-- TAB 5: AGENT CAPABILITY MATRIX -->
+        <!-- ====================================================================== -->
+        <section id="tab-matrix" class="hidden space-y-8">
+            
+            <div class="space-y-2">
+                <h2 class="text-2xl font-extrabold text-white flex items-center gap-2.5">
+                    <i class="fa-solid fa-table-cells text-cyan-400"></i>
+                    Enterprise Agent Capability & Security Matrix
+                </h2>
+                <p class="text-sm text-slate-400">DeepAudit-AI enforces strict boundary controls so no subagent can overwrite reports or access unauthorized tools.</p>
+            </div>
+
+            <div class="card-executive rounded-2xl overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-sm border-collapse">
+                        <thead>
+                            <tr class="border-b border-navy-700 bg-navy-900/90 text-xs font-mono uppercase tracking-wider text-slate-300">
+                                <th class="py-4 px-5">Capability / Guardrail</th>
+                                <th class="py-4 px-5 text-amber-400">👑 Lead Orchestrator</th>
+                                <th class="py-4 px-5 text-cyan-400">📊 Quant Auditor (Sub1)</th>
+                                <th class="py-4 px-5 text-purple-400">🔍 Accruals Forensic (Sub2)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-navy-700/60 text-slate-200">
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Underlying AI Model</td>
+                                <td class="py-4 px-5 font-mono text-amber-300">Gemini 2.5 Pro (Deep Reasoning)</td>
+                                <td class="py-4 px-5 font-mono text-cyan-300">Gemini 2.5 Flash (Fast Execution)</td>
+                                <td class="py-4 px-5 font-mono text-purple-300">Gemini 2.5 Flash (Fast Execution)</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Context Memory Lifespan</td>
+                                <td class="py-4 px-5 text-amber-300">Persistent Thread Session</td>
+                                <td class="py-4 px-5 text-slate-400">Ephemeral (Discarded post-task)</td>
+                                <td class="py-4 px-5 text-slate-400">Ephemeral (Discarded post-task)</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Financial Database Access</td>
+                                <td class="py-4 px-5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Read-Only SQL</td>
+                                <td class="py-4 px-5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Read-Only SQL</td>
+                                <td class="py-4 px-5 text-emerald-400"><i class="fa-solid fa-check mr-1"></i> Read-Only SQL</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Solvency Tools (Altman Z)</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> Delegated to Sub1</td>
+                                <td class="py-4 px-5 text-cyan-400 font-mono font-semibold"><i class="fa-solid fa-check mr-1"></i> calculate_altman_z_score</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> No Access</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Accrual Tools (Sloan & Beneish)</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> Delegated to Sub2</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> No Access</td>
+                                <td class="py-4 px-5 text-purple-400 font-mono font-semibold"><i class="fa-solid fa-check mr-1"></i> calculate_sloan_accrual</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">SEC Regulatory Scout</td>
+                                <td class="py-4 px-5 text-emerald-400 font-mono font-semibold"><i class="fa-solid fa-check mr-1"></i> SerpAPI web_search</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> No Access</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> No Access</td>
+                            </tr>
+                            <tr class="hover:bg-navy-800/40 transition">
+                                <td class="py-4 px-5 font-bold text-white">Filesystem Write Privileges</td>
+                                <td class="py-4 px-5 text-emerald-400 font-semibold font-mono"><i class="fa-solid fa-shield-halved mr-1"></i> write_file (Triggers HITL)</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> Read-Only Isolation</td>
+                                <td class="py-4 px-5 text-slate-500"><i class="fa-solid fa-ban mr-1"></i> Read-Only Isolation</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-navy-700/60 bg-navy-950 px-6 py-6 mt-12 text-sm text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+                <span class="font-bold text-white">DeepAudit-AI</span>
+                <span>&bull; Built with LangGraph, DeepAgents, and Google Gemini 2.5</span>
+            </div>
+            <div class="text-xs font-mono text-slate-500">
+                Institutional Financial Due Diligence & Multi-Agent Architecture
+            </div>
+        </div>
+    </footer>
+
+    <!-- Interactive Inspector & Slide Logic -->
+    <script>
+        // Tab switching
+        function switchTab(tabId) {
+            ['concept', 'diagram', 'journey', 'analyst', 'matrix'].forEach(t => {
+                const sec = document.getElementById(`tab-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (t === tabId) {
+                    sec.classList.remove('hidden');
+                    btn.className = "px-3.5 py-1.5 rounded-md bg-cyan-500/20 text-cyan-300 font-bold transition";
+                } else {
+                    sec.classList.add('hidden');
+                    btn.className = "px-3.5 py-1.5 rounded-md hover:text-white transition";
+                }
+            });
+        }
+
+        // Inspector Details
+        const details = {
+            ui: {
+                tag: "CLIENT DASHBOARD",
+                title: "Bloomberg-Style UI Terminal",
+                desc: "An institutional-grade interface designed for investment bankers and corporate forensic auditors. Features live execution streaming, real-time multi-agent illumination, dynamic checklist progress, and an interactive boardroom memorandum viewer.",
+                specs: [
+                    { label: "Design Theme", val: "Bloomberg Terminal Dark Obsidian" },
+                    { label: "Protocol", val: "Server-Sent Events (SSE) + REST" },
+                    { label: "Auditor Interaction", val: "Live Document Editing & Sign-Off" }
+                ]
+            },
+            orch: {
+                tag: "LEAD ORCHESTRATOR",
+                title: "Lead Forensic Auditor (DeepAudit-AI)",
+                desc: "The Managing Director of the audit. Formulates the strategic 7-step plan using write_todos, coordinates subagents without getting bogged down in raw numbers, queries regulatory news via web_search, and authors the final due diligence memorandum.",
+                specs: [
+                    { label: "AI Engine", val: "Google Gemini 2.5 Pro" },
+                    { label: "Context State", val: "Persistent Thread (~2,000 tokens)" },
+                    { label: "Delegation Primitives", val: "task(subagent_type, prompt)" }
+                ]
+            },
+            quant: {
+                tag: "SUBAGENT 1 (ISOLATED)",
+                title: "Quant Solvency Auditor",
+                desc: "The Quantitative Associate. Queries 3-year balance sheets from financial_audit.db, deterministically runs the Altman Z-Score solvency calculation, computes CFO-to-net income conversion, and checks Basel III CET1 ratios. Returns only a clean 4-bullet verdict to preserve the Lead's context.",
+                specs: [
+                    { label: "AI Engine", val: "Google Gemini 2.5 Flash" },
+                    { label: "Tools", val: "calculate_altman_z_score, calculate_cfo_quality_ratio" },
+                    { label: "Context State", val: "Ephemeral Scratchpad (Zero Contamination)" }
+                ]
+            },
+            accrual: {
+                tag: "SUBAGENT 2 (ISOLATED)",
+                title: "Accruals & Forensic Auditor",
+                desc: "The Forensic Accounting Detective. Specializes in catching accounting gimmickry and paper earnings distortion. Runs Richard Sloan's Accrual Anomaly formula and calculates Messod Beneish manipulation indices. Verifies if reported record profits are backed by hard cash.",
+                specs: [
+                    { label: "AI Engine", val: "Google Gemini 2.5 Flash" },
+                    { label: "Tools", val: "calculate_sloan_accrual_anomaly, calculate_beneish_forensic_indices" },
+                    { label: "Context State", val: "Ephemeral Scratchpad (Zero Contamination)" }
+                ]
+            },
+            skills: {
+                tag: "KNOWLEDGE REPOSITORY",
+                title: "Progressive Skills Engine (/skills)",
+                desc: "Standard Operating Procedures (SOPs) loaded progressively on demand rather than cluttering initial prompts. Guides the agent through SEC Form 10-K Item 7 & 8 disclosures, accounting benchmarks, and boardroom memorandum structures.",
+                specs: [
+                    { label: "SEC Skill", val: "sec-10k-audit/SKILL.md" },
+                    { label: "Forensic Skill", val: "forensic-accounting/SKILL.md" },
+                    { label: "Deliverable Skill", val: "ic-memo-generator/SKILL.md" }
+                ]
+            },
+            mcp: {
+                tag: "DATA PROTOCOL",
+                title: "FastMCP Protocol & Database Layer",
+                desc: "An enterprise FastMCP server hosting read-only SQL querying against corporate databases. Ensures agents cannot inject destructive commands or manipulate historical audit records.",
+                specs: [
+                    { label: "Server Framework", val: "Anthropic FastMCP (fastmcp)" },
+                    { label: "Database", val: "SQLite 3 (financial_audit.db)" },
+                    { label: "Safety Barrier", val: "Strict SELECT & WITH Validation" }
+                ]
+            },
+            hitl: {
+                tag: "SAFETY INTERCEPT",
+                title: "Human-in-the-Loop Checkpoint Gate",
+                desc: "The ultimate governance shield. When write_file is invoked, LangGraph halts execution. The investment committee reviews the draft in an interactive modal, makes edits, provides revision feedback, or authorizes final sign-off.",
+                specs: [
+                    { label: "Engine", val: "LangGraph MemorySaver" },
+                    { label: "Interrupt Trigger", val: "interrupt_on={'write_file': True}" },
+                    { label: "Resume Mechanism", val: "Command(resume=...)" }
+                ]
+            }
+        };
+
+        function showDetail(key) {
+            const item = details[key];
+            if (!item) return;
+
+            document.getElementById('detail-tag').innerText = item.tag;
+            let specHtml = item.specs.map(s => `
+                <div class="flex items-center justify-between bg-navy-950 p-2.5 rounded-lg border border-navy-800 text-xs">
+                    <span class="text-slate-400 font-medium">${s.label}:</span>
+                    <span class="font-mono font-bold text-cyan-300">${s.val}</span>
+                </div>
+            `).join('');
+
+            document.getElementById('detail-body').innerHTML = `
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="text-lg font-bold text-white">${item.title}</h4>
+                        <div class="text-xs font-mono text-cyan-400 mt-0.5">${item.tag}</div>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed">${item.desc}</p>
+                    <div class="space-y-2 pt-2">
+                        <div class="text-xs font-mono text-slate-400 uppercase tracking-wider">Operational Specifications:</div>
+                        ${specHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // 7-Step Journey Slide Deck
+        const journeySlides = [
+            {
+                step: "STEP 1 OF 7",
+                owner: "Initiated by Human Auditor",
+                title: "Target Engagement & Audit Activation",
+                business: "The investment committee activates a formal forensic due diligence engagement for JPMorgan Chase & Co. (NYSE: JPM) for fiscal year 2023. The goal is to evaluate balance sheet health, asset quality post-First Republic acquisition, and check for paper earnings distortion.",
+                agent: "The frontend calls POST /api/audit/start. A new LangGraph thread is initialized with a persistent MemorySaver checkpointer. The Lead Orchestrator agent prepares to run its reasoning loop.",
+                finding: "An active audit thread is registered. Real-time telemetry begins streaming immediately to the Bloomberg dashboard via Server-Sent Events (SSE).",
+                payloadTag: "REST Request",
+                payload: `{
+  "action": "START_AUDIT",
+  "ticker": "JPM",
+  "company_name": "JPMorgan Chase & Co.",
+  "fiscal_year": 2023,
+  "model": "Gemini 2.5 Pro"
+}`
+            },
+            {
+                step: "STEP 2 OF 7",
+                owner: "👑 Lead Orchestrator",
+                title: "Strategic Planning & Checklist Formulation",
+                business: "An institutional audit requires an auditable roadmap. The Lead Orchestrator outlines 7 distinct milestones covering data extraction, solvency math, accruals screening, SEC regulatory scan, and memorandum generation.",
+                agent: "The Orchestrator calls the write_todos tool. The milestones are broadcast over SSE, and the frontend dynamically constructs the live checklist with status indicators.",
+                finding: "The 7-step plan is established. Milestone 1 ('Formulate 7-step plan') is marked as VERIFIED, while Milestone 2 begins execution.",
+                payloadTag: "Tool: write_todos",
+                payload: `{
+  "tool": "write_todos",
+  "todos": [
+    {"id": "1", "task": "Formulate 7-step plan", "status": "completed"},
+    {"id": "2", "task": "Query financial database for 3-year historicals", "status": "in_progress"},
+    {"id": "3", "task": "Execute Altman Z solvency analysis via quant_auditor", "status": "pending"},
+    {"id": "4", "task": "Analyze Sloan Accrual anomaly via accrual_forensic_auditor", "status": "pending"},
+    {"id": "5", "task": "Conduct regulatory litigation scan via web_search", "status": "pending"},
+    {"id": "6", "task": "Synthesize all forensic findings into IC Memorandum", "status": "pending"},
+    {"id": "7", "task": "Submit Memorandum for Human Sign-off", "status": "pending"}
+  ]
+}`
+            },
+            {
+                step: "STEP 3 OF 7",
+                owner: "FastMCP Protocol Layer",
+                title: "Verified Database & Financials Extraction",
+                business: "Before analyzing any ratios, the system extracts verified SEC disclosures: market capitalization ($501B), 3-year revenues, net incomes, balance sheet assets, and liabilities from 2021 through 2023.",
+                agent: "The Orchestrator invokes query_financial_db. The FastMCP protocol layer validates that the query is strictly read-only and queries financial_audit.db.",
+                finding: "Verified corporate figures extracted: FY2023 Net Revenue: $158.1B, Net Income: $49.55B, Total Assets: $3.87 Trillion, CET1 Ratio: 15.0%.",
+                payloadTag: "FastMCP SQL Output",
+                payload: `{
+  "ticker": "JPM",
+  "market_cap": "$501.2 Billion",
+  "fy2023_revenue": "$158.10 Billion",
+  "fy2023_net_income": "$49.55 Billion (Record High)",
+  "fy2023_total_assets": "$3.875 Trillion",
+  "fy2023_cet1_ratio": "15.0%"
+}`
+            },
+            {
+                step: "STEP 4 OF 7",
+                owner: "📊 Quant Solvency Auditor (SubAgent 1)",
+                title: "Context-Offloaded Bankruptcy & Solvency Analysis",
+                business: "Will the company face liquidity or restructuring distress in the next 24 months? SubAgent 1 computes the Altman Z-Score and benchmarks Basel III regulatory capital adequacy.",
+                agent: "The Orchestrator dispatches SubAgent 1 via task(). SubAgent 1 runs calculate_altman_z_score in an isolated scratchpad. The card glows Cyan on the user dashboard. Upon completion, it returns a 4-bullet synthesis.",
+                finding: "Altman Z-Score = 3.96 (firmly in the Safe Zone > 2.99). Basel III CET1 Capital Adequacy = 15.0% (surpassing the 12.0% regulatory minimum). Cash flow conversion = 1.15x.",
+                payloadTag: "SubAgent 1 Return",
+                payload: `{
+  "subagent": "quant_auditor",
+  "altman_z_score": 3.96,
+  "classification": "Safe Zone (Low 2-Year Insolvency Risk)",
+  "cet1_ratio": "15.0% (Strong Capital Buffer vs 12.0% Benchmark)",
+  "cfo_to_net_income": 1.15,
+  "verdict": "Solvency and capital reserves are exceptionally strong."
+}`
+            },
+            {
+                step: "STEP 5 OF 7",
+                owner: "🔍 Accruals & Forensic Auditor (SubAgent 2)",
+                title: "Earnings Manipulation & Sloan Accrual Screening",
+                business: "Are reported record profits real cash or artificial accounting entries? SubAgent 2 calculates Richard Sloan's Accrual Anomaly and Messod Beneish manipulation indices.",
+                agent: "The Orchestrator dispatches SubAgent 2 via task(). SubAgent 2 runs calculate_sloan_accrual_anomaly. The card glows Purple on the dashboard. It returns a 4-bullet assessment without dumping spreadsheets to the Orchestrator.",
+                finding: "Sloan Accrual Ratio = -0.20% (classified as High Cash Quality < -3.0%). Real operating cash ($57.2B) exceeds paper net income ($49.5B). Beneish SGI (1.23) and AQI (0.98) confirm low manipulation risk.",
+                payloadTag: "SubAgent 2 Return",
+                payload: `{
+  "subagent": "accrual_forensic_auditor",
+  "sloan_accrual_ratio": "-0.20%",
+  "sloan_classification": "High Cash Quality",
+  "operating_cash_flow": "$57.2 Billion",
+  "net_income": "$49.5 Billion",
+  "beneish_indices": {"sgi": 1.23, "aqi": 0.98, "tata": -0.002},
+  "verdict": "Earnings quality is exceptional. Zero aggressive accrual distortion detected."
+}`
+            },
+            {
+                step: "STEP 6 OF 7",
+                owner: "👑 Lead Orchestrator + SerpAPI Scout",
+                title: "Regulatory Enforcement & Litigation Scan",
+                business: "Scans public regulatory enforcement feeds and SEC disclosures for pending fines, legal liabilities, or unresolved investigations post-First Republic Bank takeover.",
+                agent: "The Orchestrator executes web_search using SerpAPI, querying verified SEC and regulatory news archives.",
+                finding: "First Republic Bank transaction received full FDIC and Federal Reserve clearance. Standard recurring banking compliance items noted, with zero material litigation threats.",
+                payloadTag: "Web Search Telemetry",
+                payload: `{
+  "query": "JPMorgan Chase SEC enforcement regulatory fines 2023 2024",
+  "findings": [
+    "FDIC loss-share agreement confirmed for First Republic assets.",
+    "Basel III capital requirements successfully transitioned.",
+    "No material undisclosed enforcement proceedings identified."
+  ]
+}`
+            },
+            {
+                step: "STEP 7 OF 7",
+                owner: "🛡️ Investment Committee (Human Sign-off)",
+                title: "Boardroom Synthesis & Human-in-the-Loop Sign-Off",
+                business: "The Orchestrator synthesizes all findings into the Investment Committee Memorandum and calls write_file. LangGraph checkpointer intercepts the call and halts execution.",
+                agent: "The review modal opens in the UI. The human auditor can edit sentences directly, submit AI revision feedback, or approve the deal. Resuming marks all 7 milestones verified and achieves 100% completion.",
+                finding: "Memorandum finalized and archived to disk at reports/JPM_2023_Due_Diligence_Memo.md. The deal is signed off with full human accountability.",
+                payloadTag: "HITL Intercept",
+                payload: `{
+  "checkpoint_action": "INTERCEPT_ON_WRITE_FILE",
+  "file_path": "reports/JPM_2023_Due_Diligence_Memo.md",
+  "human_decision": "APPROVE_AND_FINALIZE",
+  "final_status": "AUDIT COMPLETE (100% VERIFIED)",
+  "governance": "Human Signed Off"
+}`
+            }
+        ];
+
+        let currentStep = 0;
+        let playInterval = null;
+
+        function renderSlide(idx) {
+            currentStep = idx;
+            const s = journeySlides[idx];
+
+            for (let i = 0; i < 7; i++) {
+                const btn = document.getElementById(`p-step-${i}`);
+                if (i === idx) {
+                    btn.className = "p-2.5 rounded-lg bg-cyan-500 text-navy-950 font-bold transition";
+                } else if (i < idx) {
+                    btn.className = "p-2.5 rounded-lg bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 font-semibold transition";
+                } else {
+                    btn.className = "p-2.5 rounded-lg bg-navy-900 text-slate-400 border border-navy-700 transition";
+                }
+            }
+
+            document.getElementById('j-step-pill').innerText = s.step;
+            document.getElementById('j-step-owner').innerHTML = `<i class="fa-solid fa-circle-check"></i> ${s.owner}`;
+            document.getElementById('j-step-title').innerText = s.title;
+            document.getElementById('j-desc-business').innerText = s.business;
+            document.getElementById('j-desc-agent').innerText = s.agent;
+            document.getElementById('j-desc-finding').innerText = s.finding;
+            document.getElementById('j-payload-tag').innerText = s.payloadTag;
+            document.getElementById('j-payload-box').innerText = s.payload;
+        }
+
+        function changeStep(delta) {
+            const next = currentStep + delta;
+            if (next >= 0 && next < journeySlides.length) {
+                renderSlide(next);
+            }
+        }
+
+        function jumpStep(idx) {
+            renderSlide(idx);
+        }
+
+        function togglePlay() {
+            const btn = document.getElementById('journey-play-btn');
+            if (playInterval) {
+                clearInterval(playInterval);
+                playInterval = null;
+                btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Auto Present</span>`;
+            } else {
+                btn.innerHTML = `<i class="fa-solid fa-pause"></i> <span>Pause</span>`;
+                playInterval = setInterval(() => {
+                    if (currentStep < journeySlides.length - 1) {
+                        changeStep(1);
+                    } else {
+                        clearInterval(playInterval);
+                        playInterval = null;
+                        btn.innerHTML = `<i class="fa-solid fa-play"></i> <span>Auto Present</span>`;
+                    }
+                }, 3500);
+            }
+        }
+
+        // Initialize default view and support direct deep-linking via ?tab= or #
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tabParam = urlParams.get('tab') || window.location.hash.replace('#', '');
+            if (['concept', 'diagram', 'journey', 'analyst', 'matrix'].includes(tabParam)) {
+                switchTab(tabParam);
+            } else {
+                switchTab('concept');
+            }
+            showDetail('orch');
+            renderSlide(0);
+        });
+    </script>
+</body>
+</html>

@@ -25,6 +25,7 @@ dependencies = [
     "matplotlib>=3.10.9",
     "mysql-connector-python==9.0.0",
     "nest-asyncio>=1.6.0",
+    "pandas>=3.0.6",
     "pdfminer>=20191125",
     "pdfminer-six>=20260107",
     "plotly>=7.0.0",

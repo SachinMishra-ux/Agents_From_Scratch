@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Agents in the LangChain Ecosystem - Comprehensive Guide</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.3); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
+    
+    .tab-btn.active {
+      background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px 0 rgba(79, 70, 229, 0.4);
+      font-weight: 600;
+    }
+
+    .glow-indigo { box-shadow: 0 0 20px rgba(99, 102, 241, 0.25); }
+    .glow-cyan { box-shadow: 0 0 20px rgba(6, 182, 212, 0.25); }
+    .glow-purple { box-shadow: 0 0 20px rgba(168, 85, 247, 0.25); }
+    .glow-emerald { box-shadow: 0 0 20px rgba(16, 185, 129, 0.25); }
+    .glow-amber { box-shadow: 0 0 20px rgba(245, 158, 11, 0.25); }
+
+    .card-hover {
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .card-hover:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 14px 28px -6px rgba(0, 0, 0, 0.4);
+    }
+
+    /* Fixed code block styling to prevent horizontal text collapse */
+    pre, pre code, code.code-block {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+      white-space: pre !important;
+      word-break: normal !important;
+      word-wrap: normal !important;
+      tab-size: 4;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 antialiased min-h-screen p-4 sm:p-6 lg:p-10">
+
+  <div class="max-w-7xl mx-auto space-y-8">
+
+    <!-- Top Hero Banner -->
+    <header class="bg-slate-900/90 backdrop-blur border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl relative overflow-hidden">
+      <div class="absolute -right-16 -top-16 w-80 h-80 bg-indigo-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      <div class="absolute right-40 -bottom-20 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl pointer-events-none"></div>
+      
+      <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6 relative z-10">
+        <div class="space-y-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-500/10 border border-indigo-500/30 text-indigo-400 text-xs font-semibold tracking-wide uppercase">
+            <i class="fa-solid fa-layer-group"></i> LangChain & LangGraph Ecosystem
+          </div>
+          <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white">
+            Deep Agents <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400">Demystified</span>
+          </h1>
+          <p class="text-slate-400 max-w-3xl text-sm sm:text-base leading-relaxed">
+            The next evolution beyond shallow prompt-loops: An opinionated, production-ready <strong class="text-slate-200">Agent Harness</strong> featuring built-in planning, virtual filesystem memory, hierarchical subagents, context offloading, progressive skills, and Model Context Protocol (MCP) integration.
+          </p>
+        </div>
+
+        <div class="flex flex-wrap lg:flex-col gap-3 min-w-[220px]">
+          <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl px-4 py-2.5 flex items-center justify-between gap-4">
+            <span class="text-xs text-slate-400 font-medium">Package</span>
+            <span class="text-xs font-mono text-cyan-300 font-semibold bg-cyan-950/50 px-2 py-0.5 rounded border border-cyan-800/50">deepagents>=0.6.8</span>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl px-4 py-2.5 flex items-center justify-between gap-4">
+            <span class="text-xs text-slate-400 font-medium">Architecture</span>
+            <span class="text-xs font-semibold text-purple-300">Agent Harness</span>
+          </div>
+          <div class="bg-slate-800/80 border border-slate-700/70 rounded-xl px-4 py-2.5 flex items-center justify-between gap-4">
+            <span class="text-xs text-slate-400 font-medium">Runtime</span>
+            <span class="text-xs font-semibold text-indigo-300">LangGraph CompiledState</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Navigation Tabs -->
+    <nav class="flex flex-wrap gap-2 p-1.5 bg-slate-900/80 border border-slate-800 rounded-2xl sticky top-4 z-40 backdrop-blur-md shadow-lg">
+      <button onclick="switchTab('overview')" id="tab-btn-overview" class="tab-btn active px-4 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-compass"></i> Overview & Architecture
+      </button>
+      <button onclick="switchTab('why-deep')" id="tab-btn-why-deep" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-bolt"></i> Why Deep Agents?
+      </button>
+      <button onclick="switchTab('context-offload')" id="tab-btn-context-offload" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-box-archive"></i> Context Offloading & Middleware
+      </button>
+      <button onclick="switchTab('skills-system')" id="tab-btn-skills-system" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-brain"></i> Progressive Skills System
+      </button>
+      <button onclick="switchTab('mcp-integration')" id="tab-btn-mcp-integration" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-network-wired"></i> Model Context Protocol (MCP)
+      </button>
+      <button onclick="switchTab('project-idea')" id="tab-btn-project-idea" class="tab-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition-all duration-200 flex items-center gap-2">
+        <i class="fa-solid fa-lightbulb"></i> Proposed Agent Blueprint
+      </button>
+    </nav>
+
+    <!-- TAB 1: OVERVIEW & ARCHITECTURE -->
+    <section id="tab-overview" class="tab-content space-y-6">
+      
+      <!-- Notebook Analysis Box -->
+      <div class="bg-gradient-to-r from-slate-900 to-indigo-950/40 border border-indigo-900/50 rounded-2xl p-6 glow-indigo">
+        <div class="flex items-start gap-4">
+          <div class="p-3 bg-indigo-600/20 text-indigo-400 rounded-xl border border-indigo-500/30 text-xl shrink-0">
+            <i class="fa-solid fa-book-open"></i>
+          </div>
+          <div class="space-y-2">
+            <h3 class="text-lg font-bold text-white flex items-center gap-2">
+              Inside Your Notebook: <code class="text-sm font-mono text-indigo-300 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-700/50">Deep_Agents_Overview.ipynb</code>
+            </h3>
+            <p class="text-sm text-slate-300 leading-relaxed">
+              The notebook in your workspace demonstrates the foundational invocation of <code class="text-xs font-mono text-cyan-300">create_deep_agent</code> with Google Gemini (<code class="text-xs font-mono text-amber-300">gemini-2.5-pro</code>) and a SerpAPI web search tool. When compiled, the agent returns a <strong><code class="text-xs font-mono text-purple-300">langgraph.graph.state.CompiledStateGraph</code></strong> instance, verifying that Deep Agents is not a distinct runtime engine, but a standardized <em>agent harness</em> that executes natively inside LangGraph.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- The 3-Tier Hierarchy Stack -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-sitemap text-indigo-400"></i> The LangChain Tri-Tier Architectural Hierarchy
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">
+            Understanding where Deep Agents fits among LangChain and LangGraph removes 90% of beginner confusion.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Layer 1 -->
+          <div class="bg-slate-850/80 border border-slate-700/70 rounded-xl p-5 card-hover space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-indigo-400 uppercase tracking-wider">Layer 1: Engine</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Low-Level</span>
+            </div>
+            <h4 class="text-lg font-bold text-white">LangGraph</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              The graph runtime and state coordination engine. Handles state schemas, cyclical branching, durable checkpointing (PostgreSQL/SQLite), interrupts, and human-in-the-loop state transitions.
+            </p>
+            <div class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              CompiledStateGraph, Checkpointers, Channels
+            </div>
+          </div>
+
+          <!-- Layer 2 -->
+          <div class="bg-slate-850/80 border border-slate-700/70 rounded-xl p-5 card-hover space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Layer 2: Framework</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Modular</span>
+            </div>
+            <h4 class="text-lg font-bold text-white">LangChain</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              The broad ecosystem of integrations and components. Provides model abstractions (<code class="text-cyan-300">BaseChatModel</code>), tool decorators (<code class="text-cyan-300">@tool</code>), message types, prompt templates, and vectorstore adapters.
+            </p>
+            <div class="text-xs text-slate-300 font-mono bg-slate-900/90 p-2.5 rounded-lg border border-slate-800">
+              ChatAnthropic, ChatGoogleGenAI, @tool, BaseTool
+            </div>
+          </div>
+
+          <!-- Layer 3 -->
+          <div class="bg-gradient-to-b from-indigo-950/40 to-slate-900 border border-indigo-500/40 rounded-xl p-5 card-hover space-y-3 relative glow-indigo">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Layer 3: Harness</span>
+              <span class="text-xs px-2 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-700">Batteries-Included</span>
+            </div>
+            <h4 class="text-lg font-bold text-white">Deep Agents</h4>
+            <p class="text-xs text-slate-400 leading-relaxed">
+              The high-level, opinionated agent harness. It bundles planning (<code class="text-indigo-300">write_todos</code>), virtual filesystems, subagents (<code class="text-indigo-300">task</code>), context compaction, and progressive skills so you don't build them from scratch.
+            </p>
+            <div class="text-xs text-cyan-200 font-mono bg-indigo-950/70 p-2.5 rounded-lg border border-indigo-800/70">
+              create_deep_agent(model, tools, skills, ...)
+            </div>
+          </div>
+        </div>
+
+        <!-- Built-in Tools Table -->
+        <div class="space-y-3 pt-4 border-t border-slate-800">
+          <h3 class="text-md font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-toolbox text-cyan-400"></i> The 10 Auto-Injected Built-in Tools in Every Deep Agent
+          </h3>
+          <p class="text-xs text-slate-400">
+            Whenever you call <code class="font-mono text-indigo-300">create_deep_agent(...)</code>, Deep Agents automatically equips the model with a battle-tested harness suite:
+          </p>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+            <div class="bg-slate-800/70 border border-slate-700/60 p-3 rounded-xl space-y-1">
+              <div class="font-mono font-bold text-amber-300"><i class="fa-solid fa-list-check mr-1"></i> write_todos</div>
+              <p class="text-slate-400">Creates and tracks a structured markdown plan. Prevents the agent from losing direction during complex multi-phase goals.</p>
+            </div>
+            <div class="bg-slate-800/70 border border-slate-700/60 p-3 rounded-xl space-y-1">
+              <div class="font-mono font-bold text-emerald-300"><i class="fa-solid fa-folder-open mr-1"></i> ls, glob, grep</div>
+              <p class="text-slate-400">Discovers files and performs rapid regex searches across codebases or stored artifacts without loading entire files.</p>
+            </div>
+            <div class="bg-slate-800/70 border border-slate-700/60 p-3 rounded-xl space-y-1">
+              <div class="font-mono font-bold text-cyan-300"><i class="fa-solid fa-file-lines mr-1"></i> read_file, write_file, edit_file</div>
+              <p class="text-slate-400">Operates on virtual filesystems (memory or disk) with line-offset limits to offload massive outputs safely.</p>
+            </div>
+            <div class="bg-slate-800/70 border border-slate-700/60 p-3 rounded-xl space-y-1">
+              <div class="font-mono font-bold text-purple-300"><i class="fa-solid fa-network-wired mr-1"></i> task & execute</div>
+              <p class="text-slate-400">Spawns isolated subagents (<code class="font-mono text-purple-200">task</code>) and executes shell commands when backed by a sandbox.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 2: WHY DEEP AGENTS -->
+    <section id="tab-why-deep" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-scale-balanced text-amber-400"></i> Shallow Agents vs. Deep Agents
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">
+            Why do standard LLM agents (like basic ReAct or OpenAI Assistant loops) fail when tasks take 30+ minutes or 50+ tool calls?
+          </p>
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="overflow-x-auto rounded-xl border border-slate-800">
+          <table class="w-full text-left text-xs sm:text-sm">
+            <thead class="bg-slate-800/90 text-slate-300 uppercase text-[11px] tracking-wider border-b border-slate-700">
+              <tr>
+                <th class="p-4">Dimension</th>
+                <th class="p-4 text-rose-300 bg-rose-950/20">Shallow Agent (Naive ReAct)</th>
+                <th class="p-4 text-emerald-300 bg-emerald-950/20">Deep Agent (deepagents Harness)</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-800 text-slate-300">
+              <tr>
+                <td class="p-4 font-semibold text-white">Execution Horizon</td>
+                <td class="p-4 text-slate-400">Short (1-5 tool iterations). Degradation begins past 10 steps.</td>
+                <td class="p-4 text-emerald-300 font-medium">Long (100+ steps, multi-hour, multi-agent operations).</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">Task Planning</td>
+                <td class="p-4 text-slate-400">Pure conversational memory; loses intent and "wanders" when side-tracked.</td>
+                <td class="p-4 text-emerald-300 font-medium"><code class="text-xs bg-slate-950 px-2 py-0.5 rounded text-amber-300">TodoListMiddleware</code>: Forces plan drafting (<code class="text-xs text-amber-300">write_todos</code>) and live step-tracking.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">Context Window Management</td>
+                <td class="p-4 text-rose-300/90">Naive message accumulation. Big tool dumps cause instant token overflow or amnesia.</td>
+                <td class="p-4 text-emerald-300 font-medium">Active context offloading: file storage + <code class="text-xs bg-slate-950 px-2 py-0.5 rounded text-cyan-300">SummarizationMiddleware</code> + thread history logging.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">Subagent Context Isolation</td>
+                <td class="p-4 text-slate-400">Monolithic context. Every sub-task dump floods the parent agent's prompt.</td>
+                <td class="p-4 text-emerald-300 font-medium">Ephemeral subagents via <code class="text-xs bg-slate-950 px-2 py-0.5 rounded text-purple-300">task</code> tool: internal search/code junk is discarded, returning only clean synthesis.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">State Checkpoint Growth</td>
+                <td class="p-4 text-rose-300/90 font-mono">O(N²) growth — checkpoint files balloon rapidly causing database bottlenecks.</td>
+                <td class="p-4 text-emerald-300 font-medium"><code class="text-xs bg-slate-950 px-2 py-0.5 rounded text-indigo-300">DeltaChannel</code> reducer optimizes state writes to <span class="font-mono font-bold">O(N)</span>.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">Tooling Ecosystem</td>
+                <td class="p-4 text-slate-400">Hardcoded Python functions only.</td>
+                <td class="p-4 text-emerald-300 font-medium">Native MCP (Model Context Protocol) client + Anthropic Progressive Skills support.</td>
+              </tr>
+              <tr>
+                <td class="p-4 font-semibold text-white">Security & Guardrails</td>
+                <td class="p-4 text-slate-400">All-or-nothing execution. Risky file edits run uncontrolled.</td>
+                <td class="p-4 text-emerald-300 font-medium">Granular <code class="text-xs bg-slate-950 px-2 py-0.5 rounded text-rose-300">FilesystemPermission</code> rules: <code class="text-xs text-cyan-300">allow</code>, <code class="text-xs text-rose-300">deny</code>, or <code class="text-xs text-amber-300">interrupt</code> (HITL).</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Real-world Capabilities Grid -->
+        <div class="space-y-3 pt-2">
+          <h3 class="text-md font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-shapes text-indigo-400"></i> What Kind of Agents Can You Build With Deep Agents?
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-slate-800/50 border border-slate-700/60 p-4 rounded-xl space-y-2">
+              <div class="text-sm font-bold text-indigo-300 flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass-chart"></i> Autonomous Research & Deep Synthesis
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                Agents like Manus or Deep Research that spend 45 minutes scanning hundreds of web pages, downloading filings, checking conflicting sources, and compiling 30-page structured reports.
+              </p>
+            </div>
+            <div class="bg-slate-850 border border-slate-700/60 p-4 rounded-xl space-y-2">
+              <div class="text-sm font-bold text-cyan-300 flex items-center gap-2">
+                <i class="fa-solid fa-code-merge"></i> Full-Stack Coding & Migration Architects
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                Coding agents like Claude Code or Codex that scan entire repositories using <code class="text-slate-200">grep</code> and <code class="text-slate-200">glob</code>, write tests, run build scripts in sandboxes, and iterate on compiler errors autonomously.
+              </p>
+            </div>
+            <div class="bg-slate-850 border border-slate-700/60 p-4 rounded-xl space-y-2">
+              <div class="text-sm font-bold text-emerald-300 flex items-center gap-2">
+                <i class="fa-solid fa-building-shield"></i> Continuous Compliance & Forensic Auditors
+              </div>
+              <p class="text-slate-400 leading-relaxed">
+                Agents that ingest enterprise databases, inspect contracts against regulatory policies, flag suspicious accounting entries, and stage findings for human approval.
+              </p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 3: CONTEXT OFFLOADING & MIDDLEWARE -->
+    <section id="tab-context-offload" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-box-archive text-cyan-400"></i> The Science of Context Offloading in Deep Agents
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">
+            How Deep Agents solves the context window wall through multi-tier architectural offloading.
+          </p>
+        </div>
+
+        <!-- 4 Pillars of Context Offloading -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <!-- Pillar 1 -->
+          <div class="bg-slate-800/70 border border-slate-700 rounded-xl p-5 space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-lg">
+                <i class="fa-solid fa-users-viewfinder"></i>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">1. Ephemeral Subagent Delegation</h4>
+                <span class="text-xs text-indigo-400 font-mono">The task tool mechanism</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              When a research agent needs to evaluate 40 web links or read 10 huge PDF files, letting the primary agent do this directly poisons its prompt with 100,000+ tokens of raw HTML and citations.
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs text-slate-400">
+              <strong class="text-slate-200">How Deep Agents offloads it:</strong> The main agent calls <code class="text-cyan-300">task(subagent_type="web-researcher", prompt="...")</code>. The subagent runs in an <em>isolated, separate context</em>. All intermediate queries and scrapes remain inside the subagent. Only a concise 3-paragraph summary returns to the main agent!
+            </div>
+          </div>
+
+          <!-- Pillar 2 -->
+          <div class="bg-slate-850/80 border border-slate-700 rounded-xl p-5 space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-cyan-500/20 text-cyan-300 rounded-lg text-lg">
+                <i class="fa-solid fa-hard-drive"></i>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">2. Filesystem Artifact Offloading</h4>
+                <span class="text-xs text-cyan-400 font-mono">read_file, write_file, edit_file</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Instead of holding large datasets, scraped tables, or source code in the conversational state, the agent writes raw dumps to a virtual filesystem (backed by <code class="text-slate-200">StateBackend</code> or <code class="text-slate-200">FilesystemBackend</code>).
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs text-slate-400">
+              <strong class="text-slate-200">How Deep Agents offloads it:</strong> The agent uses <code class="text-cyan-300">grep</code> to target exact sections, or calls <code class="text-cyan-300">read_file(offset=100, limit=200)</code> to inspect slices without loading the full 10MB artifact into memory.
+            </div>
+          </div>
+
+          <!-- Pillar 3 -->
+          <div class="bg-slate-850/80 border border-slate-700 rounded-xl p-5 space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-purple-500/20 text-purple-300 rounded-lg text-lg">
+                <i class="fa-solid fa-file-contract"></i>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">3. Automatic Conversation Compaction</h4>
+                <span class="text-xs text-purple-400 font-mono">SummarizationMiddleware</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              When token consumption crosses a threshold (e.g., 85% of window size), older turns are compacted by a secondary fast LLM into an ongoing summary.
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs text-slate-400">
+              <strong class="text-slate-200">Where does evicted history go?</strong> It is not lost! Deep Agents appends evicted raw turns to <code class="text-purple-300 font-mono">/conversation_history/{thread_id}.md</code> on the backend, preserving a complete auditable trail on disk.
+            </div>
+          </div>
+
+          <!-- Pillar 4 -->
+          <div class="bg-slate-850/80 border border-slate-700 rounded-xl p-5 space-y-3">
+            <div class="flex items-center gap-3">
+              <div class="p-2.5 bg-emerald-500/20 text-emerald-300 rounded-lg text-lg">
+                <i class="fa-solid fa-database"></i>
+              </div>
+              <div>
+                <h4 class="text-base font-bold text-white">4. DeltaChannel Message Reducer</h4>
+                <span class="text-xs text-emerald-400 font-mono">O(N) Checkpoint Scalability</span>
+              </div>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Standard LangGraph agents rewrite the entire conversation message array on every single node invocation, leading to quadratic <span class="font-mono text-rose-300 font-bold">O(N²)</span> storage explosion in Postgres or SQLite.
+            </p>
+            <div class="bg-slate-900 p-3 rounded-lg border border-slate-800 text-xs text-slate-400">
+              <strong class="text-slate-200">How Deep Agents offloads it:</strong> <code class="text-emerald-300 font-mono">DeepAgentState</code> utilizes LangGraph's <code class="text-emerald-300">DeltaChannel</code> with <code class="text-slate-200 font-mono">_messages_delta_reducer</code>, storing only state deltas and reducing database serialization overhead to <span class="font-mono text-emerald-300 font-bold">O(N)</span>.
+            </div>
+          </div>
+        </div>
+
+        <!-- Complete Middleware Pipeline Flowchart -->
+        <div class="space-y-3 pt-4 border-t border-slate-800">
+          <h3 class="text-md font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-arrow-down-up-across-line text-indigo-400"></i> The Default Middleware Assembly Pipeline
+          </h3>
+          <div class="p-4 bg-slate-950 border border-slate-800 rounded-xl font-mono text-xs text-slate-300 overflow-x-auto space-y-1">
+            <div class="text-indigo-400 font-bold">Request Lifecycle (Pre-Model Invocation & Tool Execution):</div>
+            <div class="flex items-center gap-2 text-slate-400">
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-amber-300">1. TodoListMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-cyan-300">2. SkillsMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-emerald-300">3. FilesystemMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-purple-300">4. SubAgentMiddleware</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-400 pl-8">
+              ➔ <span class="px-2 py-0.5 bg-slate-800 rounded text-blue-300">5. SummarizationMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-pink-300">6. PatchToolCallsMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-teal-300">7. User Middleware</span>
+            </div>
+            <div class="flex items-center gap-2 text-slate-400 pl-16">
+              ➔ <span class="px-2 py-0.5 bg-slate-800 rounded text-rose-300">8. MemoryMiddleware</span> ➔
+              <span class="px-2 py-0.5 bg-slate-800 rounded text-red-300">9. HumanInTheLoopMiddleware (HITL)</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 4: PROGRESSIVE SKILLS SYSTEM -->
+    <section id="tab-skills-system" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-brain text-purple-400"></i> The Progressive Disclosure Skills System
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">
+            Deep Agents natively implements the open <a href="https://agentskills.io/specification" target="_blank" class="text-indigo-400 underline">Agent Skills Specification</a> (the standard pioneered by Anthropic Claude Code).
+          </p>
+        </div>
+
+        <!-- Progressive Disclosure Concept -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-eye-low-vision text-cyan-400"></i> What is "Progressive Disclosure"?
+            </h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              If an agent library has 50 specialized domain skills (e.g. Docker deployment, SQL optimization, financial metrics, HIPAA compliance), stuffing all 50 full instruction sets into the system prompt consumes <strong>60,000+ tokens</strong> on every single turn before the user even types a word.
+            </p>
+            <div class="bg-slate-850 p-4 rounded-xl border border-slate-700/60 space-y-2 text-xs">
+              <div class="font-bold text-cyan-300">Deep Agents Progressive Workflow:</div>
+              <ol class="list-decimal list-inside space-y-1.5 text-slate-300">
+                <li><strong>Startup Indexing:</strong> The <code class="text-purple-300 font-mono">SkillsMiddleware</code> reads only the YAML frontmatter (<code class="text-amber-300">name</code> and <code class="text-amber-300">description</code>) from each skill directory.</li>
+                <li><strong>Compact Prompt:</strong> A tiny table of available skill titles and summaries is injected into the system prompt (~200 tokens total).</li>
+                <li><strong>On-Demand Loading:</strong> When the user asks a task matching a skill, the agent dynamically calls <code class="text-cyan-300 font-mono">read_file(path="/skills/...", limit=1000)</code> to ingest the full SOP and helper code only when needed!</li>
+              </ol>
+            </div>
+          </div>
+
+          <!-- File Structure Visual -->
+          <div class="space-y-3">
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-folder-tree text-amber-400"></i> Canonical Skill Directory Structure
+            </h3>
+            <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-xs space-y-2 text-slate-300">
+              <div class="text-indigo-400 font-semibold">📁 skills/</div>
+              <div class="pl-4 text-slate-300">└── 📁 web-research/</div>
+              <div class="pl-8 text-emerald-400">├── 📄 SKILL.md <span class="text-slate-500 font-sans">(Required: YAML frontmatter + workflows)</span></div>
+              <div class="pl-8 text-amber-400">└── 📄 helper.py <span class="text-slate-500 font-sans">(Optional: scripts agent can execute)</span></div>
+              <div class="pl-4 text-slate-300">└── 📁 forensic-accounting/</div>
+              <div class="pl-8 text-emerald-400">├── 📄 SKILL.md</div>
+              <div class="pl-8 text-cyan-400">└── 📊 ratio_checker.py</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SKILL.md Code Example -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-200">How to Author a Valid <code class="text-cyan-300">SKILL.md</code> File:</h3>
+          <div class="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                <span class="ml-2 font-mono text-[11px] text-slate-300 font-semibold uppercase">SKILL.md</span>
+              </div>
+              <button onclick="copyCode(this)" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors border border-slate-700/60">
+                <i class="fa-regular fa-copy"></i> <span>Copy</span>
+              </button>
+            </div>
+            <pre class="p-5 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre leading-relaxed"><code><span class="text-slate-500">---</span>
+<span class="text-purple-400">name</span>: <span class="text-emerald-300">sec-financial-analysis</span>
+<span class="text-purple-400">description</span>: <span class="text-emerald-300">Structured workflow for analyzing SEC 10-K filings, calculating debt-to-equity ratios, and identifying accounting anomalies.</span>
+<span class="text-purple-400">allowed-tools</span>: <span class="text-emerald-300">read_file grep execute</span>
+<span class="text-slate-500">---</span>
+
+<span class="text-indigo-400"># SEC Financial Analysis SOP</span>
+
+<span class="text-amber-300">## When to Use</span>
+- User provides a corporate ticker or 10-K annual filing.
+- Audit for revenue recognition irregularities.
+
+<span class="text-amber-300">## Step-by-Step Instructions</span>
+1. Locate the Consolidated Statement of Operations using `grep "Total revenue"`.
+2. Extract Operating Cash Flow and compare against Net Income over the last 3 fiscal years.
+3. If Net Income is rising while Operating Cash Flow is declining, flag an Accounting Divergence Warning!</code></pre>
+          </div>
+        </div>
+
+        <!-- Loading Skills in Python -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-200">How to Load Skills into <code class="text-cyan-300">create_deep_agent</code>:</h3>
+          <div class="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                <span class="ml-2 font-mono text-[11px] text-slate-300 font-semibold uppercase">load_skills.py</span>
+              </div>
+              <button onclick="copyCode(this)" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors border border-slate-700/60">
+                <i class="fa-regular fa-copy"></i> <span>Copy</span>
+              </button>
+            </div>
+            <pre class="p-5 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre leading-relaxed"><code><span class="text-purple-400">from</span> deepagents <span class="text-purple-400">import</span> create_deep_agent
+<span class="text-purple-400">from</span> deepagents.backends <span class="text-purple-400">import</span> FilesystemBackend
+
+<span class="text-slate-500"># 1. Point the backend to your project root or skill repository</span>
+backend = FilesystemBackend(root_dir=<span class="text-emerald-300">"/Users/sachinmishra/Desktop/Agents_From_Scratch"</span>)
+
+<span class="text-slate-500"># 2. Pass skill folder paths to create_deep_agent</span>
+agent = create_deep_agent(
+    model=<span class="text-emerald-300">"google_genai:gemini-2.5-pro"</span>,
+    skills=[
+        <span class="text-emerald-300">"/skills/research/"</span>,
+        <span class="text-emerald-300">"/skills/financial-analysis/"</span>,
+        (<span class="text-emerald-300">"~/.claude/skills"</span>, <span class="text-emerald-300">"Global Claude Skills"</span>)  <span class="text-slate-500"># Tuple with custom label</span>
+    ],
+    backend=backend,
+    system_prompt=<span class="text-emerald-300">"You are an elite corporate research agent."</span>
+)</code></pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 5: MCP INTEGRATION -->
+    <section id="tab-mcp-integration" class="tab-content hidden space-y-6">
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 sm:p-8 space-y-6">
+        <div>
+          <h2 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
+            <i class="fa-solid fa-network-wired text-cyan-400"></i> Connecting MCP (Model Context Protocol) Servers
+          </h2>
+          <p class="text-slate-400 text-sm mt-1">
+            Empower your Deep Agent with hundreds of pre-built tools (PostgreSQL, GitHub, Slack, SQLite, Docker, Brave Search) without writing wrapper code.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="space-y-3">
+            <h3 class="text-base font-bold text-white">How MCP Bridges to Deep Agents</h3>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              Because Deep Agents is built on top of LangChain and LangGraph, it seamlessly consumes tools generated by <strong><code class="text-cyan-300 font-mono">langchain-mcp-adapters</code></strong>.
+            </p>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">
+              The <code class="text-indigo-300 font-mono">MultiServerMCPClient</code> connects to multiple servers concurrently over <strong class="text-slate-200">stdio</strong> (local CLI binaries) or <strong class="text-slate-200">SSE/HTTP</strong> (remote services), discovers their exported tool schemas, and feeds them into <code class="text-cyan-300 font-mono">create_deep_agent(tools=...)</code>.
+            </p>
+          </div>
+
+          <div class="bg-slate-850 p-4 rounded-xl border border-slate-700/70 space-y-2 text-xs">
+            <div class="font-bold text-cyan-300"><i class="fa-solid fa-terminal mr-1"></i> Quick Installation:</div>
+            <div class="bg-slate-950 p-2.5 rounded font-mono text-emerald-300 border border-slate-800">
+              pip install langchain-mcp-adapters deepagents
+            </div>
+            <div class="text-slate-400 pt-2">
+              Deep Agents also supports CLI configuration via <code class="text-amber-300 font-mono">.mcp.json</code> for zero-code server attachment in your project root!
+            </div>
+          </div>
+        </div>
+
+        <!-- Python MCP Code Example -->
+        <div class="space-y-3">
+          <h3 class="text-sm font-bold text-slate-200 flex items-center gap-2">
+            <i class="fa-brands fa-python text-indigo-400"></i> Complete Python Implementation: Connecting MCP to Deep Agent
+          </h3>
+          <div class="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                <span class="ml-2 font-mono text-[11px] text-slate-300 font-semibold uppercase">mcp_deep_agent.py</span>
+              </div>
+              <button onclick="copyCode(this)" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors border border-slate-700/60">
+                <i class="fa-regular fa-copy"></i> <span>Copy</span>
+              </button>
+            </div>
+            <pre class="p-5 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre leading-relaxed"><code><span class="text-purple-400">import</span> asyncio
+<span class="text-purple-400">from</span> langchain_mcp_adapters.client <span class="text-purple-400">import</span> MultiServerMCPClient
+<span class="text-purple-400">from</span> deepagents <span class="text-purple-400">import</span> create_deep_agent
+
+<span class="text-purple-400">async def</span> <span class="text-cyan-300">run_mcp_deep_agent</span>():
+    <span class="text-slate-500"># 1. Define your multi-server MCP configuration</span>
+    mcp_config = {
+        <span class="text-emerald-300">"filesystem"</span>: {
+            <span class="text-emerald-300">"command"</span>: <span class="text-emerald-300">"npx"</span>,
+            <span class="text-emerald-300">"args"</span>: [<span class="text-emerald-300">"-y"</span>, <span class="text-emerald-300">"@modelcontextprotocol/server-filesystem"</span>, <span class="text-emerald-300">"/Users/sachinmishra/Desktop/Agents_From_Scratch"</span>]
+        },
+        <span class="text-emerald-300">"github"</span>: {
+            <span class="text-emerald-300">"command"</span>: <span class="text-emerald-300">"npx"</span>,
+            <span class="text-emerald-300">"args"</span>: [<span class="text-emerald-300">"-y"</span>, <span class="text-emerald-300">"@modelcontextprotocol/server-github"</span>],
+            <span class="text-emerald-300">"env"</span>: {<span class="text-emerald-300">"GITHUB_PERSONAL_ACCESS_TOKEN"</span>: <span class="text-emerald-300">"ghp_..."</span>}
+        },
+        <span class="text-emerald-300">"remote_database"</span>: {
+            <span class="text-emerald-300">"url"</span>: <span class="text-emerald-300">"http://localhost:8000/sse"</span>,
+            <span class="text-emerald-300">"transport"</span>: <span class="text-emerald-300">"sse"</span>
+        }
+    }
+
+    <span class="text-slate-500"># 2. Connect to the MCP servers asynchronously</span>
+    <span class="text-purple-400">async with</span> MultiServerMCPClient(mcp_config) <span class="text-purple-400">as</span> client:
+        mcp_tools = client.get_tools()
+        <span class="text-cyan-300">print</span>(<span class="text-emerald-300">f"Successfully loaded {len(mcp_tools)} MCP tools!"</span>)
+
+        <span class="text-slate-500"># 3. Instantiate the Deep Agent with MCP tools</span>
+        agent = create_deep_agent(
+            model=<span class="text-emerald-300">"google_genai:gemini-2.5-pro"</span>,
+            tools=mcp_tools,
+            system_prompt=<span class="text-emerald-300">"You are an automated DevOps and Repository Auditor with direct MCP access."</span>,
+            interrupt_on={<span class="text-emerald-300">"github_create_pull_request"</span>: <span class="text-amber-300">True</span>}  <span class="text-slate-500"># Human approval</span>
+        )
+
+        <span class="text-slate-500"># 4. Invoke agent with full MCP capabilities</span>
+        result = <span class="text-purple-400">await</span> agent.ainvoke({
+            <span class="text-emerald-300">"messages"</span>: [{<span class="text-emerald-300">"role"</span>: <span class="text-emerald-300">"user"</span>, <span class="text-emerald-300">"content"</span>: <span class="text-emerald-300">"Audit the latest open PR in the repo and check our database logs."</span>}]
+        })
+        <span class="text-cyan-300">print</span>(result[<span class="text-emerald-300">"messages"</span>][-1].content)
+
+<span class="text-slate-500"># Run in asyncio event loop</span>
+<span class="text-slate-500"># asyncio.run(run_mcp_deep_agent())</span></code></pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- TAB 6: PROJECT IDEA & BLUEPRINT -->
+    <section id="tab-project-idea" class="tab-content hidden space-y-6">
+      <div class="bg-gradient-to-br from-slate-900 via-indigo-950/40 to-slate-900 border border-indigo-500/40 rounded-3xl p-6 sm:p-8 glow-indigo space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <span class="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 text-xs font-bold border border-emerald-500/30 uppercase tracking-wide">
+              Production Project Proposal
+            </span>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white mt-2">
+              "DeepAudit-AI: Autonomous Equity & Forensic Due Diligence Deep Agent"
+            </h2>
+            <p class="text-slate-400 text-sm mt-1">
+              A meaningful, real-world Deep Agent engineered directly for the financial reports, PDFs, and multi-agent infrastructure in your workspace.
+            </p>
+          </div>
+          <div class="p-3 bg-indigo-600/20 text-indigo-300 rounded-2xl border border-indigo-500/40 text-3xl shrink-0">
+            <i class="fa-solid fa-chart-pie"></i>
+          </div>
+        </div>
+
+        <!-- Architecture Breakdown Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+          
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-indigo-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-crown text-amber-400"></i> Orchestrator (Main Agent)
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Powered by <code class="text-cyan-300">gemini-2.5-pro</code>. Initializes <code class="text-amber-300">write_todos</code> to draft an 8-phase investment audit. Decomposes tasks and delegates to subagents via <code class="text-purple-300">task</code>.
+            </p>
+          </div>
+
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-cyan-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-microchip"></i> Subagent 1: Quantitative SEC Auditor
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Equipped with <code class="text-cyan-300">FilesystemBackend</code> to parse 100-page 10-K PDFs in <code class="text-slate-200">/financial_pdfs</code>. Executes sandboxed Python to compute 5-year CAGR, Altman Z-Score, and Beneish M-Score.
+            </p>
+          </div>
+
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-emerald-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-earth-americas"></i> Subagent 2: Market & Competitor Scout
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Equipped with SerpAPI and MCP web search. Scours regulatory actions, SEC lawsuit filings, Glassdoor executive sentiment, and competitor earnings transcripts.
+            </p>
+          </div>
+
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-purple-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-folder-open"></i> Context Offloading Strategy
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              Raw filings and 50+ web scrapes are saved as markdown in <code class="text-purple-300">/reports/raw_data/</code>. Subagents return 3-bullet metric summaries. <code class="text-indigo-300">SummarizationMiddleware</code> logs evicted turns to disk.
+            </p>
+          </div>
+
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-amber-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-book-bookmark"></i> Progressive Skills Attached
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              <code class="text-amber-300">sec-10k-parser</code>, <code class="text-amber-300">forensic-accounting-redflags</code>, and <code class="text-amber-300">ic-memo-generator</code> loaded via <code class="text-slate-200">SkillsMiddleware</code>. Instructions read dynamically on demand.
+            </p>
+          </div>
+
+          <div class="bg-slate-850/90 border border-slate-700/80 p-5 rounded-2xl space-y-2 card-hover">
+            <div class="font-bold text-rose-300 text-sm flex items-center gap-2">
+              <i class="fa-solid fa-user-shield"></i> HITL & MCP Connectivity
+            </div>
+            <p class="text-slate-300 leading-relaxed">
+              PostgreSQL MCP server for historical balance sheets. <code class="text-rose-300">interrupt_on={"write_file": True}</code> triggers human review before publishing the final Investment Committee Memo!
+            </p>
+          </div>
+        </div>
+
+        <!-- Runnable Blueprint Code Snippet -->
+        <div class="space-y-3 pt-4 border-t border-slate-800">
+          <h3 class="text-sm font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-code text-indigo-400"></i> Executable Architecture Blueprint Code
+          </h3>
+          <div class="rounded-xl border border-slate-800 bg-slate-950 overflow-hidden shadow-2xl">
+            <div class="flex items-center justify-between px-4 py-2.5 bg-slate-900 border-b border-slate-800 text-xs">
+              <div class="flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-rose-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-amber-500/80 inline-block"></span>
+                <span class="w-2.5 h-2.5 rounded-full bg-emerald-500/80 inline-block"></span>
+                <span class="ml-2 font-mono text-[11px] text-slate-300 font-semibold uppercase">deepaudit_blueprint.py</span>
+              </div>
+              <button onclick="copyCode(this)" class="flex items-center gap-1.5 px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] transition-colors border border-slate-700/60">
+                <i class="fa-regular fa-copy"></i> <span>Copy</span>
+              </button>
+            </div>
+            <pre class="p-5 font-mono text-xs text-slate-200 overflow-x-auto whitespace-pre leading-relaxed"><code><span class="text-purple-400">from</span> deepagents <span class="text-purple-400">import</span> create_deep_agent, SubAgent
+<span class="text-purple-400">from</span> deepagents.backends <span class="text-purple-400">import</span> FilesystemBackend
+<span class="text-purple-400">from</span> deepagents.middleware.summarization <span class="text-purple-400">import</span> SummarizationMiddleware
+<span class="text-purple-400">from</span> langchain_core.tools <span class="text-purple-400">import</span> tool
+
+<span class="text-slate-500"># 1. Custom Tools for Subagents</span>
+<span class="text-indigo-400">@tool</span>
+<span class="text-purple-400">def</span> <span class="text-cyan-300">calculate_altman_z_score</span>(
+    working_cap: <span class="text-amber-300">float</span>,
+    retained_earnings: <span class="text-amber-300">float</span>,
+    ebit: <span class="text-amber-300">float</span>,
+    mkt_cap: <span class="text-amber-300">float</span>,
+    sales: <span class="text-amber-300">float</span>,
+    total_assets: <span class="text-amber-300">float</span>,
+    total_liabilities: <span class="text-amber-300">float</span>
+) -> <span class="text-amber-300">str</span>:
+    <span class="text-emerald-300">"""Calculate Altman Z-Score for bankruptcy risk assessment."""</span>
+    z = (
+        (1.2 * (working_cap / total_assets)) +
+        (1.4 * (retained_earnings / total_assets)) +
+        (3.3 * (ebit / total_assets)) +
+        (0.6 * (mkt_cap / total_liabilities)) +
+        (0.999 * (sales / total_assets))
+    )
+    zone = <span class="text-emerald-300">"Safe"</span> <span class="text-purple-400">if</span> z > 2.99 <span class="text-purple-400">else</span> (<span class="text-emerald-300">"Grey"</span> <span class="text-purple-400">if</span> z >= 1.81 <span class="text-purple-400">else</span> <span class="text-rose-300">"Distress"</span>)
+    <span class="text-purple-400">return</span> <span class="text-emerald-300">f"Altman Z-Score: {z:.2f} ({zone} Zone)"</span>
+
+<span class="text-slate-500"># 2. Declarative Subagents with Context Isolation</span>
+quant_subagent: SubAgent = {
+    <span class="text-emerald-300">"name"</span>: <span class="text-emerald-300">"quant_auditor"</span>,
+    <span class="text-emerald-300">"description"</span>: <span class="text-emerald-300">"Specialized forensic accountant that extracts balance sheet numbers and runs solvency ratios."</span>,
+    <span class="text-emerald-300">"system_prompt"</span>: <span class="text-emerald-300">"You are a quant auditor. Read filings via read_file and run calculate_altman_z_score. Return only executive bullet summaries."</span>,
+    <span class="text-emerald-300">"tools"</span>: [calculate_altman_z_score],
+    <span class="text-emerald-300">"model"</span>: <span class="text-emerald-300">"google_genai:gemini-2.5-pro"</span>
+}
+
+<span class="text-slate-500"># 3. Assemble the Deep Agent Harness</span>
+backend = FilesystemBackend(root_dir=<span class="text-emerald-300">"/Users/sachinmishra/Desktop/Agents_From_Scratch"</span>)
+
+audit_agent = create_deep_agent(
+    model=<span class="text-emerald-300">"google_genai:gemini-2.5-pro"</span>,
+    subagents=[quant_subagent],
+    skills=[<span class="text-emerald-300">"/skills/forensic-accounting/"</span>],
+    backend=backend,
+    interrupt_on={<span class="text-emerald-300">"write_file"</span>: <span class="text-amber-300">True</span>},  <span class="text-slate-500"># HITL approval before saving final memo</span>
+    system_prompt=(
+        <span class="text-emerald-300">"You are DeepAudit, an autonomous forensic due diligence lead. "</span>
+        <span class="text-emerald-300">"Always start by using write_todos to map out your investigation. "</span>
+        <span class="text-emerald-300">"Delegate raw PDF parsing to quant_auditor to protect conversational context. "</span>
+        <span class="text-emerald-300">"Synthesize final findings into /reports/final_due_diligence_memo.md."</span>
+    )
+)</code></pre>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="pt-6 border-t border-slate-800 text-center text-xs text-slate-500 flex flex-col sm:flex-row justify-between items-center gap-2">
+      <div>Generated for Agents_From_Scratch &bull; Deep Agents Architectural Research</div>
+      <div class="text-slate-400">Powered by LangChain &bull; LangGraph &bull; Google Gemini</div>
+    </footer>
+
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      // Hide all contents
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      // Remove active from all buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('active');
+        btn.classList.add('text-slate-400');
+      });
+      // Show selected tab
+      const selectedContent = document.getElementById('tab-' + tabId);
+      if (selectedContent) {
+        selectedContent.classList.remove('hidden');
+      }
+      // Set active button
+      const selectedBtn = document.getElementById('tab-btn-' + tabId);
+      if (selectedBtn) {
+        selectedBtn.classList.add('active');
+        selectedBtn.classList.remove('text-slate-400');
+      }
+    }
+
+    // Function to copy code with interactive button feedback
+    function copyCode(button) {
+      const container = button.closest('.rounded-xl');
+      const codeElement = container.querySelector('pre code');
+      if (!codeElement) return;
+      
+      const code = codeElement.innerText;
+      navigator.clipboard.writeText(code).then(() => {
+        const originalHTML = button.innerHTML;
+        button.innerHTML = '<i class="fa-solid fa-check text-emerald-400"></i> <span class="text-emerald-400 font-semibold">Copied!</span>';
+        button.classList.add('bg-emerald-950/60', 'border-emerald-700/60');
+        setTimeout(() => {
+          button.innerHTML = originalHTML;
+          button.classList.remove('bg-emerald-950/60', 'border-emerald-700/60');
+        }, 2000);
+      }).catch(err => {
+        console.error('Failed to copy text: ', err);
+      });
+    }
+  </script>
+</body>
+</html>

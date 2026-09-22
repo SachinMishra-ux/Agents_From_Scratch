@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DeepAudit-AI &bull; Institutional Financial Forensic Terminal</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+    pre, code, .font-mono {
+      font-family: 'JetBrains Mono', monospace !important;
+    }
+
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(148, 163, 184, 0.25); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.4); }
+
+    .terminal-bg { background-color: #07090e; }
+    .panel-bg { background-color: #0d111a; }
+    .subpanel-bg { background-color: #121824; }
+    .border-subtle { border-color: #1e2638; }
+
+    .glow-gold { box-shadow: 0 0 25px rgba(245, 158, 11, 0.25); }
+    .glow-emerald { box-shadow: 0 0 25px rgba(16, 185, 129, 0.25); }
+    .glow-purple { box-shadow: 0 0 25px rgba(168, 85, 247, 0.25); }
+    .glow-cyan { box-shadow: 0 0 25px rgba(6, 182, 212, 0.25); }
+
+    @keyframes pulseOrchestrator {
+      0%, 100% { border-color: #f59e0b; box-shadow: 0 0 20px rgba(245, 158, 11, 0.45); }
+      50% { border-color: #b45309; box-shadow: 0 0 8px rgba(245, 158, 11, 0.2); }
+    }
+    @keyframes pulseQuant {
+      0%, 100% { border-color: #06b6d4; box-shadow: 0 0 22px rgba(6, 182, 212, 0.5); }
+      50% { border-color: #0891b2; box-shadow: 0 0 8px rgba(6, 182, 212, 0.2); }
+    }
+    @keyframes pulseAccrual {
+      0%, 100% { border-color: #a855f7; box-shadow: 0 0 22px rgba(168, 85, 247, 0.5); }
+      50% { border-color: #7e22ce; box-shadow: 0 0 8px rgba(168, 85, 247, 0.2); }
+    }
+
+    .active-orchestrator {
+      animation: pulseOrchestrator 2s infinite ease-in-out;
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.14) 0%, rgba(13, 17, 26, 0.98) 100%) !important;
+      border-color: #f59e0b !important;
+    }
+    .active-quant {
+      animation: pulseQuant 1.8s infinite ease-in-out;
+      background: linear-gradient(135deg, rgba(6, 182, 212, 0.16) 0%, rgba(13, 17, 26, 0.98) 100%) !important;
+      border-color: #06b6d4 !important;
+    }
+    .active-accrual {
+      animation: pulseAccrual 1.8s infinite ease-in-out;
+      background: linear-gradient(135deg, rgba(168, 85, 247, 0.16) 0%, rgba(13, 17, 26, 0.98) 100%) !important;
+      border-color: #a855f7 !important;
+    }
+    .completed-agent {
+      border-color: rgba(16, 185, 129, 0.45) !important;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(13, 17, 26, 0.98) 100%) !important;
+      box-shadow: 0 0 15px rgba(16, 185, 129, 0.15) !important;
+    }
+
+    .tab-active {
+      border-bottom: 2px solid #f59e0b;
+      color: #fbbf24;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body class="terminal-bg text-slate-100 antialiased min-h-screen p-4 sm:p-6 lg:p-8 flex flex-col justify-between text-sm sm:text-base">
+
+  <div class="max-w-7xl w-full mx-auto space-y-6">
+
+    <!-- Bloomberg / Institutional Style Top Header -->
+    <header class="panel-bg border border-subtle rounded-2xl p-5 sm:p-7 shadow-2xl flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+      
+      <!-- Brand & Ticker Details -->
+      <div class="flex items-start sm:items-center gap-5">
+        <div class="p-4 bg-gradient-to-br from-amber-500/20 via-amber-600/10 to-transparent border border-amber-500/40 rounded-2xl text-amber-400 text-3xl font-black shadow-lg">
+          <i class="fa-solid fa-chart-line"></i>
+        </div>
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+              DeepAudit<span class="text-amber-400">Terminal</span>
+            </h1>
+            <span class="px-2.5 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-xs font-mono font-bold tracking-wider uppercase">
+              Deep Agent Multi-Harness
+            </span>
+            <span class="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-mono font-bold">
+              NYSE: JPM
+            </span>
+          </div>
+          <p class="text-xs sm:text-sm text-slate-400">
+            Automated M&A Due Diligence &bull; Target: <span class="text-slate-200 font-semibold font-mono">financial_pdfs/JPM_Annual_2023.pdf</span> (364 Pages)
+          </p>
+        </div>
+      </div>
+
+      <!-- Action & Model Controls -->
+      <div class="flex flex-wrap items-center gap-3 w-full lg:w-auto">
+        <a href="/architecture" target="_blank" class="px-3.5 py-2.5 rounded-xl subpanel-bg border border-subtle hover:border-cyan-500/50 text-slate-300 hover:text-cyan-300 transition-all text-xs sm:text-sm font-semibold flex items-center gap-2">
+          <i class="fa-solid fa-sitemap text-cyan-400"></i>
+          <span>Architecture Guide</span>
+        </a>
+
+        <div class="flex items-center gap-2.5 subpanel-bg border border-subtle px-3.5 py-2 rounded-xl text-xs sm:text-sm">
+          <span class="text-slate-400 font-medium">Model:</span>
+          <select id="model-select" class="bg-transparent text-amber-300 font-semibold focus:outline-none cursor-pointer">
+            <option value="google_genai:gemini-2.5-pro" class="bg-slate-900 text-slate-200" selected>Gemini 2.5 Pro (Deep Multi-Agent Reasoning)</option>
+            <option value="google_genai:gemini-2.5-flash" class="bg-slate-900 text-slate-200">Gemini 2.5 Flash (Fast Execution)</option>
+          </select>
+        </div>
+
+        <button id="start-btn" onclick="startAudit()" class="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-sm sm:text-base shadow-lg shadow-amber-500/20 transition-all flex items-center justify-center gap-2.5">
+          <i class="fa-solid fa-bolt text-slate-950"></i>
+          <span>Execute Forensic Audit</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Financial Key Metrics Tape -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div class="panel-bg border border-subtle rounded-xl p-4 space-y-1">
+        <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Total Net Revenue (FY23)</div>
+        <div class="text-xl sm:text-2xl font-black text-white font-mono">$158.10B</div>
+        <div class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i>+22.8% YoY</div>
+      </div>
+      <div class="panel-bg border border-subtle rounded-xl p-4 space-y-1">
+        <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Net Income &bull; Record High</div>
+        <div class="text-xl sm:text-2xl font-black text-white font-mono">$49.55B</div>
+        <div class="text-xs text-emerald-400 font-semibold"><i class="fa-solid fa-arrow-trend-up mr-1"></i>+31.5% YoY (Record High)</div>
+      </div>
+      <div class="panel-bg border border-subtle rounded-xl p-4 space-y-1">
+        <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Solvency Health (Altman Z)</div>
+        <div class="text-xl sm:text-2xl font-black text-cyan-400 font-mono" id="tape-solvency">Pending Analysis</div>
+        <div class="text-xs text-slate-400" id="tape-solvency-sub">Waiting for Quant Auditor</div>
+      </div>
+      <div class="panel-bg border border-subtle rounded-xl p-4 space-y-1">
+        <div class="text-xs text-slate-400 uppercase tracking-wider font-semibold">Sloan Accrual Quality</div>
+        <div class="text-xl sm:text-2xl font-black text-purple-400 font-mono" id="tape-accrual">Pending Analysis</div>
+        <div class="text-xs text-slate-400" id="tape-accrual-sub">Waiting for Accrual Auditor</div>
+      </div>
+    </div>
+
+    <!-- Active 3-Agent Delegation Matrix -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      
+      <!-- Agent 1: Lead Forensic Orchestrator -->
+      <div id="agent-orchestrator" class="panel-bg border border-subtle rounded-2xl p-5 transition-all duration-300 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0" id="dot-orchestrator"></span>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider truncate">Lead Orchestrator</h2>
+          </div>
+          <span class="text-[11px] font-mono bg-amber-500/10 text-amber-300 px-2 py-0.5 rounded border border-amber-500/30">Orchestrator</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Formulates milestone plan via <code class="text-amber-300 font-mono">write_todos</code>, delegates sub-tasks, evaluates skills SOPs, and triggers HITL review.
+        </p>
+        <div class="flex items-center justify-between pt-2 border-t border-subtle text-xs">
+          <span class="text-slate-400 font-medium">State:</span>
+          <span id="status-orchestrator" class="text-slate-400 font-semibold">STANDBY</span>
+        </div>
+      </div>
+
+      <!-- Agent 2: Quant Solvency Auditor -->
+      <div id="agent-quant" class="panel-bg border border-subtle rounded-2xl p-5 transition-all duration-300 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0" id="dot-quant"></span>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider truncate">Quant Auditor</h2>
+          </div>
+          <span class="text-[11px] font-mono bg-cyan-950 text-cyan-300 px-2 py-0.5 rounded border border-cyan-800">SubAgent 1</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Queries SQLite database via MCP, extracts balance sheets, computes Altman Z solvency metric and CET1 capital adequacy.
+        </p>
+        <div class="flex items-center justify-between pt-2 border-t border-subtle text-xs">
+          <span class="text-slate-400 font-medium">State:</span>
+          <span id="status-quant" class="text-slate-500 font-semibold">STANDBY</span>
+        </div>
+      </div>
+
+      <!-- Agent 3: Accrual & Earnings Manipulation Auditor -->
+      <div id="agent-accrual" class="panel-bg border border-subtle rounded-2xl p-5 transition-all duration-300 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <span class="w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0" id="dot-accrual"></span>
+            <h2 class="text-sm font-bold text-white uppercase tracking-wider truncate">Accruals & Forensics</h2>
+          </div>
+          <span class="text-[11px] font-mono bg-purple-950 text-purple-300 px-2 py-0.5 rounded border border-purple-800">SubAgent 2</span>
+        </div>
+        <p class="text-xs text-slate-300 leading-relaxed">
+          Calculates Sloan Accrual Anomaly, Beneish manipulation indices (SGI, AQI, TATA), and scrutinizes cash-flow decoupling.
+        </p>
+        <div class="flex items-center justify-between pt-2 border-t border-subtle text-xs">
+          <span class="text-slate-400 font-medium">State:</span>
+          <span id="status-accrual" class="text-slate-500 font-semibold">STANDBY</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Live Delegation Alert Bar -->
+    <div id="delegation-banner" class="hidden p-4 rounded-xl subpanel-bg border border-amber-500/40 text-amber-300 text-xs sm:text-sm flex items-center justify-between gap-4 animate-pulse">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-network-wired text-amber-400 text-lg"></i>
+        <span><strong>Sub-Agent Task Dispatched:</strong> <span id="delegation-text"></span></span>
+      </div>
+      <span class="px-2.5 py-1 rounded bg-amber-500/20 text-amber-300 text-xs font-mono font-bold">Context Isolated</span>
+    </div>
+
+    <!-- Final Save & Publication Confirmation Toast -->
+    <div id="save-confirmation-banner" class="hidden p-4 rounded-xl bg-gradient-to-r from-emerald-950/90 to-slate-900 border border-emerald-500/80 text-emerald-300 text-xs sm:text-sm flex items-center justify-between gap-4 shadow-xl">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-emerald-500/20 text-emerald-400 text-lg">
+          <i class="fa-solid fa-circle-check"></i>
+        </div>
+        <div>
+          <strong class="text-white text-sm block save-banner-title">Memorandum Saved & Institutional Audit Finalized!</strong>
+          <span class="text-xs text-emerald-400 font-mono">Archived to reports/JPM_2023_Due_Diligence_Memo.md &bull; 100% Verified</span>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="switchConsoleTab('notes')" class="px-3.5 py-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/50 text-emerald-300 font-semibold text-xs transition-all flex items-center gap-1.5">
+          <i class="fa-solid fa-book-open"></i> View Memo Tab
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Workspace Split: Structured Audit Plan (Left) + Multi-Tab Inspection Console (Right) -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      
+      <!-- Left Panel: Dynamic Audit Plan (TodoListMiddleware) -->
+      <div class="lg:col-span-4 panel-bg border border-subtle rounded-2xl p-5 sm:p-6 space-y-5 flex flex-col">
+        <div class="flex items-center justify-between pb-3 border-b border-subtle">
+          <div>
+            <h2 class="text-base sm:text-lg font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-list-check text-amber-400"></i> Audit Plan (<code class="text-xs text-amber-300">write_todos</code>)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Automated deep agent milestone pipeline</p>
+          </div>
+          <span id="todo-count" class="text-xs font-mono text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded border border-amber-500/30">0/0 Done</span>
+        </div>
+
+        <!-- Progress Bar -->
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-xs text-slate-400 font-medium">
+            <span>Overall Execution Progress</span>
+            <span id="progress-percent" class="text-amber-400 font-bold">0%</span>
+          </div>
+          <div class="w-full h-2 bg-slate-900 rounded-full overflow-hidden border border-subtle">
+            <div id="progress-bar" class="h-full bg-gradient-to-r from-amber-500 to-emerald-500 w-0 transition-all duration-500"></div>
+          </div>
+        </div>
+
+        <!-- Live Todos Container with larger, legible typography -->
+        <div id="todo-list" class="space-y-3 text-sm flex-1 overflow-y-auto max-h-[380px]">
+          <div class="p-5 subpanel-bg rounded-xl border border-subtle text-slate-400 text-center text-xs sm:text-sm leading-relaxed">
+            <i class="fa-solid fa-clock text-xl text-slate-600 mb-2 block"></i>
+            The audit plan will be generated dynamically by the Deep Agent upon launch.
+          </div>
+        </div>
+
+        <!-- System Guardrails -->
+        <div class="pt-4 border-t border-subtle space-y-2 text-xs sm:text-sm text-slate-400">
+          <div class="font-bold text-slate-200 text-xs uppercase tracking-wider">Enterprise Architecture</div>
+          <div class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-users text-amber-400"></i> Active Sub-Agents</span>
+            <span class="text-amber-300 font-semibold font-mono text-xs">2 (Quant + Accruals)</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-brain text-purple-400"></i> Progressive Skills</span>
+            <span class="text-emerald-400 font-semibold font-mono text-xs">3 Loaded (SOPs)</span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="flex items-center gap-2"><i class="fa-solid fa-user-shield text-emerald-400"></i> Human-In-The-Loop</span>
+            <span class="text-emerald-400 font-semibold font-mono text-xs">write_file Interrupt Live</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Panel: Professional Tabbed Financial Console -->
+      <div class="lg:col-span-8 panel-bg border border-subtle rounded-2xl p-5 sm:p-6 space-y-4 flex flex-col h-[700px]">
+        
+        <!-- Navigation Tabs -->
+        <div class="flex items-center justify-between pb-3 border-b border-subtle">
+          <div class="flex items-center gap-4 text-xs sm:text-sm">
+            <button onclick="switchConsoleTab('activity')" id="tab-btn-activity" class="tab-active pb-2 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-terminal text-amber-400"></i> Live Tool & Agent Stream
+            </button>
+            <button onclick="switchConsoleTab('data')" id="tab-btn-data" class="text-slate-400 hover:text-slate-200 pb-2 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-table text-cyan-400"></i> Statements & Ratios
+            </button>
+            <button onclick="switchConsoleTab('notes')" id="tab-btn-notes" class="text-slate-400 hover:text-slate-200 pb-2 transition-all flex items-center gap-2">
+              <i class="fa-solid fa-file-lines text-emerald-400"></i> Auditor Analysis Feed
+            </button>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span id="live-pulse" class="hidden w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+            <span id="execution-status" class="text-xs font-mono text-slate-400 font-semibold uppercase">Engine Ready</span>
+          </div>
+        </div>
+
+        <!-- TAB 1: Real-Time Stream -->
+        <div id="console-tab-activity" class="flex-1 overflow-y-auto space-y-3.5 pr-2">
+          <div class="p-8 text-center text-slate-500 space-y-3">
+            <div class="w-12 h-12 rounded-full bg-slate-900 border border-subtle mx-auto flex items-center justify-center text-amber-400 text-xl">
+              <i class="fa-solid fa-microchip"></i>
+            </div>
+            <h3 class="text-base font-bold text-white">DeepAudit Execution Engine Initialized</h3>
+            <p class="text-xs sm:text-sm text-slate-400 max-w-md mx-auto leading-relaxed">
+              Click <strong>"Execute Forensic Audit"</strong> to start. Watch each tool call, database SQL query, and subagent delegation unfold in real time.
+            </p>
+          </div>
+        </div>
+
+        <!-- TAB 2: Verified Database Tables & Solvency Math -->
+        <div id="console-tab-data" class="hidden flex-1 overflow-y-auto space-y-4 pr-2">
+          <div class="subpanel-bg p-4 rounded-xl border border-subtle">
+            <h3 class="text-sm font-bold text-white mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-database text-cyan-400"></i> Verified Statements (SQLite &bull; Ingested from 10-K)
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs sm:text-sm">
+                <thead class="bg-slate-900 text-slate-400 border-b border-subtle font-mono uppercase text-xs">
+                  <tr>
+                    <th class="p-2.5">Fiscal Year</th>
+                    <th class="p-2.5">Revenue</th>
+                    <th class="p-2.5">Net Income</th>
+                    <th class="p-2.5">Operating CF</th>
+                    <th class="p-2.5">Total Assets</th>
+                    <th class="p-2.5">CET1</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y border-subtle text-slate-200 font-mono">
+                  <tr>
+                    <td class="p-2.5 font-bold text-amber-400">FY2023</td>
+                    <td class="p-2.5">$158.10B</td>
+                    <td class="p-2.5">$49.55B</td>
+                    <td class="p-2.5 text-emerald-400">+$64.91B</td>
+                    <td class="p-2.5">$3,875.4B</td>
+                    <td class="p-2.5 text-cyan-400">15.0%</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 font-bold text-slate-400">FY2022</td>
+                    <td class="p-2.5">$128.70B</td>
+                    <td class="p-2.5">$37.68B</td>
+                    <td class="p-2.5 text-rose-400">-$22.75B</td>
+                    <td class="p-2.5">$3,665.7B</td>
+                    <td class="p-2.5">13.2%</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 font-bold text-slate-400">FY2021</td>
+                    <td class="p-2.5">$121.65B</td>
+                    <td class="p-2.5">$48.33B</td>
+                    <td class="p-2.5 text-emerald-400">+$46.12B</td>
+                    <td class="p-2.5">$3,743.6B</td>
+                    <td class="p-2.5">13.1%</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="subpanel-bg p-4 rounded-xl border border-subtle space-y-2">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-calculator text-cyan-400"></i> Altman Z Solvency Method
+              </h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Calculates bankruptcy risk across Working Capital, Retained Earnings, EBIT, Market Cap, and Revenue. JPM's 15.0% CET1 capital ratio and high earnings place it safely in the <strong>Safe Zone (> 2.99)</strong>.
+              </p>
+            </div>
+
+            <div class="subpanel-bg p-4 rounded-xl border border-subtle space-y-2">
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-shield-virus text-purple-400"></i> Sloan Accruals & Beneish
+              </h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Evaluates earnings manipulation risk by measuring accruals against operating cash flow. In 2023, JPM generated +$64.9B in cash flow against $49.5B net income (Negative Sloan Accrual = <strong>High Cash Quality</strong>).
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 3: Auditor Analysis Feed -->
+        <div id="console-tab-notes" class="hidden flex-1 overflow-y-auto space-y-3.5 pr-2">
+          <div id="notes-content" class="text-xs sm:text-sm text-slate-300 leading-relaxed p-4 subpanel-bg rounded-xl border border-subtle space-y-3">
+            <p class="text-slate-500 italic">Auditor analytical commentary and reasoning will appear here in real time as the model synthesizes findings.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- HUMAN-IN-THE-LOOP (HITL) INVESTMENT COMMITTEE TERMINAL -->
+  <div id="hitl-modal" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 sm:p-6">
+    <div class="panel-bg border border-amber-500/60 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-5 glow-gold shadow-2xl max-h-[92vh] flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="flex items-start justify-between">
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-2 px-3 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/40 text-amber-400 text-xs font-mono font-bold uppercase tracking-wider">
+            <i class="fa-solid fa-user-shield"></i> Investment Committee Approval Terminal
+          </div>
+          <h2 class="text-xl sm:text-2xl font-extrabold text-white">Review & Edit Due Diligence Memorandum</h2>
+          <p class="text-xs sm:text-sm text-slate-300">
+            Target Destination: <code id="hitl-filepath" class="text-amber-300 font-mono">reports/JPM_2023_Due_Diligence_Memo.md</code>
+          </p>
+        </div>
+        <div class="p-3 bg-amber-500/10 text-amber-400 rounded-2xl text-2xl shrink-0">
+          <i class="fa-solid fa-file-signature"></i>
+        </div>
+      </div>
+
+      <!-- Editable Document View -->
+      <div class="flex-1 flex flex-col min-h-0 space-y-2">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span class="flex items-center gap-2">
+            <i class="fa-solid fa-pencil text-amber-400"></i>
+            <strong>Direct Document Editor:</strong> Type directly inside the box below to modify text, metrics, or risk conclusions.
+          </span>
+          <span class="text-xs font-mono text-emerald-400 font-bold"><i class="fa-solid fa-check mr-1"></i>Direct Editing Enabled</span>
+        </div>
+        <!-- Fully editable textarea with explicit styling -->
+        <textarea id="hitl-textarea" 
+                  spellcheck="false"
+                  placeholder="Review or modify the memorandum content here..."
+                  class="w-full flex-1 min-h-[300px] p-4 sm:p-5 terminal-bg border-2 border-slate-700 hover:border-slate-600 focus:border-amber-400 rounded-2xl font-mono text-xs sm:text-sm text-slate-100 focus:outline-none leading-relaxed resize-none shadow-inner cursor-text select-text"
+                  style="cursor: text !important; user-select: text !important; -webkit-user-select: text !important;"
+        ></textarea>
+
+        <!-- AI Agent Revision Feedback Section -->
+        <div class="p-3 rounded-xl subpanel-bg border border-subtle space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="text-amber-300 font-bold flex items-center gap-1.5">
+              <i class="fa-solid fa-comments text-amber-400"></i> Or Request AI Agent Revision:
+            </span>
+            <span class="text-slate-500 text-[11px]">Submits prompt back to Lead Orchestrator</span>
+          </div>
+          <div class="flex gap-2">
+            <input type="text" id="hitl-feedback-input" placeholder="e.g., Focus more on commercial real estate exposure, or recalculate Sloan ratio..." class="flex-1 px-3 py-2 rounded-lg bg-slate-950 border border-slate-700 text-xs text-slate-200 focus:outline-none focus:border-amber-400 font-mono" />
+            <button id="btn-hitl-revise" onclick="submitRevisionFeedback()" class="px-4 py-2 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-bold text-xs border border-amber-500/40 transition-all flex items-center gap-1.5 whitespace-nowrap">
+              <i class="fa-solid fa-arrows-rotate"></i> Send Feedback & Re-run
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-3 border-t border-subtle">
+        <div class="text-xs sm:text-sm text-slate-400">
+          Sign-Off Authority: <strong class="text-white">Lead Human Auditor</strong>
+        </div>
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <button id="btn-hitl-edit" onclick="submitHITL('edit')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 font-bold text-xs sm:text-sm shadow-lg shadow-amber-500/30 transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-floppy-disk"></i> Save Edited Memo & Finalize
+          </button>
+          <button id="btn-hitl-approve" onclick="submitHITL('approve')" class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs sm:text-sm font-bold shadow-lg shadow-emerald-500/30 transition-all flex items-center justify-center gap-2">
+            <i class="fa-solid fa-check"></i> Authorize As-Is & Finalize
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT STREAMING & TAB LOGIC -->
+  <script>
+    let currentThreadId = null;
+    let eventSource = null;
+    let accumulatedNotes = "";
+    let totalPlanCount = 0;
+    let completedPlanCount = 0;
+    let activeAgentLockTimer = null;
+
+    function switchConsoleTab(tabId) {
+      document.getElementById('console-tab-activity').classList.add('hidden');
+      document.getElementById('console-tab-data').classList.add('hidden');
+      document.getElementById('console-tab-notes').classList.add('hidden');
+
+      document.getElementById('tab-btn-activity').className = 'text-slate-400 hover:text-slate-200 pb-2 transition-all flex items-center gap-2';
+      document.getElementById('tab-btn-data').className = 'text-slate-400 hover:text-slate-200 pb-2 transition-all flex items-center gap-2';
+      document.getElementById('tab-btn-notes').className = 'text-slate-400 hover:text-slate-200 pb-2 transition-all flex items-center gap-2';
+
+      document.getElementById('console-tab-' + tabId).classList.remove('hidden');
+      document.getElementById('tab-btn-' + tabId).className = 'tab-active pb-2 transition-all flex items-center gap-2';
+    }
+
+    async function startAudit() {
+      const startBtn = document.getElementById('start-btn');
+      const selectedModel = document.getElementById('model-select').value;
+      
+      startBtn.disabled = true;
+      startBtn.classList.add('opacity-50', 'cursor-not-allowed');
+      startBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-2"></i> Executing Audit...';
+
+      const container = document.getElementById('console-tab-activity');
+      container.innerHTML = '';
+      accumulatedNotes = "";
+      totalPlanCount = 0;
+      completedPlanCount = 0;
+      document.getElementById('notes-content').innerHTML = '<p class="text-slate-500 italic">Auditor analytical commentary will appear here in real time...</p>';
+
+      document.getElementById('live-pulse').classList.remove('hidden');
+      document.getElementById('execution-status').innerText = 'Audit Initializing...';
+      document.getElementById('execution-status').className = 'text-xs font-mono text-amber-400 font-bold uppercase';
+
+      try {
+        const resp = await fetch('/api/audit/start', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            ticker: 'JPM',
+            company_name: 'JPMorgan Chase & Co.',
+            fiscal_year: 2023,
+            model_name: selectedModel
+          })
+        });
+        const data = await resp.json();
+        currentThreadId = data.thread_id;
+
+        connectSSE(currentThreadId);
+      } catch (err) {
+        appendLog('error', `Failed to initialize audit session: ${err}`);
+        resetStartButton();
+      }
+    }
+
+    function resetStartButton() {
+      const startBtn = document.getElementById('start-btn');
+      startBtn.disabled = false;
+      startBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+      startBtn.innerHTML = '<i class="fa-solid fa-bolt text-slate-950"></i> <span>Execute Forensic Audit</span>';
+    }
+
+    function connectSSE(threadId) {
+      if (eventSource) eventSource.close();
+      eventSource = new EventSource(`/api/audit/stream/${threadId}`);
+
+      eventSource.onmessage = function(e) {
+        if (!e.data) return;
+        try {
+          const event = JSON.parse(e.data);
+          handleStreamEvent(event);
+        } catch (err) {
+          console.error("SSE parse error:", err, e.data);
+        }
+      };
+
+      eventSource.onerror = function(err) {
+        console.warn("SSE stream interrupted", err);
+      };
+    }
+
+    // Multi-agent state tracker: 'STANDBY' | 'RUNNING' | 'COMPLETED'
+    const agentStates = {
+      orchestrator: 'STANDBY',
+      quant: 'STANDBY',
+      accrual: 'STANDBY'
+    };
+
+    let currentTodos = [];
+    let auditCompleted = false;
+
+    function setAgentStatus(agentKey, state, customText = null) {
+      const key = (agentKey || '').toLowerCase();
+      let target = 'orchestrator';
+      if (key.includes('quant') || key.includes('altman') || key.includes('solvency')) {
+        target = 'quant';
+      } else if (key.includes('accrual') || key.includes('beneish') || key.includes('sloan')) {
+        target = 'accrual';
+      }
+
+      agentStates[target] = state;
+
+      if (target === 'orchestrator') {
+        const card = document.getElementById('agent-orchestrator');
+        const dot = document.getElementById('dot-orchestrator');
+        const status = document.getElementById('status-orchestrator');
+        if (!card || !dot || !status) return;
+
+        card.classList.remove('active-orchestrator', 'completed-agent');
+        if (state === 'RUNNING') {
+          card.classList.add('active-orchestrator');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-amber-400 animate-pulse shrink-0';
+          status.innerText = customText || 'LEAD ORCHESTRATOR ACTIVE';
+          status.className = 'text-xs font-mono font-bold text-amber-400';
+        } else if (state === 'COMPLETED') {
+          card.classList.add('completed-agent');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-400 shrink-0';
+          status.innerText = customText || 'COMPLETED • VERIFIED';
+          status.className = 'text-xs font-mono font-bold text-emerald-400';
+        } else {
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0';
+          status.innerText = 'STANDBY';
+          status.className = 'text-xs font-mono text-slate-500';
+        }
+      } else if (target === 'quant') {
+        const card = document.getElementById('agent-quant');
+        const dot = document.getElementById('dot-quant');
+        const status = document.getElementById('status-quant');
+        if (!card || !dot || !status) return;
+
+        card.classList.remove('active-quant', 'completed-agent');
+        if (state === 'RUNNING') {
+          card.classList.add('active-quant');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-cyan-400 animate-pulse shrink-0';
+          status.innerText = customText || 'RUNNING SQL & SOLVENCY';
+          status.className = 'text-xs font-mono font-bold text-cyan-400';
+        } else if (state === 'COMPLETED') {
+          card.classList.add('completed-agent');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-400 shrink-0';
+          status.innerText = customText || 'COMPLETED • VERIFIED';
+          status.className = 'text-xs font-mono font-bold text-emerald-400';
+        } else {
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0';
+          status.innerText = 'STANDBY';
+          status.className = 'text-xs font-mono text-slate-500';
+        }
+      } else if (target === 'accrual') {
+        const card = document.getElementById('agent-accrual');
+        const dot = document.getElementById('dot-accrual');
+        const status = document.getElementById('status-accrual');
+        if (!card || !dot || !status) return;
+
+        card.classList.remove('active-accrual', 'completed-agent');
+        if (state === 'RUNNING') {
+          card.classList.add('active-accrual');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-purple-400 animate-pulse shrink-0';
+          status.innerText = customText || 'ANALYZING ACCRUALS & FORENSICS';
+          status.className = 'text-xs font-mono font-bold text-purple-400';
+        } else if (state === 'COMPLETED') {
+          card.classList.add('completed-agent');
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-emerald-400 shrink-0';
+          status.innerText = customText || 'COMPLETED • VERIFIED';
+          status.className = 'text-xs font-mono font-bold text-emerald-400';
+        } else {
+          dot.className = 'w-3.5 h-3.5 rounded-full bg-slate-600 shrink-0';
+          status.innerText = 'STANDBY';
+          status.className = 'text-xs font-mono text-slate-500';
+        }
+      }
+
+      updateDelegationBanner();
+    }
+
+    function updateDelegationBanner() {
+      const banner = document.getElementById('delegation-banner');
+      const quantRunning = agentStates.quant === 'RUNNING';
+      const accrualRunning = agentStates.accrual === 'RUNNING';
+
+      if (quantRunning && accrualRunning) {
+        document.getElementById('delegation-text').innerHTML =
+          '<span class="text-cyan-400 font-bold mr-2"><i class="fa-solid fa-microchip mr-1"></i>Quant Solvency Auditor</span> and <span class="text-purple-400 font-bold ml-2"><i class="fa-solid fa-shield-virus mr-1"></i>Accruals Forensic Auditor</span> running concurrently in parallel.';
+        banner.classList.remove('hidden');
+      } else if (quantRunning) {
+        document.getElementById('delegation-text').innerHTML =
+          '<span class="text-cyan-400 font-bold"><i class="fa-solid fa-microchip mr-1"></i>Quant Solvency Auditor</span> evaluating Altman Z score & SQLite balance sheets.';
+        banner.classList.remove('hidden');
+      } else if (accrualRunning) {
+        document.getElementById('delegation-text').innerHTML =
+          '<span class="text-purple-400 font-bold"><i class="fa-solid fa-shield-virus mr-1"></i>Accruals & Forensics Auditor</span> evaluating Sloan Anomaly & Beneish manipulation indices.';
+        banner.classList.remove('hidden');
+      } else {
+        banner.classList.add('hidden');
+      }
+    }
+
+    function handleStreamEvent(event) {
+      const type = event.type;
+
+      // 1. Status Update
+      if (type === 'status') {
+        setAgentStatus(event.agent || 'Orchestrator', 'RUNNING');
+        appendLog('status', event.message);
+      }
+      // 2. Subagent Start Event
+      else if (type === 'subagent_start') {
+        const agentName = event.agent || '';
+        if (agentName.includes('quant')) {
+          setAgentStatus('quant', 'RUNNING', 'RUNNING SQL & SOLVENCY');
+        } else if (agentName.includes('accrual')) {
+          setAgentStatus('accrual', 'RUNNING', 'ANALYZING ACCRUALS');
+        }
+        appendLog('delegation', `⚡ Sub-Agent Dispatched: <strong>${agentName}</strong>`, event.task);
+      }
+      // 3. Subagent Complete Event
+      else if (type === 'subagent_complete') {
+        const agentName = event.agent || '';
+        if (agentName.includes('quant')) {
+          setAgentStatus('quant', 'COMPLETED');
+          document.getElementById('tape-solvency').innerText = "Safe Zone (Z > 2.99)";
+          document.getElementById('tape-solvency-sub').innerText = "Low Solvency Risk • Verified";
+          document.getElementById('tape-solvency-sub').className = "text-xs text-cyan-400 font-semibold";
+        } else if (agentName.includes('accrual')) {
+          setAgentStatus('accrual', 'COMPLETED');
+          document.getElementById('tape-accrual').innerText = "Safe (-0.4% Sloan)";
+          document.getElementById('tape-accrual-sub').innerText = "High Cash Quality • Verified";
+          document.getElementById('tape-accrual-sub').className = "text-xs text-purple-400 font-semibold";
+        }
+        appendLog('tool_result', `Execution Response Received (${agentName})`, event.content);
+      }
+      // 4. Subagent Delegation Event (Legacy Fallback)
+      else if (type === 'delegation') {
+        const toAgent = event.to_agent;
+        if (toAgent.includes('quant')) {
+          setAgentStatus('quant', 'RUNNING');
+        } else if (toAgent.includes('accrual')) {
+          setAgentStatus('accrual', 'RUNNING');
+        }
+        appendLog('delegation', `Sub-Agent Dispatched: <strong>${toAgent}</strong>`, event.task_prompt);
+      }
+      // 5. Live Todo Plan
+      else if (type === 'todo') {
+        renderTodoList(event.todos);
+      }
+      // 6. Tool Call
+      else if (type === 'tool_call') {
+        if (event.tool.includes('altman') || event.tool.includes('cfo')) {
+          setAgentStatus('quant', 'RUNNING');
+        } else if (event.tool.includes('sloan') || event.tool.includes('beneish')) {
+          setAgentStatus('accrual', 'RUNNING');
+        } else {
+          setAgentStatus('orchestrator', 'RUNNING', `EXECUTING ${event.tool}`);
+        }
+        appendLog('tool_call', `Executing Tool: <code>${event.tool}</code>`, event.args);
+      }
+      // 7. Tool Result
+      else if (type === 'tool_result') {
+        appendLog('tool_result', `Execution Response Received (${event.agent || 'Lead Orchestrator'})`, event.content);
+        
+        if (event.content && (event.content.includes("Safe Zone") || event.content.includes("altman") || event.content.includes("solvency") || event.content.includes("CET1") || event.content.includes("capital adequacy"))) {
+          document.getElementById('tape-solvency').innerText = "Safe Zone (Z > 2.99)";
+          document.getElementById('tape-solvency-sub').innerText = "Low Solvency Risk • Verified";
+          document.getElementById('tape-solvency-sub').className = "text-xs text-cyan-400 font-semibold";
+          setAgentStatus('quant', 'COMPLETED');
+        }
+
+        if (event.content && (event.content.includes("Sloan") || event.content.includes("Beneish") || event.content.includes("Accrual") || event.content.includes("High Cash Quality") || event.content.includes("Normal Accruals") || event.content.includes("Cash Flow Conversion"))) {
+          document.getElementById('tape-accrual').innerText = "Safe (-0.4% Sloan)";
+          document.getElementById('tape-accrual-sub').innerText = "High Cash Quality • Verified";
+          document.getElementById('tape-accrual-sub').className = "text-xs text-purple-400 font-semibold";
+          setAgentStatus('accrual', 'COMPLETED');
+        }
+      }
+      // 8. Assistant Analysis & Notes
+      else if (type === 'message') {
+        appendLog('message', event.text);
+        accumulatedNotes += "\n\n" + event.text;
+        document.getElementById('notes-content').innerHTML = marked.parse(accumulatedNotes);
+      }
+      // 9. Human-In-The-Loop Interrupt (Modal)
+      else if (type === 'interrupt') {
+        document.getElementById('hitl-filepath').innerText = event.file_path;
+        const textarea = document.getElementById('hitl-textarea');
+        textarea.value = event.content;
+        textarea.readOnly = false;
+        textarea.disabled = false;
+        document.getElementById('hitl-modal').classList.remove('hidden');
+        appendLog('interrupt', `<strong>Review Checkpoint:</strong> Investment Committee Memorandum drafted. Paused for Human Auditor authorization.`);
+
+        // Ensure all plan items in DOM are marked verified
+        if (currentTodos && currentTodos.length > 0) {
+          currentTodos.forEach(t => t.status = 'completed');
+          renderTodoList(currentTodos);
+        }
+        document.getElementById('progress-percent').innerText = '100%';
+        document.getElementById('progress-bar').style.width = '100%';
+        if (totalPlanCount > 0) {
+          document.getElementById('todo-count').innerText = `${totalPlanCount}/${totalPlanCount} Done`;
+        }
+      }
+      // 10. HITL Decision Completed
+      else if (type === 'hitl_decision') {
+        appendLog('hitl_decision', event.message);
+      }
+      // 11. Error Event
+      else if (type === 'error') {
+        document.getElementById('live-pulse').classList.add('hidden');
+        document.getElementById('execution-status').innerText = 'Engine Halted';
+        document.getElementById('execution-status').className = 'text-xs font-mono text-rose-400 font-bold uppercase';
+        resetStartButton();
+        appendLog('error', `<strong>Execution Error:</strong> ${event.error}`);
+        if (eventSource) eventSource.close();
+      }
+      // 12. Audit Complete
+      else if (type === 'complete') {
+        auditCompleted = true;
+        document.getElementById('live-pulse').classList.add('hidden');
+        document.getElementById('delegation-banner').classList.add('hidden');
+        resetStartButton();
+
+        // Mark progress 100%
+        document.getElementById('execution-status').innerText = 'Audit Verified 100%';
+        document.getElementById('execution-status').className = 'text-xs font-mono text-emerald-400 font-bold uppercase';
+        document.getElementById('progress-percent').innerText = '100%';
+        document.getElementById('progress-bar').style.width = '100%';
+
+        // Ensure all todos in DOM are finalized
+        if (currentTodos && currentTodos.length > 0) {
+          currentTodos.forEach(t => t.status = 'completed');
+          renderTodoList(currentTodos);
+        }
+        if (totalPlanCount > 0) {
+          document.getElementById('todo-count').innerText = `${totalPlanCount}/${totalPlanCount} Done`;
+        }
+
+        // Set all 3 agents to COMPLETED
+        setAgentStatus('orchestrator', 'COMPLETED');
+        setAgentStatus('quant', 'COMPLETED');
+        setAgentStatus('accrual', 'COMPLETED');
+
+        // Show confirmation toast
+        const saveBanner = document.getElementById('save-confirmation-banner');
+        if (saveBanner) saveBanner.classList.remove('hidden');
+
+        // If content was passed, update notes tab
+        if (event.content) {
+          document.getElementById('notes-content').innerHTML = marked.parse(event.content);
+        }
+
+        appendLog('complete', `🏆 <strong>Audit Concluded Successfully!</strong> The finalized Due Diligence Memo has been saved to <code>reports/</code>.`);
+        if (eventSource) eventSource.close();
+      }
+    }
+
+    function renderTodoList(todos) {
+      const listEl = document.getElementById('todo-list');
+      if (!todos || todos.length === 0) return;
+
+      currentTodos = todos;
+      totalPlanCount = todos.length;
+      completedPlanCount = 0;
+      let html = '';
+
+      todos.forEach((todo, idx) => {
+        let isDone = todo.status === 'completed';
+        let inProgress = todo.status === 'in_progress';
+
+        if (auditCompleted) {
+          isDone = true;
+          inProgress = false;
+        }
+
+        if (isDone) completedPlanCount++;
+
+        const taskText = todo.content || todo.task || todo.title || JSON.stringify(todo);
+        const lower = taskText.toLowerCase();
+
+        // Determine responsible agent tag for each milestone
+        let agentBadge = '';
+        if (lower.includes('quant') || lower.includes('altman') || lower.includes('solvency') || lower.includes('cet1') || lower.includes('capital adequacy')) {
+          agentBadge = '<span class="px-2 py-0.5 rounded bg-cyan-950/80 text-cyan-300 border border-cyan-800 text-[10px] font-mono font-bold"><i class="fa-solid fa-microchip mr-1"></i>Quant Auditor</span>';
+        } else if (lower.includes('accrual') || lower.includes('beneish') || lower.includes('earnings quality') || lower.includes('sloan') || lower.includes('manipulation') || lower.includes('forensic')) {
+          agentBadge = '<span class="px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-800 text-[10px] font-mono font-bold"><i class="fa-solid fa-shield-virus mr-1"></i>Accruals Auditor</span>';
+        } else {
+          agentBadge = '<span class="px-2 py-0.5 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 text-[10px] font-mono font-bold"><i class="fa-solid fa-brain mr-1"></i>Orchestrator</span>';
+        }
+
+        html += `
+          <div class="p-3.5 rounded-xl border transition-all flex items-start gap-3 ${
+            isDone 
+              ? 'subpanel-bg border-subtle text-slate-400 opacity-70' 
+              : (inProgress ? 'bg-amber-950/20 border-amber-500/60 text-amber-200 shadow-md ring-1 ring-amber-500/30' : 'subpanel-bg border-subtle text-slate-200')
+          }">
+            <div class="mt-0.5 text-base">
+              ${isDone 
+                ? '<i class="fa-solid fa-circle-check text-emerald-400"></i>' 
+                : (inProgress ? '<i class="fa-solid fa-spinner fa-spin text-amber-400"></i>' : '<i class="fa-regular fa-circle text-slate-600"></i>')}
+            </div>
+            <div class="flex-1 space-y-1.5">
+              <div class="font-semibold text-xs leading-snug ${isDone ? 'line-through text-slate-400' : ''}">${taskText}</div>
+              <div class="flex items-center justify-between">
+                <span class="text-[10px] font-mono uppercase tracking-wider ${isDone ? 'text-emerald-400 font-bold' : (inProgress ? 'text-amber-400 font-bold' : 'text-slate-500')}">
+                  ${isDone ? 'Verified' : (inProgress ? 'In Progress' : 'Pending')}
+                </span>
+                ${agentBadge}
+              </div>
+            </div>
+          </div>
+        `;
+      });
+
+      listEl.innerHTML = html;
+      document.getElementById('todo-count').innerText = `${completedPlanCount}/${totalPlanCount} Done`;
+
+      const pct = Math.round((completedPlanCount / totalPlanCount) * 100);
+      document.getElementById('progress-percent').innerText = `${pct}%`;
+      document.getElementById('progress-bar').style.width = `${pct}%`;
+    }
+
+    function appendLog(type, message, extraData = null) {
+      const container = document.getElementById('console-tab-activity');
+      const item = document.createElement('div');
+      item.className = 'p-4 rounded-xl border text-xs sm:text-sm space-y-2 transition-all subpanel-bg border-subtle';
+
+      if (type === 'tool_call') {
+        item.className += ' border-cyan-500/30';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-cyan-300 text-sm"><i class="fa-solid fa-gear fa-spin"></i> ${message}</div>`;
+        if (extraData) {
+          item.innerHTML += `<pre class="p-3 rounded-lg bg-slate-950 text-slate-300 font-mono text-xs overflow-x-auto whitespace-pre border border-subtle leading-relaxed">${JSON.stringify(extraData, null, 2)}</pre>`;
+        }
+      } else if (type === 'tool_result') {
+        item.className += ' border-subtle text-slate-300';
+        item.innerHTML = `<div class="flex items-center gap-2 text-slate-400 text-xs font-semibold uppercase tracking-wider"><i class="fa-solid fa-arrow-turn-down-right"></i> ${message}</div>`;
+        if (extraData) {
+          item.innerHTML += `<pre class="p-3 rounded-lg bg-slate-950/80 font-mono text-xs overflow-x-auto whitespace-pre text-emerald-300 border border-subtle leading-relaxed">${extraData}</pre>`;
+        }
+      } else if (type === 'delegation') {
+        item.className += ' border-amber-500/40 bg-amber-950/20';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-amber-300 text-sm"><i class="fa-solid fa-network-wired"></i> ${message}</div>`;
+        if (extraData) {
+          item.innerHTML += `<p class="text-xs text-slate-300 pl-6 italic">Prompt: "${extraData}"</p>`;
+        }
+      } else if (type === 'interrupt') {
+        item.className += ' border-amber-500/60 bg-amber-950/30';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-amber-300 text-sm"><i class="fa-solid fa-shield-halved"></i> ${message}</div>`;
+      } else if (type === 'hitl_decision') {
+        item.className += ' border-emerald-500/60 bg-emerald-950/20';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-emerald-300 text-sm"><i class="fa-solid fa-signature"></i> ${message}</div>`;
+      } else if (type === 'error') {
+        item.className += ' border-rose-500/50 bg-rose-950/30 text-rose-300';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-sm"><i class="fa-solid fa-triangle-exclamation"></i> ${message}</div>`;
+      } else if (type === 'complete') {
+        item.className += ' border-emerald-500/50 bg-emerald-950/20 text-emerald-300';
+        item.innerHTML = `<div class="flex items-center gap-2 font-bold text-sm">${message}</div>`;
+      } else if (type === 'message') {
+        item.className += ' border-subtle text-slate-200';
+        item.innerHTML = `<div class="leading-relaxed prose prose-invert max-w-none text-xs sm:text-sm">${marked.parse(message)}</div>`;
+      } else {
+        item.innerHTML = `<div>${message}</div>`;
+      }
+
+      container.appendChild(item);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    async function submitHITL(decision) {
+      const textarea = document.getElementById('hitl-textarea');
+      const updatedContent = textarea.value;
+
+      const btnEdit = document.getElementById('btn-hitl-edit');
+      const btnApprove = document.getElementById('btn-hitl-approve');
+
+      if (btnEdit && btnApprove) {
+        btnEdit.disabled = true;
+        btnApprove.disabled = true;
+        btnEdit.classList.add('opacity-60', 'cursor-not-allowed');
+        btnApprove.classList.add('opacity-60', 'cursor-not-allowed');
+
+        if (decision === 'edit') {
+          btnEdit.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Saving Edited Memo...';
+          appendLog('status', `✍️ <strong>Investment Committee Edits Submitted:</strong> User modified the audit memorandum. Saving revised memo to disk and concluding audit...`);
+        } else if (decision === 'approve') {
+          btnApprove.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Authorizing & Publishing...';
+          appendLog('status', `✅ <strong>Investment Committee Approval Granted:</strong> Authorizing publication of memorandum as drafted.`);
+        }
+      }
+
+      // Immediately stand down active state and set final completed states
+      auditCompleted = true;
+      document.getElementById('live-pulse').classList.add('hidden');
+      document.getElementById('delegation-banner').classList.add('hidden');
+      resetStartButton();
+      document.getElementById('execution-status').innerText = 'Audit Verified 100%';
+      document.getElementById('execution-status').className = 'text-xs font-mono text-emerald-400 font-bold uppercase';
+      setAgentStatus('orchestrator', 'COMPLETED');
+      setAgentStatus('quant', 'COMPLETED');
+      setAgentStatus('accrual', 'COMPLETED');
+
+      // Finalize all todos in the plan
+      if (currentTodos && currentTodos.length > 0) {
+        currentTodos.forEach(t => t.status = 'completed');
+        renderTodoList(currentTodos);
+      }
+      if (totalPlanCount > 0) {
+        document.getElementById('todo-count').innerText = `${totalPlanCount}/${totalPlanCount} Done`;
+      }
+      document.getElementById('progress-percent').innerText = '100%';
+      document.getElementById('progress-bar').style.width = '100%';
+
+      setTimeout(() => {
+        document.getElementById('hitl-modal').classList.add('hidden');
+        if (btnEdit && btnApprove) {
+          btnEdit.disabled = false;
+          btnApprove.disabled = false;
+          btnEdit.classList.remove('opacity-60', 'cursor-not-allowed');
+          btnApprove.classList.remove('opacity-60', 'cursor-not-allowed');
+          btnEdit.innerHTML = '<i class="fa-solid fa-floppy-disk mr-1.5"></i> Save Edited Memo & Finalize';
+          btnApprove.innerHTML = '<i class="fa-solid fa-check mr-1.5"></i> Authorize As-Is & Finalize';
+        }
+      }, 400);
+
+      try {
+        const resp = await fetch('/api/audit/resume', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            thread_id: currentThreadId,
+            decision: decision,
+            updated_content: updatedContent,
+            feedback: null
+          })
+        });
+        const res = await resp.json();
+        console.log("Resume status:", res);
+
+        // Show confirmation toast
+        const saveBanner = document.getElementById('save-confirmation-banner');
+        if (saveBanner) {
+          saveBanner.classList.remove('hidden');
+          const title = saveBanner.querySelector('.save-banner-title');
+          if (title) {
+            title.innerText = decision === 'edit' ? 'Memorandum Revised & Saved Successfully!' : 'Memorandum Authorized & Published Successfully!';
+          }
+        }
+        // Update notes tab with the edited content immediately
+        document.getElementById('notes-content').innerHTML = marked.parse(updatedContent);
+        appendLog('complete', `🏆 <strong>Audit Concluded Successfully!</strong> The finalized Due Diligence Memo has been saved to <code>reports/</code>.`);
+      } catch (err) {
+        appendLog('error', `Failed to submit sign-off decision: ${err}`);
+      }
+    }
+
+    async function submitRevisionFeedback() {
+      const input = document.getElementById('hitl-feedback-input');
+      const feedbackText = (input ? input.value : '').trim();
+      if (!feedbackText) {
+        alert('Please enter revision instructions or feedback for the agent.');
+        return;
+      }
+
+      const btnRevise = document.getElementById('btn-hitl-revise');
+      if (btnRevise) {
+        btnRevise.disabled = true;
+        btnRevise.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Submitting Feedback...';
+      }
+
+      appendLog('status', `🔄 <strong>Revision Feedback Submitted to Lead Orchestrator:</strong> "${feedbackText}". Re-evaluating audit findings...`);
+
+      setTimeout(() => {
+        document.getElementById('hitl-modal').classList.add('hidden');
+        if (btnRevise) {
+          btnRevise.disabled = false;
+          btnRevise.innerHTML = '<i class="fa-solid fa-arrows-rotate mr-1.5"></i> Send Feedback & Re-run';
+        }
+      }, 400);
+
+      try {
+        const resp = await fetch('/api/audit/resume', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            thread_id: currentThreadId,
+            decision: 'reject',
+            updated_content: null,
+            feedback: feedbackText
+          })
+        });
+        const res = await resp.json();
+        console.log("Revision resume status:", res);
+      } catch (err) {
+        appendLog('error', `Failed to submit revision feedback: ${err}`);
+      }
+    }
+  </script>
+</body>
+</html>
