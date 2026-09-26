@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LangGraph Multi-Agent Blog Pipeline | Architecture, State & Pydantic Schemas</title>
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-card-subtle: #f1f5f9;
+      --bg-code: #0f172a;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border: #e2e8f0;
+      --border-focus: #cbd5e1;
+      
+      --primary: #4f46e5;
+      --primary-light: #eef2ff;
+      --primary-border: #c7d2fe;
+      
+      --success: #10b981;
+      --success-light: #ecfdf5;
+      --success-border: #a7f3d0;
+      
+      --warning: #f59e0b;
+      --warning-light: #fffbeb;
+      --warning-border: #fde68a;
+      
+      --purple: #7c3aed;
+      --purple-light: #f5f3ff;
+      --purple-border: #ddd6fe;
+      
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+
+    .container {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 20px 24px;
+    }
+
+    /* Header */
+    header {
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+      padding: 16px 0;
+      margin-bottom: 20px;
+    }
+
+    .header-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .title-block h1 {
+      font-size: 1.3rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .title-block p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-top: 3px;
+    }
+
+    .top-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* Main View Switcher Tabs */
+    .view-switcher {
+      display: flex;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 3px;
+    }
+
+    .btn-view {
+      border: none;
+      background: transparent;
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-view.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .scenario-toggle {
+      display: flex;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 3px;
+    }
+
+    .btn-scen {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      color: var(--text-muted);
+      transition: all 0.15s;
+    }
+
+    .btn-scen.active {
+      background: var(--bg-card);
+      color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* Stepper Bar */
+    .stepper-nav {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 14px 18px;
+      margin-bottom: 22px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stepper-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .step-indicator {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .step-indicator strong {
+      color: var(--primary);
+      font-size: 1.15rem;
+    }
+
+    .step-btn-group {
+      display: flex;
+      gap: 8px;
+    }
+
+    .btn {
+      padding: 7px 14px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: var(--bg-card);
+      color: var(--text-main);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .btn:hover:not(:disabled) {
+      background: var(--bg-card-subtle);
+    }
+
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: #fff;
+      border-color: var(--primary);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: #4338ca;
+    }
+
+    /* Timeline strip */
+    .timeline-strip {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+    }
+
+    .timeline-dot {
+      flex: 1;
+      min-width: 90px;
+      padding: 7px 9px;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      font-size: 0.72rem;
+      transition: all 0.2s;
+    }
+
+    .timeline-dot:hover {
+      border-color: var(--primary-border);
+      background: #f8fafc;
+    }
+
+    .timeline-dot.active {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+    }
+
+    .dot-num {
+      font-weight: 700;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .timeline-dot.active .dot-num {
+      color: var(--primary);
+    }
+
+    .dot-name {
+      font-weight: 600;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    /* Views */
+    .view-section {
+      display: none;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    /* Main Grid for Walkthrough */
+    .main-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+    }
+
+    @media (max-width: 1050px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 20px;
+    }
+
+    .card-head {
+      font-size: 0.98rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .slide-phase-badge {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--primary);
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .slide-title {
+      font-size: 1.2rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+
+    .slide-subtitle {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      margin-bottom: 16px;
+    }
+
+    /* Explanation Blocks */
+    .explain-block {
+      background: #fafcff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .explain-block h4 {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .explain-block p {
+      font-size: 0.84rem;
+      color: #334155;
+      line-height: 1.55;
+    }
+
+    .code-box {
+      background: var(--bg-code);
+      color: #f8fafc;
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.76rem;
+      line-height: 1.5;
+      overflow-x: auto;
+      margin-top: 12px;
+    }
+
+    /* Topology SVG */
+    .topology-container {
+      background: #fafcff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      margin-bottom: 16px;
+      overflow-x: auto;
+    }
+
+    .flow-svg {
+      width: 100%;
+      min-width: 580px;
+      height: 270px;
+      display: block;
+    }
+
+    .svg-node {
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .svg-node rect {
+      rx: 6; ry: 6;
+      stroke-width: 1.5;
+    }
+
+    .svg-node.active rect {
+      stroke: var(--primary) !important;
+      stroke-width: 2.5 !important;
+      fill: var(--primary-light) !important;
+    }
+
+    .svg-node text {
+      font-family: inherit;
+      font-size: 11px;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    /* Sub-tabs for Side Panel */
+    .sub-tabs-bar {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 12px;
+      gap: 8px;
+    }
+
+    .sub-tab-btn {
+      border: none;
+      background: transparent;
+      padding: 6px 12px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.15s;
+    }
+
+    .sub-tab-btn.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    /* State Matrix Table */
+    .state-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+    }
+
+    .state-table th {
+      text-align: left;
+      padding: 8px;
+      background: var(--bg-card-subtle);
+      border-bottom: 1px solid var(--border);
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .state-table td {
+      padding: 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .state-key {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .state-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 2px 6px;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .badge-modified {
+      background: #fef3c7;
+      color: #b45309;
+      border: 1px solid #fde68a;
+    }
+
+    .badge-appended {
+      background: #d1fae5;
+      color: #047857;
+      border: 1px solid #a7f3d0;
+    }
+
+    .badge-unchanged {
+      background: var(--bg-card-subtle);
+      color: #94a3b8;
+      border: 1px solid var(--border);
+    }
+
+    .val-box {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.74rem;
+      background: #f8fafc;
+      padding: 6px 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      max-height: 90px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    .val-box.highlight {
+      background: #fefce8;
+      border-color: #fde047;
+    }
+
+    /* =========================================
+       PYDANTIC SCHEMAS CARDS GRID SECTION
+       ========================================= */
+    .schemas-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(440px, 1fr));
+      gap: 20px;
+    }
+
+    @media (max-width: 600px) {
+      .schemas-grid { grid-template-columns: 1fr; }
+    }
+
+    .schema-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .schema-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: var(--shadow-md);
+    }
+
+    .schema-card.active-step {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary), var(--shadow-md);
+    }
+
+    .schema-card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 10px;
+    }
+
+    .schema-class-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-main);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .schema-class-title span.base-model {
+      font-size: 0.8rem;
+      color: var(--purple);
+      font-weight: 600;
+    }
+
+    .schema-status-tag {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 9999px;
+      letter-spacing: 0.03em;
+    }
+
+    .tag-active {
+      background: var(--primary-light);
+      color: var(--primary);
+      border: 1px solid var(--primary-border);
+    }
+
+    .tag-pending {
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .schema-doc {
+      font-size: 0.84rem;
+      color: #475569;
+      margin-bottom: 12px;
+      line-height: 1.45;
+    }
+
+    .schema-meta-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .schema-meta-pill {
+      font-size: 0.72rem;
+      background: var(--bg-card-subtle);
+      border: 1px solid var(--border);
+      padding: 3px 8px;
+      border-radius: var(--radius-sm);
+      color: #334155;
+    }
+
+    .schema-meta-pill strong {
+      color: var(--text-muted);
+    }
+
+    .schema-fields-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.77rem;
+      margin-bottom: 12px;
+    }
+
+    .schema-fields-table th {
+      text-align: left;
+      padding: 6px 8px;
+      background: var(--bg-card-subtle);
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .schema-fields-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+
+    .schema-field-name {
+      font-family: monospace;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .schema-field-type {
+      font-family: monospace;
+      color: var(--purple);
+      font-size: 0.72rem;
+    }
+
+    .schema-live-box {
+      margin-top: auto;
+      background: #fafcff;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 10px;
+    }
+
+    .schema-live-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+
+    .schema-live-content {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 0.74rem;
+      color: #334155;
+      background: #fff;
+      padding: 8px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      max-height: 110px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="container header-inner">
+      <div class="title-block">
+        <h1>
+          LangGraph Multi-Agent Blog Pipeline
+          <span class="badge">Architecture & Pydantic Schemas</span>
+        </h1>
+        <p>Interactive Step Stepper, Live State Preservation, and Complete Pydantic Schema Cards</p>
+      </div>
+
+      <div class="top-controls">
+        <!-- View Switcher -->
+        <div class="view-switcher">
+          <button id="viewWalkthroughBtn" class="btn-view active" onclick="window.switchView('walkthrough')">
+            🎬 Step Walkthrough
+          </button>
+          <button id="viewSchemasBtn" class="btn-view" onclick="window.switchView('schemas')">
+            📐 Pydantic Schemas (7)
+          </button>
+        </div>
+
+        <!-- Scenario Toggle -->
+        <div class="scenario-toggle">
+          <button id="btnScenA" class="btn-scen active" onclick="window.setScenario('A')">Scenario A: Closed Book</button>
+          <button id="btnScenB" class="btn-scen" onclick="window.setScenario('B')">Scenario B: Open Book</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- Stepper Navigation Bar -->
+    <div class="stepper-nav">
+      <div class="stepper-top">
+        <div class="step-indicator">
+          Step <strong id="stepNumText">0</strong> of <span id="totalStepText">10</span>:
+          <span id="stepTitleText" style="color: var(--text-main); margin-left: 6px; font-weight: 700;">Complete Architecture Map</span>
+        </div>
+
+        <div class="step-btn-group">
+          <button class="btn" id="btnPrev" onclick="window.prevSlide()">◀ Previous</button>
+          <button class="btn btn-primary" id="btnNext" onclick="window.nextSlide()">Next ▶</button>
+          <button class="btn" id="btnAutoPlay" onclick="window.toggleAutoPlay()">▶ Auto-Play</button>
+        </div>
+      </div>
+
+      <!-- Slide Dots Strip -->
+      <div class="timeline-strip" id="timelineStrip"></div>
+    </div>
+
+    <!-- VIEW 1: STEP-BY-STEP WALKTHROUGH -->
+    <div id="view-walkthrough" class="view-section active">
+      <div class="main-grid">
+
+        <!-- Left Column: Slide Details & Topology -->
+        <div class="col-left">
+          <div class="card">
+            <span class="slide-phase-badge" id="slidePhaseBadge">Phase 1: Overview</span>
+            <h2 class="slide-title" id="slideTitle">Complete Multi-Agent System Architecture</h2>
+            <p class="slide-subtitle" id="slideSubtitle">High-level map: Topic -> Router -> Orchestrator -> Fan-Out -> Parallel Workers -> Reducer Subgraph</p>
+
+            <!-- Topology SVG -->
+            <div class="topology-container">
+              <svg class="flow-svg" viewBox="0 0 760 260" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+                    <path d="M 0 1 L 8 5 L 0 9 z" fill="#94a3b8"/>
+                  </marker>
+                </defs>
+
+                <!-- Subgraph Cluster -->
+                <rect x="510" y="25" width="235" height="210" rx="8" fill="#f8fafc" stroke="#cbd5e1" stroke-dasharray="3 3"/>
+                <text x="525" y="45" fill="#64748b" font-size="10" font-weight="700">SUBGRAPH: Reducer</text>
+
+                <!-- Edges -->
+                <path d="M 65 90 L 95 90" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 175 75 L 210 45" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 175 90 L 325 90" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 285 45 L 325 75" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 370 120 L 370 160" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 420 185 C 460 185, 480 80, 530 80" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 610 100 L 610 125" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+                <path d="M 610 165 L 610 190" stroke="#cbd5e1" stroke-width="2" marker-end="url(#arrow)" fill="none"/>
+
+                <!-- Nodes -->
+                <g class="svg-node" id="svg-start" onclick="window.goToSlide(0)">
+                  <rect x="15" y="70" width="50" height="40" fill="#fff" stroke="#94a3b8"/>
+                  <text x="40" y="94" text-anchor="middle" fill="#0f172a">START</text>
+                </g>
+
+                <g class="svg-node" id="svg-router" onclick="window.goToSlide(1)">
+                  <rect x="95" y="65" width="80" height="50" fill="#fff" stroke="#94a3b8"/>
+                  <text x="135" y="88" text-anchor="middle" fill="#0f172a">router</text>
+                  <text x="135" y="102" text-anchor="middle" fill="#64748b" font-size="9">classify</text>
+                </g>
+
+                <g class="svg-node" id="svg-research" onclick="window.goToSlide(3)">
+                  <rect x="210" y="25" width="75" height="40" fill="#fff" stroke="#94a3b8"/>
+                  <text x="247" y="45" text-anchor="middle" fill="#0f172a">research</text>
+                  <text x="247" y="57" text-anchor="middle" fill="#64748b" font-size="9">Tavily</text>
+                </g>
+
+                <g class="svg-node" id="svg-orchestrator" onclick="window.goToSlide(4)">
+                  <rect x="325" y="65" width="90" height="50" fill="#fff" stroke="#94a3b8"/>
+                  <text x="370" y="88" text-anchor="middle" fill="#0f172a">orchestrator</text>
+                  <text x="370" y="102" text-anchor="middle" fill="#64748b" font-size="9">Plan Tasks</text>
+                </g>
+
+                <g class="svg-node" id="svg-worker" onclick="window.goToSlide(6)">
+                  <rect x="330" y="165" width="90" height="45" fill="#fff" stroke="#94a3b8"/>
+                  <rect x="326" y="161" width="90" height="45" fill="#f8fafc" stroke="#94a3b8"/>
+                  <rect x="322" y="157" width="90" height="45" fill="#fff" stroke="#94a3b8"/>
+                  <text x="367" y="180" text-anchor="middle" fill="#0f172a">worker × N</text>
+                  <text x="367" y="193" text-anchor="middle" fill="#64748b" font-size="9">Parallel</text>
+                </g>
+
+                <g class="svg-node" id="svg-merge_content" onclick="window.goToSlide(7)">
+                  <rect x="530" y="60" width="160" height="40" fill="#fff" stroke="#94a3b8"/>
+                  <text x="610" y="84" text-anchor="middle" fill="#0f172a">1. merge_content</text>
+                </g>
+
+                <g class="svg-node" id="svg-decide_images" onclick="window.goToSlide(8)">
+                  <rect x="530" y="125" width="160" height="40" fill="#fff" stroke="#94a3b8"/>
+                  <text x="610" y="149" text-anchor="middle" fill="#0f172a">2. decide_images</text>
+                </g>
+
+                <g class="svg-node" id="svg-generate_images" onclick="window.goToSlide(9)">
+                  <rect x="530" y="190" width="160" height="40" fill="#fff" stroke="#94a3b8"/>
+                  <text x="610" y="214" text-anchor="middle" fill="#0f172a">3. generate_and_place</text>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Explanations -->
+            <div class="explain-block">
+              <h4>What is happening at this step?</h4>
+              <p id="explainSummary"></p>
+            </div>
+
+            <div class="explain-block">
+              <h4>Why this design pattern?</h4>
+              <p id="explainWhy"></p>
+            </div>
+
+            <div class="explain-block">
+              <h4>Under the Hood (Code & Execution)</h4>
+              <p id="explainUnderTheHood"></p>
+              <div class="code-box">
+                <pre><code id="explainCode"></code></pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: State & Active Schemas -->
+        <div class="col-right">
+          <div class="card">
+            <div class="sub-tabs-bar">
+              <button id="subTabStateBtn" class="sub-tab-btn active" onclick="window.switchSubTab('state')">State Variables (11)</button>
+              <button id="subTabSchemaBtn" class="sub-tab-btn" onclick="window.switchSubTab('schema')">Active Pydantic Schema(s)</button>
+            </div>
+
+            <!-- Sub-tab 1: State Matrix -->
+            <div id="subtab-state-content">
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+                Central <code>State(TypedDict)</code> flowing through graph nodes. Yellow badges indicate changes this step.
+              </p>
+              <table class="state-table">
+                <thead>
+                  <tr>
+                    <th style="width: 28%;">Variable</th>
+                    <th style="width: 22%;">Status</th>
+                    <th style="width: 50%;">Current Value</th>
+                  </tr>
+                </thead>
+                <tbody id="stateTableBody"></tbody>
+              </table>
+            </div>
+
+            <!-- Sub-tab 2: Active Schemas -->
+            <div id="subtab-schema-content" style="display: none;">
+              <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 10px;">
+                Pydantic <code>BaseModel</code> schemas utilized or populated at this exact step:
+              </p>
+              <div id="activeSchemasContainer"></div>
+            </div>
+          </div>
+
+          <!-- Draft Progress Box -->
+          <div class="card">
+            <div class="card-head">
+              <span>Draft Progress Preview</span>
+              <span id="previewBadge" class="badge">In Progress</span>
+            </div>
+            <div id="previewBox" style="font-size: 0.82rem; background: var(--bg-card-subtle); padding: 12px; border-radius: var(--radius-sm); border: 1px solid var(--border); line-height: 1.55; max-height: 200px; overflow-y: auto; white-space: pre-wrap;"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- VIEW 2: PYDANTIC SCHEMAS ALL CARDS GRID -->
+    <div id="view-schemas" class="view-section">
+      <div style="margin-bottom: 18px;">
+        <h2 style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">Pydantic Schemas (BaseModel) Architecture</h2>
+        <p style="font-size: 0.86rem; color: var(--text-muted);">
+          All 7 classes inherit from <code>pydantic.BaseModel</code>. They enforce strict type validation, inject constraints (<code>min_length</code>, <code>max_length</code>, <code>description</code>) into LLM system prompts via <code>with_structured_output()</code>, and prevent hallucinations.
+        </p>
+      </div>
+
+      <div class="schemas-grid" id="schemasAllGrid"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const SCENARIO_A = [{"id": 0, "phase": "Global Overview", "title": "Complete Multi-Agent System Architecture", "subtitle": "High-level map: Topic -> Router -> Orchestrator -> Fan-Out -> Parallel Workers -> Reducer Subgraph -> Published Article", "nodeId": "overview", "summary": "This multi-agent system uses LangGraph to plan, research, draft in parallel, and illustrate technical blog posts. It combines LangChain, Pydantic v2 schemas, Google Gemini LLMs, and Google GenAI Image generation.", "why": "Writing high-quality technical blogs requires specialized skills: scoping, fact-checking, structured outlining, deep technical prose, and architectural diagrams. Breaking this into specialized nodes produces far superior results than a single monolithic prompt.", "underTheHood": "The pipeline consists of 3 distinct stages: 1) Upfront Routing & Outline Planning, 2) Concurrent Map-Reduce Worker Execution, and 3) An isolated 3-node Subgraph for content assembly and image generation.", "code": "# Main Graph Definition (LangGraph)\ng = StateGraph(State)\ng.add_node('router', router_node)\ng.add_node('research', research_node)\ng.add_node('orchestrator', orchestrator_node)\ng.add_node('worker', worker_node)\ng.add_node('reducer', reducer_subgraph)  # Nested Subgraph\n\ng.add_edge(START, 'router')\ng.add_conditional_edges('router', route_next)\ng.add_edge('research', 'orchestrator')\ng.add_conditional_edges('orchestrator', fanout, ['worker'])\ng.add_edge('worker', 'reducer')\ng.add_edge('reducer', END)\napp = g.compile()", "modifiedKeys": ["topic"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Initial State initialized with topic: 'Self Attention in Transformer Architecture'. Ready to begin routing..."}, {"id": 1, "phase": "Phase 1: Routing & Scoping", "title": "Upfront Topic Classification (router_node)", "subtitle": "Deciding whether web research is necessary before creating an outline", "nodeId": "router", "summary": "The router_node inspects the input topic and categorizes it into 'closed_book' (evergreen concepts), 'hybrid' (mostly evergreen with fresh tools), or 'open_book' (recent news, rankings, pricing).", "why": "Unnecessary web searches cost latency, API quota, and can pollute technical fundamentals with irrelevant search SEO spam. Upfront routing guarantees that topics like Self Attention rely on first-principles knowledge, while volatile news triggers live search.", "underTheHood": "Uses llm.with_structured_output(RouterDecision) with Google Gemini. Temperature is set to 0 to ensure strict deterministic adherence to schema boundaries.", "code": "def router_node(state: State) -> dict:\n    topic = state['topic']\n    decider = llm.with_structured_output(RouterDecision)\n    decision = decider.invoke([\n        SystemMessage(content=ROUTER_SYSTEM),\n        HumanMessage(content=f'Topic: {topic}')\n    ])\n    return {\n        'needs_research': decision.needs_research, # False\n        'mode': decision.mode,                     # 'closed_book'\n        'queries': decision.queries                # []\n    }", "modifiedKeys": ["mode", "needs_research", "queries"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Router Output: Mode = 'closed_book' | needs_research = False. No search queries needed."}, {"id": 2, "phase": "Phase 1: Routing & Scoping", "title": "Conditional Branching (route_next)", "subtitle": "Dynamic graph routing: Skipping Tavily web search for evergreen topics", "nodeId": "route_next", "summary": "route_next is a conditional edge function. It inspects state['needs_research'] and returns the string destination node for the next step.", "why": "LangGraph conditional edges allow graph execution to fork or take shortcut paths dynamically at runtime based on any condition in the shared state.", "underTheHood": "Because state['needs_research'] is False, route_next returns 'orchestrator', cleanly bypassing research_node and saving time and API calls.", "code": "def route_next(state: State) -> str:\n    # In this closed_book scenario, needs_research is False\n    return 'research' if state['needs_research'] else 'orchestrator'", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Branch taken: [router] -> (needs_research=False) -> [orchestrator]. Web research skipped."}, {"id": 3, "phase": "Phase 1: Routing & Scoping", "title": "Web Research & Deduplication (research_node - Skipped)", "subtitle": "Bypassed in Closed-Book mode (Active in Scenario B)", "nodeId": "research", "summary": "This node is skipped for our evergreen topic. In Scenario B (Open Book), this node runs Tavily web search across generated queries, synthesizes an EvidencePack with clean snippets, and deduplicates sources by URL.", "why": "Self-attention math (QK^T / sqrt(d_k)) does not change. Web research here would only slow down the process and add noise.", "underTheHood": "State remains clean with evidence=[]. The graph transitions directly to outline orchestration.", "code": "# research_node is bypassed in closed_book mode\n# No Tavily API calls or LLM extraction needed here.", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "State unchanged. Transitioning to Orchestrator..."}, {"id": 4, "phase": "Phase 1: Routing & Scoping", "title": "Master Outline Orchestration (orchestrator_node)", "subtitle": "Deconstructing the article into 5-9 highly actionable, non-overlapping section tasks", "nodeId": "orchestrator", "summary": "The orchestrator acts as a Senior Technical Writer. It designs a cohesive article outline matching the Plan schema: blog title, target audience, tone, and 5 sequential Tasks (each with goal, 3-6 bullets, and word count target).", "why": "Parallel section writers can easily produce redundant or contradictory content if given vague instructions. The orchestrator eliminates this by defining strict non-overlapping bullet points and word targets for every section upfront.", "underTheHood": "The LLM is prompted with quality bars: developer audience, actionable verbs (build/compare/measure/verify), and a requirement to include minimal code sketches.", "code": "def orchestrator_node(state: State) -> dict:\n    planner = llm.with_structured_output(Plan)\n    plan = planner.invoke([\n        SystemMessage(content=ORCH_SYSTEM),\n        HumanMessage(content=f\"Topic: {state['topic']}\\nMode: {state['mode']}\")\n    ])\n    return {'plan': plan}", "modifiedKeys": ["plan"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(\n  blog_title=\"Demystifying Self-Attention: The Engine Behind Transformers\",\n  audience=\"Software engineers and machine learning practitioners\",\n  tone=\"Technical, analytical, and instructional\",\n  blog_kind=\"explainer\",\n  tasks=[\n    Task(id=1, title=\"The Intuition of Contextual Embeddings\", target_words=250),\n    Task(id=2, title=\"The Query, Key, and Value Framework\", target_words=320),\n    Task(id=3, title=\"Scaled Dot-Product Attention: Math & Code\", target_words=400, requires_code=True),\n    Task(id=4, title=\"Multi-Head Attention: Parallel Subspaces\", target_words=300),\n    Task(id=5, title=\"Computational Complexity and Failure Modes\", target_words=280)\n  ]\n)", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Outline created with 5 tasks:\n1. Contextual Embeddings (250w)\n2. Q, K, V Framework (320w)\n3. Scaled Dot-Product Math & Code (400w)\n4. Multi-Head Attention (300w)\n5. Computational Complexity (280w)"}, {"id": 5, "phase": "Phase 2: Map-Reduce Execution", "title": "Dynamic Map Fan-Out (fanout via Send)", "subtitle": "Dispatching independent parallel worker nodes dynamically using LangGraph Send", "nodeId": "fanout", "summary": "fanout inspects state['plan'].tasks and returns a list of Send('worker', payload) objects. LangGraph spins up 5 concurrent worker nodes in parallel, each receiving its specific task model and the global plan context.", "why": "Standard graph edges require fixed connections defined at compile time. Send() enables true dynamic map-reduce: whether the plan has 5 tasks or 9 tasks, LangGraph forks exactly that many parallel branches at runtime.", "underTheHood": "Each payload is serialized into standard Python dictionaries containing task, topic, mode, plan, and evidence.", "code": "def fanout(state: State):\n    # Dynamically maps 1 worker per task in plan\n    return [\n        Send(\n            'worker',\n            {\n                'task': task.model_dump(),\n                'topic': state['topic'],\n                'mode': state['mode'],\n                'plan': state['plan'].model_dump(),\n                'evidence': [e.model_dump() for e in state.get('evidence', [])],\n            }\n        )\n        for task in state['plan'].tasks\n    ]", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 tasks defined)", "sections": "[] (Workers dispatched concurrently)", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Dynamic Fan-Out: 5 Send('worker', payload) calls dispatched in parallel to LangGraph engine."}, {"id": 6, "phase": "Phase 2: Map-Reduce Execution", "title": "Parallel Section Drafting & Reducer (worker_node)", "subtitle": "Writing technical markdown sections & accumulating results via operator.add", "nodeId": "worker", "summary": "5 worker nodes run in parallel. Each worker focuses exclusively on its assigned task, covering every bullet point and respecting the target word count. Each worker returns [(task.id, section_md)].", "why": "Why Annotated[List, operator.add]? In LangGraph, node outputs overwrite matching state keys by default. When 5 workers write concurrently, overwriting would erase previous workers. operator.add tells LangGraph to concatenate returned lists without race conditions!", "underTheHood": "Why return a tuple of (task.id, section_md)? Because parallel workers complete at different times depending on API latency. Returning the integer task.id guarantees the reducer can later sort them into the intended logical order.", "code": "def worker_node(payload: dict) -> dict:\n    task = Task(**payload['task'])\n    # Call Gemini to write the section\n    result = llm.invoke([\n        SystemMessage(content=WORKER_SYSTEM),\n        HumanMessage(content=...)\n    ])\n    section_md = result.content[0]['text']\n    # Returns list of tuples accumulated via operator.add\n    return {'sections': [(task.id, section_md)]}", "modifiedKeys": ["sections"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 tasks defined)", "sections": "[\n  (1, \"## The Intuition of Contextual Embeddings\\nWord embeddings like Word2Vec assign a static vector...\"),\n  (2, \"## The Query, Key, and Value Framework\\nTo compute dynamic contextual representations...\"),\n  (3, \"## Scaled Dot-Product Attention: Math & Code\\n```python\\ndef attention(Q, K, V):\\n    d_k = Q.size(-1)...```\"),\n  (4, \"## Multi-Head Attention: Parallel Subspaces\\nRather than computing attention once...\"),\n  (5, \"## Computational Complexity and Failure Modes\\nThe O(N^2) quadratic memory bottleneck...\")\n]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "5 sections written concurrently and collected by operator.add reducer:\n\u2714 Task 1 (Contextual Embeddings): 260 words\n\u2714 Task 2 (Q, K, V Framework): 330 words\n\u2714 Task 3 (Scaled Dot-Product with Code): 410 words\n\u2714 Task 4 (Multi-Head Attention): 305 words\n\u2714 Task 5 (Complexity & Failures): 275 words"}, {"id": 7, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 1: Content Assembly (merge_content)", "subtitle": "Sorting sections by task.id and joining into a unified markdown document", "nodeId": "merge_content", "summary": "merge_content takes all accumulated sections from state['sections'], sorts them by task_id using sorted(..., key=lambda x: x[0]), joins them with clean double newlines, and prepends the top-level H1 blog title.", "why": "This restores strict outline order regardless of which parallel worker finished first. It creates a coherent unified article ready for editorial review.", "underTheHood": "Generates merged_md in state with ~1,580 words of formatted technical markdown.", "code": "def merge_content(state: State) -> dict:\n    plan = state['plan']\n    # Sort by task.id (x[0]) to restore intended outline sequence\n    ordered_sections = [md for _, md in sorted(state['sections'], key=lambda x: x[0])]\n    body = '\\n\\n'.join(ordered_sections).strip()\n    merged_md = f'# {plan.blog_title}\\n\\n{body}\\n'\n    return {'merged_md': merged_md}", "modifiedKeys": ["merged_md"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples (ordered)", "merged_md": "\"# Demystifying Self-Attention: The Engine Behind Transformers\\n\\n## The Intuition of Contextual Embeddings\\n...\\n\\n## The Query, Key, and Value Framework\\n...\\n\\n## Scaled Dot-Product Attention: Math & Code\\n...\\n\\n## Multi-Head Attention: Parallel Subspaces\\n...\\n\\n## Computational Complexity and Failure Modes\\n...\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Unified Markdown text assembled (1,580 words). Sequence verified. Ready for visual editor..."}, {"id": 8, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 2: Visual Editor (decide_images)", "subtitle": "Identifying technical diagram opportunities and injecting [[IMAGE_X]] placeholders", "nodeId": "decide_images", "summary": "An expert technical editor LLM reviews the merged draft. It determines where technical flowcharts or diagrams would materially assist reader comprehension (capped at 3). It injects [[IMAGE_1]], [[IMAGE_2]] into the text and produces GlobalImagePlan.", "why": "Images shouldn't be decorative stock photos. They must be precise technical diagrams. The editor LLM specifies exact dimensions, alt text, captions, and detailed prompts for the image generation model.", "underTheHood": "Returns md_with_placeholders containing [[IMAGE_X]] tags, and image_specs containing prompt configurations.", "code": "def decide_images(state: State) -> dict:\n    planner = llm.with_structured_output(GlobalImagePlan)\n    image_plan = planner.invoke([\n        SystemMessage(content=DECIDE_IMAGES_SYSTEM),\n        HumanMessage(content=f'Insert placeholders + prompts:\\n{state[\"merged_md\"]}')\n    ])\n    return {\n        'md_with_placeholders': image_plan.md_with_placeholders,\n        'image_specs': [img.model_dump() for img in image_plan.images]\n    }", "modifiedKeys": ["md_with_placeholders", "image_specs"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples", "merged_md": "Full text", "md_with_placeholders": "\"# Demystifying Self-Attention...\\n\\n## The Intuition...\\n\\n## The Query, Key, and Value Framework\\n...\\n\\n[[IMAGE_1]]\\n\\n## Scaled Dot-Product Attention: Math & Code\\n...\\n\\n[[IMAGE_2]]\\n\\n## Multi-Head Attention...\"", "image_specs": "[\n  {\n    \"placeholder\": \"[[IMAGE_1]]\",\n    \"filename\": \"qkv_flow.png\",\n    \"alt\": \"Query Key Value Projection Flow\",\n    \"caption\": \"Figure 1: Linear projections into Query, Key, and Value matrices\",\n    \"prompt\": \"Clean technical 2D diagram illustrating Query, Key, and Value matrix multiplications with dimensions QK^T / sqrt(d_k)\"\n  },\n  {\n    \"placeholder\": \"[[IMAGE_2]]\",\n    \"filename\": \"scaled_dot_product.png\",\n    \"alt\": \"Scaled Dot-Product Pipeline\",\n    \"caption\": \"Figure 2: Attention matrix multiplied by Value vectors\",\n    \"prompt\": \"Minimalist engineering diagram of Scaled Dot-Product Attention with Softmax block\"\n  }\n]", "final": "\"\""}, "preview": "Visual Editor placed 2 image placeholders:\n- [[IMAGE_1]] under Q, K, V Framework (qkv_flow.png)\n- [[IMAGE_2]] under Scaled Dot-Product (scaled_dot_product.png)"}, {"id": 9, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 3: Image Generation & Asset Placement", "subtitle": "Generating PNG bytes with Gemini 2.5 Flash Image, handling fallbacks, & saving file", "nodeId": "generate_images", "summary": "generate_and_place_images creates images/, invokes gemini-2.5-flash-image for raw image bytes, saves PNG files to disk, replaces [[IMAGE_X]] tags with standard Markdown image links, and writes the completed blog post to '<Blog Title>.md'.", "why": "Zero-crash resiliency! If image generation hits a safety filter or quota limit, the function catches the exception and replaces the placeholder with an informative markdown callout (> **[IMAGE GENERATION FAILED]**) so the article remains 100% usable.", "underTheHood": "Unpacks binary bytes from response.parts or candidates[0].content.parts.inline_data.data and saves them directly via out_path.write_bytes(img_bytes).", "code": "for spec in image_specs:\n    if not out_path.exists():\n        try:\n            img_bytes = _gemini_generate_image_bytes(spec['prompt'])\n            out_path.write_bytes(img_bytes)\n        except Exception as e:\n            md = md.replace(placeholder, f'> **[IMAGE GENERATION FAILED]** {e}')\n            continue\n    md = md.replace(placeholder, f'![{spec[\"alt\"]}]({out_path})\\n*{spec[\"caption\"]}*')\nPath(filename).write_text(md, encoding='utf-8')\nreturn {'final': md}", "modifiedKeys": ["final"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples", "merged_md": "Full text", "md_with_placeholders": "Text with placeholders", "image_specs": "2 image specifications (processed)", "final": "\"# Demystifying Self-Attention: The Engine Behind Transformers\\n\\n## The Intuition of Contextual Embeddings\\n...\\n\\n## The Query, Key, and Value Framework\\n...\\n![Query Key Value](images/qkv_flow.png)\\n*Figure 1: Linear projections into Query, Key, and Value matrices*\\n\\n## Scaled Dot-Product Attention: Math & Code\\n```python\\ndef attention(Q, K, V):\\n    d_k = Q.size(-1)\\n    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)\\n    return torch.matmul(F.softmax(scores, dim=-1), V)\\n```\\n\\n![Scaled Dot Product](images/scaled_dot_product.png)\\n*Figure 2: Attention matrix multiplied by Value vectors*\\n\\n## Multi-Head Attention: Parallel Subspaces\\n...\\n\\n## Computational Complexity and Failure Modes\\n...\""}, "preview": "Article Complete! Assets saved to disk:\n- File: 'Demystifying Self-Attention: The Engine Behind Transformers.md'\n- Images: images/qkv_flow.png, images/scaled_dot_product.png\n- State['final'] populated with complete illustrated publication."}, {"id": 10, "phase": "Execution Complete (END)", "title": "Final Picture & State Evolution Summary", "subtitle": "Execution completed successfully across all nodes and subgraphs", "nodeId": "end", "summary": "The LangGraph StateGraph hits the END sentinel node. The complete state dictionary is returned to the user, containing all intermediate artifacts, section tuples, plan metadata, and the final illustrated article.", "why": "By preserving state at every step, LangGraph gives complete observability and debugging capabilities across multi-agent pipelines.", "underTheHood": "All 11 state variables reached their terminal, verified values without race conditions.", "code": "# Pipeline finished\nprint(out['final'][:300])\n# Saved as markdown file on disk\n# All intermediate keys preserved in out dictionary", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 Tasks, Explainer Kind)", "sections": "5 Section Tuples accumulated", "merged_md": "1,580 words assembled", "md_with_placeholders": "Injected with 2 placeholders", "image_specs": "2 Images generated via Gemini 2.5 Flash", "final": "Complete published article with embedded figures"}, "preview": "\ud83c\udf89 PIPELINE COMPLETE! All 11 state variables preserved. Markdown article saved to disk."}];
+    const SCENARIO_B = [{"id": 0, "phase": "Global Overview", "title": "Complete Multi-Agent System Architecture", "subtitle": "High-level map: Topic -> Router -> Orchestrator -> Fan-Out -> Parallel Workers -> Reducer Subgraph -> Published Article", "nodeId": "overview", "summary": "This multi-agent system uses LangGraph to plan, research, draft in parallel, and illustrate technical blog posts. It combines LangChain, Pydantic v2 schemas, Google Gemini LLMs, and Google GenAI Image generation.", "why": "Writing high-quality technical blogs requires specialized skills: scoping, fact-checking, structured outlining, deep technical prose, and architectural diagrams. Breaking this into specialized nodes produces far superior results than a single monolithic prompt.", "underTheHood": "The pipeline consists of 3 distinct stages: 1) Upfront Routing & Outline Planning, 2) Concurrent Map-Reduce Worker Execution, and 3) An isolated 3-node Subgraph for content assembly and image generation.", "code": "# Main Graph Definition (LangGraph)\ng = StateGraph(State)\ng.add_node('router', router_node)\ng.add_node('research', research_node)\ng.add_node('orchestrator', orchestrator_node)\ng.add_node('worker', worker_node)\ng.add_node('reducer', reducer_subgraph)  # Nested Subgraph\n\ng.add_edge(START, 'router')\ng.add_conditional_edges('router', route_next)\ng.add_edge('research', 'orchestrator')\ng.add_conditional_edges('orchestrator', fanout, ['worker'])\ng.add_edge('worker', 'reducer')\ng.add_edge('reducer', END)\napp = g.compile()", "modifiedKeys": ["topic"], "stateSnapshot": {"topic": "\"DeepSeek R1 and Inference-Time Reasoning Breakthroughs\"", "mode": "\"\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Initial State initialized with topic: 'Self Attention in Transformer Architecture'. Ready to begin routing..."}, {"id": 1, "phase": "Phase 1: Routing & Scoping", "title": "Upfront Topic Classification (router_node)", "subtitle": "Deciding whether web research is necessary before creating an outline", "nodeId": "router", "summary": "The router classifies this topic as 'open_book' because it covers volatile, fast-evolving AI breakthroughs. It sets needs_research=True and generates 3 high-signal search queries.", "why": "Unnecessary web searches cost latency, API quota, and can pollute technical fundamentals with irrelevant search SEO spam. Upfront routing guarantees that topics like Self Attention rely on first-principles knowledge, while volatile news triggers live search.", "underTheHood": "Uses llm.with_structured_output(RouterDecision) with Google Gemini. Temperature is set to 0 to ensure strict deterministic adherence to schema boundaries.", "code": "def router_node(state: State) -> dict:\n    topic = state['topic']\n    decider = llm.with_structured_output(RouterDecision)\n    decision = decider.invoke([\n        SystemMessage(content=ROUTER_SYSTEM),\n        HumanMessage(content=f'Topic: {topic}')\n    ])\n    return {\n        'needs_research': decision.needs_research, # False\n        'mode': decision.mode,                     # 'closed_book'\n        'queries': decision.queries                # []\n    }", "modifiedKeys": ["mode", "needs_research", "queries"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"open_book\"", "needs_research": "True", "queries": "[\n  \"DeepSeek R1 pure reinforcement learning reasoning\",\n  \"OpenAI o1 o3 inference compute scaling laws\",\n  \"test-time search MCTS distillation open models 2026\"\n]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Router Output: Mode = 'open_book' | needs_research = True | 3 search queries generated."}, {"id": 2, "phase": "Phase 1: Routing & Scoping", "title": "Conditional Branching (route_next)", "subtitle": "Dynamic graph routing: Skipping Tavily web search for evergreen topics", "nodeId": "route_next", "summary": "route_next checks state['needs_research']. Because it is True, it routes to 'research' node!", "why": "LangGraph conditional edges allow graph execution to fork or take shortcut paths dynamically at runtime based on any condition in the shared state.", "underTheHood": "Because state['needs_research'] is False, route_next returns 'orchestrator', cleanly bypassing research_node and saving time and API calls.", "code": "def route_next(state: State) -> str:\n    # Evaluates to 'research' because needs_research is True\n    return 'research' if state['needs_research'] else 'orchestrator'", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Branch taken: [router] -> (needs_research=True) -> [research_node]."}, {"id": 3, "phase": "Phase 1: Routing & Research", "title": "Web Research & URL Deduplication (research_node)", "subtitle": "Querying Tavily Search tool, synthesizing facts with LLM, and deduplicating by URL", "nodeId": "research", "summary": "Executes TavilySearchResults across all 3 queries. Feeds raw results to Gemini to extract authoritative EvidenceItem objects (title, url, date, snippet). Programmatically deduplicates by URL.", "why": "Raw web search results often contain duplicate links or SEO boilerplate. Deduplicating by URL and extracting concise factual snippets ensures the Orchestrator and Workers receive high-signal grounding data without token waste.", "underTheHood": "Normalizes Tavily dictionaries, calls llm.with_structured_output(EvidencePack), and deduplicates via dedup[e.url] = e.", "code": ["def research_node(state: State) -> dict:\n    queries = state.get('queries', [])\n    raw_results = []\n    for q in queries:\n        raw_results.extend(_tavily_search(q, max_results=6))\n    extractor = llm.with_structured_output(EvidencePack)\n    pack = extractor.invoke([SystemMessage(content=RESEARCH_SYSTEM), HumanMessage(...)])\n    dedup = {e.url: e for e in pack.evidence if e.url}\n    return {'evidence': list(dedup.values())}"], "modifiedKeys": ["evidence"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[\n  EvidenceItem(title=\"DeepSeek-R1 Technical Report\", url=\"https://arxiv.org/abs/2501.12948\", snippet=\"DeepSeek-R1-Zero trained via pure RL without supervised data...\"),\n  EvidenceItem(title=\"Inference Time Compute Scaling\", url=\"https://openai.com/research/scaling-test-time\", snippet=\"Scaling test-time compute reveals new Pareto frontiers...\")\n]", "plan": "None", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Evidence gathered: 2 authoritative research items with verified URLs."}, {"id": 4, "phase": "Phase 1: Routing & Scoping", "title": "Master Outline Orchestration (orchestrator_node)", "subtitle": "Deconstructing the article into 5-9 highly actionable, non-overlapping section tasks", "nodeId": "orchestrator", "summary": "The orchestrator acts as a Senior Technical Writer. It designs a cohesive article outline matching the Plan schema: blog title, target audience, tone, and 5 sequential Tasks (each with goal, 3-6 bullets, and word count target).", "why": "Parallel section writers can easily produce redundant or contradictory content if given vague instructions. The orchestrator eliminates this by defining strict non-overlapping bullet points and word targets for every section upfront.", "underTheHood": "The LLM is prompted with quality bars: developer audience, actionable verbs (build/compare/measure/verify), and a requirement to include minimal code sketches.", "code": "def orchestrator_node(state: State) -> dict:\n    planner = llm.with_structured_output(Plan)\n    plan = planner.invoke([\n        SystemMessage(content=ORCH_SYSTEM),\n        HumanMessage(content=f\"Topic: {state['topic']}\\nMode: {state['mode']}\")\n    ])\n    return {'plan': plan}", "modifiedKeys": ["plan"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(\n  blog_title=\"Demystifying Self-Attention: The Engine Behind Transformers\",\n  audience=\"Software engineers and machine learning practitioners\",\n  tone=\"Technical, analytical, and instructional\",\n  blog_kind=\"explainer\",\n  tasks=[\n    Task(id=1, title=\"The Intuition of Contextual Embeddings\", target_words=250),\n    Task(id=2, title=\"The Query, Key, and Value Framework\", target_words=320),\n    Task(id=3, title=\"Scaled Dot-Product Attention: Math & Code\", target_words=400, requires_code=True),\n    Task(id=4, title=\"Multi-Head Attention: Parallel Subspaces\", target_words=300),\n    Task(id=5, title=\"Computational Complexity and Failure Modes\", target_words=280)\n  ]\n)", "sections": "[]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Outline created with 5 tasks:\n1. Contextual Embeddings (250w)\n2. Q, K, V Framework (320w)\n3. Scaled Dot-Product Math & Code (400w)\n4. Multi-Head Attention (300w)\n5. Computational Complexity (280w)"}, {"id": 5, "phase": "Phase 2: Map-Reduce Execution", "title": "Dynamic Map Fan-Out (fanout via Send)", "subtitle": "Dispatching independent parallel worker nodes dynamically using LangGraph Send", "nodeId": "fanout", "summary": "fanout inspects state['plan'].tasks and returns a list of Send('worker', payload) objects. LangGraph spins up 5 concurrent worker nodes in parallel, each receiving its specific task model and the global plan context.", "why": "Standard graph edges require fixed connections defined at compile time. Send() enables true dynamic map-reduce: whether the plan has 5 tasks or 9 tasks, LangGraph forks exactly that many parallel branches at runtime.", "underTheHood": "Each payload is serialized into standard Python dictionaries containing task, topic, mode, plan, and evidence.", "code": "def fanout(state: State):\n    # Dynamically maps 1 worker per task in plan\n    return [\n        Send(\n            'worker',\n            {\n                'task': task.model_dump(),\n                'topic': state['topic'],\n                'mode': state['mode'],\n                'plan': state['plan'].model_dump(),\n                'evidence': [e.model_dump() for e in state.get('evidence', [])],\n            }\n        )\n        for task in state['plan'].tasks\n    ]", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 tasks defined)", "sections": "[] (Workers dispatched concurrently)", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Dynamic Fan-Out: 5 Send('worker', payload) calls dispatched in parallel to LangGraph engine."}, {"id": 6, "phase": "Phase 2: Map-Reduce Execution", "title": "Parallel Section Drafting & Reducer (worker_node)", "subtitle": "Writing technical markdown sections & accumulating results via operator.add", "nodeId": "worker", "summary": "5 worker nodes run in parallel. Each worker focuses exclusively on its assigned task, covering every bullet point and respecting the target word count. Each worker returns [(task.id, section_md)].", "why": "Why Annotated[List, operator.add]? In LangGraph, node outputs overwrite matching state keys by default. When 5 workers write concurrently, overwriting would erase previous workers. operator.add tells LangGraph to concatenate returned lists without race conditions!", "underTheHood": "Why return a tuple of (task.id, section_md)? Because parallel workers complete at different times depending on API latency. Returning the integer task.id guarantees the reducer can later sort them into the intended logical order.", "code": "def worker_node(payload: dict) -> dict:\n    task = Task(**payload['task'])\n    # Call Gemini to write the section\n    result = llm.invoke([\n        SystemMessage(content=WORKER_SYSTEM),\n        HumanMessage(content=...)\n    ])\n    section_md = result.content[0]['text']\n    # Returns list of tuples accumulated via operator.add\n    return {'sections': [(task.id, section_md)]}", "modifiedKeys": ["sections"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 tasks defined)", "sections": "[\n  (1, \"## The Intuition of Contextual Embeddings\\nWord embeddings like Word2Vec assign a static vector...\"),\n  (2, \"## The Query, Key, and Value Framework\\nTo compute dynamic contextual representations...\"),\n  (3, \"## Scaled Dot-Product Attention: Math & Code\\n```python\\ndef attention(Q, K, V):\\n    d_k = Q.size(-1)...```\"),\n  (4, \"## Multi-Head Attention: Parallel Subspaces\\nRather than computing attention once...\"),\n  (5, \"## Computational Complexity and Failure Modes\\nThe O(N^2) quadratic memory bottleneck...\")\n]", "merged_md": "\"\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "5 sections written concurrently and collected by operator.add reducer:\n\u2714 Task 1 (Contextual Embeddings): 260 words\n\u2714 Task 2 (Q, K, V Framework): 330 words\n\u2714 Task 3 (Scaled Dot-Product with Code): 410 words\n\u2714 Task 4 (Multi-Head Attention): 305 words\n\u2714 Task 5 (Complexity & Failures): 275 words"}, {"id": 7, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 1: Content Assembly (merge_content)", "subtitle": "Sorting sections by task.id and joining into a unified markdown document", "nodeId": "merge_content", "summary": "merge_content takes all accumulated sections from state['sections'], sorts them by task_id using sorted(..., key=lambda x: x[0]), joins them with clean double newlines, and prepends the top-level H1 blog title.", "why": "This restores strict outline order regardless of which parallel worker finished first. It creates a coherent unified article ready for editorial review.", "underTheHood": "Generates merged_md in state with ~1,580 words of formatted technical markdown.", "code": "def merge_content(state: State) -> dict:\n    plan = state['plan']\n    # Sort by task.id (x[0]) to restore intended outline sequence\n    ordered_sections = [md for _, md in sorted(state['sections'], key=lambda x: x[0])]\n    body = '\\n\\n'.join(ordered_sections).strip()\n    merged_md = f'# {plan.blog_title}\\n\\n{body}\\n'\n    return {'merged_md': merged_md}", "modifiedKeys": ["merged_md"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples (ordered)", "merged_md": "\"# Demystifying Self-Attention: The Engine Behind Transformers\\n\\n## The Intuition of Contextual Embeddings\\n...\\n\\n## The Query, Key, and Value Framework\\n...\\n\\n## Scaled Dot-Product Attention: Math & Code\\n...\\n\\n## Multi-Head Attention: Parallel Subspaces\\n...\\n\\n## Computational Complexity and Failure Modes\\n...\"", "md_with_placeholders": "\"\"", "image_specs": "[]", "final": "\"\""}, "preview": "Unified Markdown text assembled (1,580 words). Sequence verified. Ready for visual editor..."}, {"id": 8, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 2: Visual Editor (decide_images)", "subtitle": "Identifying technical diagram opportunities and injecting [[IMAGE_X]] placeholders", "nodeId": "decide_images", "summary": "An expert technical editor LLM reviews the merged draft. It determines where technical flowcharts or diagrams would materially assist reader comprehension (capped at 3). It injects [[IMAGE_1]], [[IMAGE_2]] into the text and produces GlobalImagePlan.", "why": "Images shouldn't be decorative stock photos. They must be precise technical diagrams. The editor LLM specifies exact dimensions, alt text, captions, and detailed prompts for the image generation model.", "underTheHood": "Returns md_with_placeholders containing [[IMAGE_X]] tags, and image_specs containing prompt configurations.", "code": "def decide_images(state: State) -> dict:\n    planner = llm.with_structured_output(GlobalImagePlan)\n    image_plan = planner.invoke([\n        SystemMessage(content=DECIDE_IMAGES_SYSTEM),\n        HumanMessage(content=f'Insert placeholders + prompts:\\n{state[\"merged_md\"]}')\n    ])\n    return {\n        'md_with_placeholders': image_plan.md_with_placeholders,\n        'image_specs': [img.model_dump() for img in image_plan.images]\n    }", "modifiedKeys": ["md_with_placeholders", "image_specs"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples", "merged_md": "Full text", "md_with_placeholders": "\"# Demystifying Self-Attention...\\n\\n## The Intuition...\\n\\n## The Query, Key, and Value Framework\\n...\\n\\n[[IMAGE_1]]\\n\\n## Scaled Dot-Product Attention: Math & Code\\n...\\n\\n[[IMAGE_2]]\\n\\n## Multi-Head Attention...\"", "image_specs": "[\n  {\n    \"placeholder\": \"[[IMAGE_1]]\",\n    \"filename\": \"qkv_flow.png\",\n    \"alt\": \"Query Key Value Projection Flow\",\n    \"caption\": \"Figure 1: Linear projections into Query, Key, and Value matrices\",\n    \"prompt\": \"Clean technical 2D diagram illustrating Query, Key, and Value matrix multiplications with dimensions QK^T / sqrt(d_k)\"\n  },\n  {\n    \"placeholder\": \"[[IMAGE_2]]\",\n    \"filename\": \"scaled_dot_product.png\",\n    \"alt\": \"Scaled Dot-Product Pipeline\",\n    \"caption\": \"Figure 2: Attention matrix multiplied by Value vectors\",\n    \"prompt\": \"Minimalist engineering diagram of Scaled Dot-Product Attention with Softmax block\"\n  }\n]", "final": "\"\""}, "preview": "Visual Editor placed 2 image placeholders:\n- [[IMAGE_1]] under Q, K, V Framework (qkv_flow.png)\n- [[IMAGE_2]] under Scaled Dot-Product (scaled_dot_product.png)"}, {"id": 9, "phase": "Phase 3: Reducer Subgraph", "title": "Subgraph Step 3: Image Generation & Asset Placement", "subtitle": "Generating PNG bytes with Gemini 2.5 Flash Image, handling fallbacks, & saving file", "nodeId": "generate_images", "summary": "generate_and_place_images creates images/, invokes gemini-2.5-flash-image for raw image bytes, saves PNG files to disk, replaces [[IMAGE_X]] tags with standard Markdown image links, and writes the completed blog post to '<Blog Title>.md'.", "why": "Zero-crash resiliency! If image generation hits a safety filter or quota limit, the function catches the exception and replaces the placeholder with an informative markdown callout (> **[IMAGE GENERATION FAILED]**) so the article remains 100% usable.", "underTheHood": "Unpacks binary bytes from response.parts or candidates[0].content.parts.inline_data.data and saves them directly via out_path.write_bytes(img_bytes).", "code": "for spec in image_specs:\n    if not out_path.exists():\n        try:\n            img_bytes = _gemini_generate_image_bytes(spec['prompt'])\n            out_path.write_bytes(img_bytes)\n        except Exception as e:\n            md = md.replace(placeholder, f'> **[IMAGE GENERATION FAILED]** {e}')\n            continue\n    md = md.replace(placeholder, f'![{spec[\"alt\"]}]({out_path})\\n*{spec[\"caption\"]}*')\nPath(filename).write_text(md, encoding='utf-8')\nreturn {'final': md}", "modifiedKeys": ["final"], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(...)", "sections": "List of 5 tuples", "merged_md": "Full text", "md_with_placeholders": "Text with placeholders", "image_specs": "2 image specifications (processed)", "final": "\"# Demystifying Self-Attention: The Engine Behind Transformers\\n\\n## The Intuition of Contextual Embeddings\\n...\\n\\n## The Query, Key, and Value Framework\\n...\\n![Query Key Value](images/qkv_flow.png)\\n*Figure 1: Linear projections into Query, Key, and Value matrices*\\n\\n## Scaled Dot-Product Attention: Math & Code\\n```python\\ndef attention(Q, K, V):\\n    d_k = Q.size(-1)\\n    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)\\n    return torch.matmul(F.softmax(scores, dim=-1), V)\\n```\\n\\n![Scaled Dot Product](images/scaled_dot_product.png)\\n*Figure 2: Attention matrix multiplied by Value vectors*\\n\\n## Multi-Head Attention: Parallel Subspaces\\n...\\n\\n## Computational Complexity and Failure Modes\\n...\""}, "preview": "Article Complete! Assets saved to disk:\n- File: 'Demystifying Self-Attention: The Engine Behind Transformers.md'\n- Images: images/qkv_flow.png, images/scaled_dot_product.png\n- State['final'] populated with complete illustrated publication."}, {"id": 10, "phase": "Execution Complete (END)", "title": "Final Picture & State Evolution Summary", "subtitle": "Execution completed successfully across all nodes and subgraphs", "nodeId": "end", "summary": "The LangGraph StateGraph hits the END sentinel node. The complete state dictionary is returned to the user, containing all intermediate artifacts, section tuples, plan metadata, and the final illustrated article.", "why": "By preserving state at every step, LangGraph gives complete observability and debugging capabilities across multi-agent pipelines.", "underTheHood": "All 11 state variables reached their terminal, verified values without race conditions.", "code": "# Pipeline finished\nprint(out['final'][:300])\n# Saved as markdown file on disk\n# All intermediate keys preserved in out dictionary", "modifiedKeys": [], "stateSnapshot": {"topic": "\"Self Attention in Transformer Architecture\"", "mode": "\"closed_book\"", "needs_research": "False", "queries": "[]", "evidence": "[]", "plan": "Plan(5 Tasks, Explainer Kind)", "sections": "5 Section Tuples accumulated", "merged_md": "1,580 words assembled", "md_with_placeholders": "Injected with 2 placeholders", "image_specs": "2 Images generated via Gemini 2.5 Flash", "final": "Complete published article with embedded figures"}, "preview": "\ud83c\udf89 PIPELINE COMPLETE! All 11 state variables preserved. Markdown article saved to disk."}];
+    const STATE_META = [{"key": "topic", "type": "str", "role": "User input blog topic/prompt", "default": "\"\""}, {"key": "mode", "type": "str", "role": "Topic classification ('closed_book', 'hybrid', 'open_book')", "default": "\"\""}, {"key": "needs_research", "type": "bool", "role": "Flag indicating if web search is required", "default": "False"}, {"key": "queries", "type": "List[str]", "role": "3-10 search queries for Tavily", "default": "[]"}, {"key": "evidence", "type": "List[EvidenceItem]", "role": "Verified search snippets & URLs", "default": "[]"}, {"key": "plan", "type": "Optional[Plan]", "role": "Master outline with 5-9 tasks & constraints", "default": "None"}, {"key": "sections", "type": "Annotated[List[tuple], operator.add]", "role": "Accumulator list of (task_id, section_md) tuples", "default": "[]"}, {"key": "merged_md", "type": "str", "role": "Draft assembled in task_id order with H1 title", "default": "\"\""}, {"key": "md_with_placeholders", "type": "str", "role": "Markdown with [[IMAGE_X]] tags injected", "default": "\"\""}, {"key": "image_specs", "type": "List[dict]", "role": "Image generation specs (prompts, alt, filenames)", "default": "[]"}, {"key": "final", "type": "str", "role": "Final published markdown article with embedded figures", "default": "\"\""}];
+    const SCHEMAS_DATA = [{"id": "RouterDecision", "name": "RouterDecision", "doc": "Decides whether live web research is needed before planning and produces scoped search queries.", "usedBy": "router_node (via llm.with_structured_output)", "role": "Upfront classification & search query generator", "fields": [{"name": "needs_research", "type": "bool", "desc": "Flag indicating if web research is required upfront"}, {"name": "mode", "type": "Literal['closed_book', 'hybrid', 'open_book']", "desc": "Topic categorization mode"}, {"name": "queries", "type": "List[str]", "desc": "3\u201310 targeted search queries (default_factory=list)"}], "stepGenerated": 1, "sampleA": {"needs_research": false, "mode": "closed_book", "queries": []}, "sampleB": {"needs_research": true, "mode": "open_book", "queries": ["DeepSeek R1 pure reinforcement learning reasoning", "OpenAI o1 o3 inference compute scaling laws", "test-time search MCTS distillation open models 2026"]}}, {"id": "Plan", "name": "Plan", "doc": "Master outline and editorial blueprint containing high-level metadata and ordered section tasks.", "usedBy": "orchestrator_node (generated) & worker_node (consumed)", "role": "Global article structure & editorial guidelines", "fields": [{"name": "blog_title", "type": "str", "desc": "Compelling, accurate technical H1 title"}, {"name": "audience", "type": "str", "desc": "Target audience (e.g. software engineers & ML practitioners)"}, {"name": "tone", "type": "str", "desc": "Editorial voice (e.g. technical, analytical, instructional)"}, {"name": "blog_kind", "type": "Literal['explainer', 'tutorial', 'news_roundup', 'comparison', 'system_design']", "desc": "Article format (default='explainer')"}, {"name": "constraints", "type": "List[str]", "desc": "Technical constraints & guidelines (default_factory=list)"}, {"name": "tasks", "type": "List[Task]", "desc": "Ordered sequence of 5\u20139 section tasks"}], "stepGenerated": 4, "sampleA": {"blog_title": "Demystifying Self-Attention: The Engine Behind Transformers", "audience": "Software engineers and machine learning practitioners", "tone": "Technical, analytical, and instructional", "blog_kind": "explainer", "constraints": ["Focus on mathematical intuition", "Clear matrix analogies", "Include minimal PyTorch code"], "tasks": "5 Task instances [Task(id=1), Task(id=2), ... Task(id=5)]"}, "sampleB": {"blog_title": "The 2026 Reasoning Revolution: Inside DeepSeek R1 & Test-Time Scaling", "audience": "AI researchers, engineers, and tech leads", "tone": "Rigorous, analytical, and forward-looking", "blog_kind": "news_roundup", "constraints": ["Strict citation of arxiv papers", "Explain RL without SFT", "Compare cost vs o1"], "tasks": "6 Task instances [Task(id=1), ... Task(id=6)]"}}, {"id": "Task", "name": "Task", "doc": "Atomic section specification dispatched to parallel worker nodes via Send().", "usedBy": "orchestrator_node (generated) & worker_node (executed)", "role": "Single section assignment for 1 parallel worker", "fields": [{"name": "id", "type": "int", "desc": "Sequential integer ID (1, 2, 3...) to allow sorting in reducer"}, {"name": "title", "type": "str", "desc": "Section H2 title"}, {"name": "goal", "type": "str", "desc": "1 sentence: what the reader should understand after reading"}, {"name": "bullets", "type": "List[str]", "desc": "3\u20136 concrete, non-overlapping subpoints (min_length=3, max_length=6)"}, {"name": "target_words", "type": "int", "desc": "Target word count for this section (120\u2013550)"}, {"name": "tags", "type": "List[str]", "desc": "Topic categorization tags (default_factory=list)"}, {"name": "requires_research", "type": "bool", "desc": "Flag: whether this section relies on external facts (default=False)"}, {"name": "requires_citations", "type": "bool", "desc": "Flag: whether claims must include Markdown citations (default=False)"}, {"name": "requires_code", "type": "bool", "desc": "Flag: section must include a minimal code sketch (default=False)"}], "stepGenerated": 4, "sampleA": {"id": 3, "title": "Scaled Dot-Product Attention: Math & Code", "goal": "Master the mathematical formulation and PyTorch implementation of QK^T / sqrt(d_k).", "bullets": ["Derive the dot-product similarity between query and key vectors", "Explain why scaling by sqrt(d_k) prevents softmax gradient vanishing", "Trace how the softmax weights distribute attention across value vectors", "Provide a clean, self-contained PyTorch implementation"], "target_words": 400, "requires_code": true, "requires_citations": false}, "sampleB": {"id": 2, "title": "Pure Reinforcement Learning: Zero to Hero Without SFT", "goal": "Explain how DeepSeek-R1-Zero developed reasoning behaviors directly from RL rewards.", "bullets": ["Contrast traditional SFT + RLHF with pure rule-based RL reward modeling", "Analyze the 'aha moment' emergent self-correction trace", "Examine accuracy-based and formatting-based reward functions"], "target_words": 350, "requires_code": false, "requires_citations": true}}, {"id": "EvidenceItem", "name": "EvidenceItem", "doc": "Individual research finding extracted from Tavily search results.", "usedBy": "research_node (extracted) & worker_node (cited)", "role": "Single verified research citation with URL", "fields": [{"name": "title", "type": "str", "desc": "Webpage or paper title"}, {"name": "url", "type": "str", "desc": "Direct verifiable URL"}, {"name": "published_at", "type": "Optional[str]", "desc": "Publication date (YYYY-MM-DD) if available; never guessed"}, {"name": "snippet", "type": "Optional[str]", "desc": "Concise factual quote / excerpt"}, {"name": "source", "type": "Optional[str]", "desc": "Publisher domain or platform name"}], "stepGenerated": 3, "sampleA": "(Not generated in closed_book mode - research was skipped)", "sampleB": {"title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via RL", "url": "https://arxiv.org/abs/2501.12948", "published_at": "2025-01-22", "snippet": "DeepSeek-R1-Zero demonstrates that reasoning capabilities can be incentivized purely through large-scale RL without cold-start supervised fine-tuning.", "source": "arxiv.org"}}, {"id": "EvidencePack", "name": "EvidencePack", "doc": "Synthesized container of deduplicated evidence items produced by the research node.", "usedBy": "research_node (via llm.with_structured_output)", "role": "Bundle of verified sources passed to Orchestrator", "fields": [{"name": "evidence", "type": "List[EvidenceItem]", "desc": "Deduplicated list of authoritative evidence items"}], "stepGenerated": 3, "sampleA": "(Not generated in closed_book mode)", "sampleB": {"evidence": "2 EvidenceItem objects [DeepSeek-R1 Arxiv, OpenAI Scaling Blog]"}}, {"id": "ImageSpec", "name": "ImageSpec", "doc": "Specification for an individual technical diagram to be generated by Gemini.", "usedBy": "decide_images (planned) & generate_and_place_images (rendered)", "role": "Prompt, caption, alt text & file parameters for image generation", "fields": [{"name": "placeholder", "type": "str", "desc": "Exact placeholder tag in markdown, e.g. [[IMAGE_1]]"}, {"name": "filename", "type": "str", "desc": "Target filename saved under images/, e.g. qkv_flow.png"}, {"name": "alt", "type": "str", "desc": "Accessibility alt text describing visual content"}, {"name": "caption", "type": "str", "desc": "Figure caption printed directly under the diagram"}, {"name": "prompt", "type": "str", "desc": "Detailed prompt sent to gemini-2.5-flash-image"}, {"name": "size", "type": "Literal['1024x1024', '1024x1536', '1536x1024']", "desc": "Target image resolution (default='1024x1024')"}, {"name": "quality", "type": "Literal['low', 'medium', 'high']", "desc": "Rendering quality tier (default='medium')"}], "stepGenerated": 8, "sampleA": {"placeholder": "[[IMAGE_1]]", "filename": "qkv_flow.png", "alt": "Query Key Value Projection Flow", "caption": "Figure 1: Projection of input tokens into Query, Key, and Value vectors", "prompt": "Clean technical 2D vector diagram illustrating Query, Key, and Value matrix multiplications with dimensions QK^T / sqrt(d_k)", "size": "1024x1024", "quality": "medium"}, "sampleB": {"placeholder": "[[IMAGE_1]]", "filename": "rl_vs_sft_reasoning.png", "alt": "Pure RL vs SFT Comparison Diagram", "caption": "Figure 1: Architecture comparison between SFT-heavy pipelines and pure RL self-correction", "prompt": "Minimalist engineering comparison flowchart showing standard SFT path vs DeepSeek R1 pure RL reward loop", "size": "1024x1024", "quality": "medium"}}, {"id": "GlobalImagePlan", "name": "GlobalImagePlan", "doc": "Editor plan combining modified markdown with placeholder tags and all image specs.", "usedBy": "decide_images (via llm.with_structured_output)", "role": "Markdown with embedded tags + list of image prompt specs", "fields": [{"name": "md_with_placeholders", "type": "str", "desc": "Full article markdown containing [[IMAGE_1]], [[IMAGE_2]] tags"}, {"name": "images", "type": "List[ImageSpec]", "desc": "List of max 3 technical diagrams to generate"}], "stepGenerated": 8, "sampleA": {"md_with_placeholders": "# Demystifying Self-Attention... [[IMAGE_1]] ... [[IMAGE_2]] ...", "images": "2 ImageSpec objects [qkv_flow.png, scaled_dot_product.png]"}, "sampleB": {"md_with_placeholders": "# The 2026 Reasoning Revolution... [[IMAGE_1]] ... [[IMAGE_2]] ...", "images": "2 ImageSpec objects [rl_vs_sft_reasoning.png, test_time_compute_curve.png]"}}];
+    const STEP_SCHEMAS = {"0": [], "1": ["RouterDecision"], "2": ["RouterDecision"], "3": ["EvidencePack", "EvidenceItem"], "4": ["Plan", "Task"], "5": ["Plan", "Task"], "6": ["Task"], "7": ["Plan"], "8": ["GlobalImagePlan", "ImageSpec"], "9": ["GlobalImagePlan", "ImageSpec"], "10": ["Plan", "GlobalImagePlan"]};
+
+    let currentScenario = 'A';
+    let currentSlide = 0;
+    let currentView = 'walkthrough';
+    let currentSubTab = 'state';
+    let autoPlayTimer = null;
+
+    function getActiveDataset() {
+      return currentScenario === 'A' ? SCENARIO_A : SCENARIO_B;
+    }
+
+    window.switchView = function(view) {
+      currentView = view;
+      document.getElementById("viewWalkthroughBtn").classList.toggle("active", view === 'walkthrough');
+      document.getElementById("viewSchemasBtn").classList.toggle("active", view === 'schemas');
+
+      document.getElementById("view-walkthrough").classList.toggle("active", view === 'walkthrough');
+      document.getElementById("view-schemas").classList.toggle("active", view === 'schemas');
+
+      if (view === 'schemas') {
+        renderSchemasGrid();
+      }
+    };
+
+    window.switchSubTab = function(tab) {
+      currentSubTab = tab;
+      document.getElementById("subTabStateBtn").classList.toggle("active", tab === 'state');
+      document.getElementById("subTabSchemaBtn").classList.toggle("active", tab === 'schema');
+
+      document.getElementById("subtab-state-content").style.display = tab === 'state' ? 'block' : 'none';
+      document.getElementById("subtab-schema-content").style.display = tab === 'schema' ? 'block' : 'none';
+
+      if (tab === 'schema') {
+        renderActiveSchemasTab();
+      }
+    };
+
+    window.goToSlide = function(idx) {
+      const slides = getActiveDataset();
+      if (idx >= 0 && idx < slides.length) {
+        currentSlide = idx;
+        render();
+      }
+    };
+
+    window.nextSlide = function() {
+      const slides = getActiveDataset();
+      if (currentSlide < slides.length - 1) {
+        currentSlide++;
+        render();
+      } else {
+        stopAutoPlay();
+      }
+    };
+
+    window.prevSlide = function() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        render();
+      }
+    };
+
+    window.toggleAutoPlay = function() {
+      if (autoPlayTimer) {
+        stopAutoPlay();
+      } else {
+        startAutoPlay();
+      }
+    };
+
+    function startAutoPlay() {
+      document.getElementById("btnAutoPlay").innerText = "⏸ Pause";
+      document.getElementById("btnAutoPlay").classList.add("btn-primary");
+      autoPlayTimer = setInterval(() => {
+        const slides = getActiveDataset();
+        if (currentSlide < slides.length - 1) {
+          currentSlide++;
+          render();
+        } else {
+          stopAutoPlay();
+        }
+      }, 3000);
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+      }
+      document.getElementById("btnAutoPlay").innerText = "▶ Auto-Play";
+      document.getElementById("btnAutoPlay").classList.remove("btn-primary");
+    }
+
+    window.setScenario = function(scen) {
+      stopAutoPlay();
+      currentScenario = scen;
+      currentSlide = 0;
+      document.getElementById("btnScenA").classList.toggle("active", scen === 'A');
+      document.getElementById("btnScenB").classList.toggle("active", scen === 'B');
+      render();
+      if (currentView === 'schemas') renderSchemasGrid();
+    };
+
+    function renderTimeline() {
+      const slides = getActiveDataset();
+      const strip = document.getElementById("timelineStrip");
+      strip.innerHTML = "";
+
+      slides.forEach((s, i) => {
+        const dot = document.createElement("div");
+        dot.className = `timeline-dot ${i === currentSlide ? 'active' : ''}`;
+        dot.onclick = () => window.goToSlide(i);
+        dot.innerHTML = `
+          <span class="dot-num">Step ${i}</span>
+          <span class="dot-name">${s.title.split("(")[0].trim()}</span>
+        `;
+        strip.appendChild(dot);
+      });
+    }
+
+    function renderActiveSchemasTab() {
+      const container = document.getElementById("activeSchemasContainer");
+      container.innerHTML = "";
+
+      const activeSchemaNames = STEP_SCHEMAS[currentSlide] || [];
+      if (activeSchemaNames.length === 0) {
+        container.innerHTML = `<div style="padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.8rem;">No Pydantic schemas generated at this step.</div>`;
+        return;
+      }
+
+      activeSchemaNames.forEach(schemaName => {
+        const schema = SCHEMAS_DATA.find(s => s.name === schemaName);
+        if (!schema) return;
+
+        const liveVal = currentScenario === 'A' ? schema.sampleA : schema.sampleB;
+        const card = document.createElement("div");
+        card.className = "explain-block";
+        card.style.marginBottom = "10px";
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+            <strong style="font-family: monospace; font-size: 0.9rem; color: var(--primary);">class ${schema.name}(BaseModel)</strong>
+            <span class="badge" style="font-size: 0.65rem;">Active at Step ${currentSlide}</span>
+          </div>
+          <p style="font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px;">${schema.doc}</p>
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--text-muted); margin-bottom: 4px;">Variables / Fields:</div>
+          <div style="display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px;">
+            ${schema.fields.map(f => `<span style="font-family: monospace; font-size: 0.7rem; background: var(--bg-card-subtle); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border);"><strong>${f.name}</strong>: ${f.type}</span>`).join('')}
+          </div>
+          <div style="font-size: 0.72rem; font-weight: 700; color: var(--primary); margin-bottom: 4px;">Live Value at Current Step:</div>
+          <pre style="font-family: monospace; font-size: 0.72rem; background: #fff; padding: 6px; border: 1px solid var(--border); border-radius: 4px; max-height: 80px; overflow-y: auto;">${escapeHtml(typeof liveVal === 'object' ? JSON.stringify(liveVal, null, 2) : String(liveVal))}</pre>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderSchemasGrid() {
+      const grid = document.getElementById("schemasAllGrid");
+      grid.innerHTML = "";
+
+      SCHEMAS_DATA.forEach(schema => {
+        const isCurrentStep = (STEP_SCHEMAS[currentSlide] || []).includes(schema.name);
+        const liveVal = currentScenario === 'A' ? schema.sampleA : schema.sampleB;
+
+        const card = document.createElement("div");
+        card.className = `schema-card ${isCurrentStep ? 'active-step' : ''}`;
+
+        card.innerHTML = `
+          <div class="schema-card-head">
+            <div class="schema-class-title">
+              ${schema.name} <span class="base-model">(BaseModel)</span>
+            </div>
+            <span class="schema-status-tag ${isCurrentStep ? 'tag-active' : 'tag-pending'}">
+              ${isCurrentStep ? 'Active at Current Step' : `Generated: Step ${schema.stepGenerated}`}
+            </span>
+          </div>
+
+          <div class="schema-doc">${schema.doc}</div>
+
+          <div class="schema-meta-row">
+            <span class="schema-meta-pill"><strong>Consumer:</strong> ${schema.usedBy}</span>
+            <span class="schema-meta-pill"><strong>Role:</strong> ${schema.role}</span>
+          </div>
+
+          <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-muted); margin-bottom: 6px;">Schema Fields & Constraints:</div>
+          <table class="schema-fields-table">
+            <thead>
+              <tr>
+                <th style="width: 30%;">Variable</th>
+                <th style="width: 30%;">Type</th>
+                <th style="width: 40%;">Description / Rule</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${schema.fields.map(f => `
+                <tr>
+                  <td class="schema-field-name">${f.name}</td>
+                  <td class="schema-field-type">${escapeHtml(f.type)}</td>
+                  <td style="color: #64748b;">${escapeHtml(f.desc)}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+
+          <div class="schema-live-box">
+            <div class="schema-live-head">
+              <span>Live Instance Data (Scenario ${currentScenario})</span>
+              <span>Step ${schema.stepGenerated} Output</span>
+            </div>
+            <div class="schema-live-content">${escapeHtml(typeof liveVal === 'object' ? JSON.stringify(liveVal, null, 2) : String(liveVal))}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function render() {
+      const slides = getActiveDataset();
+      const s = slides[currentSlide];
+
+      // Stepper info
+      document.getElementById("stepNumText").innerText = s.id;
+      document.getElementById("totalStepText").innerText = slides.length - 1;
+      document.getElementById("stepTitleText").innerText = s.title;
+
+      document.getElementById("btnPrev").disabled = currentSlide === 0;
+      document.getElementById("btnNext").disabled = currentSlide === slides.length - 1;
+
+      // Slide Content
+      document.getElementById("slidePhaseBadge").innerText = s.phase;
+      document.getElementById("slideTitle").innerText = s.title;
+      document.getElementById("slideSubtitle").innerText = s.subtitle;
+      document.getElementById("explainSummary").innerText = s.summary;
+      document.getElementById("explainWhy").innerText = s.why;
+      document.getElementById("explainUnderTheHood").innerText = s.underTheHood;
+      document.getElementById("explainCode").innerText = s.code;
+
+      // Preview box
+      document.getElementById("previewBox").innerText = s.preview;
+      document.getElementById("previewBadge").innerText = currentSlide === slides.length - 1 ? "Completed" : `Step ${s.id}`;
+
+      // SVG Node Highlights
+      document.querySelectorAll(".svg-node").forEach(node => node.classList.remove("active"));
+      if (s.nodeId && s.nodeId !== 'overview' && s.nodeId !== 'route_next') {
+        const targetSvgNode = document.getElementById(`svg-${s.nodeId}`);
+        if (targetSvgNode) targetSvgNode.classList.add("active");
+      } else if (s.nodeId === 'route_next') {
+        const rNode = document.getElementById("svg-router");
+        if (rNode) rNode.classList.add("active");
+      }
+
+      // State Matrix Table
+      const tbody = document.getElementById("stateTableBody");
+      tbody.innerHTML = "";
+
+      STATE_META.forEach(meta => {
+        const tr = document.createElement("tr");
+        const isModified = s.modifiedKeys.includes(meta.key);
+        const isAppended = meta.key === "sections" && s.id === 6;
+        const val = s.stateSnapshot[meta.key] || meta.default;
+
+        let badgeClass = "badge-unchanged";
+        let badgeLabel = "UNCHANGED";
+
+        if (isAppended) {
+          badgeClass = "badge-appended";
+          badgeLabel = "APPENDED";
+        } else if (isModified) {
+          badgeClass = "badge-modified";
+          badgeLabel = "MODIFIED";
+        }
+
+        tr.innerHTML = `
+          <td>
+            <div class="state-key"><code>${meta.key}</code></div>
+            <div style="font-size: 0.7rem; color: #64748b;">${meta.type}</div>
+          </td>
+          <td>
+            <span class="state-badge ${badgeClass}">${badgeLabel}</span>
+          </td>
+          <td>
+            <div class="val-box ${isModified || isAppended ? 'highlight' : ''}">${escapeHtml(val)}</div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      renderTimeline();
+
+      if (currentSubTab === 'schema') {
+        renderActiveSchemasTab();
+      }
+
+      if (currentView === 'schemas') {
+        renderSchemasGrid();
+      }
+    }
+
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    }
+
+    // Keyboard navigation
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight") window.nextSlide();
+      if (e.key === "ArrowLeft") window.prevSlide();
+    });
+
+    // Initialize on load
+    window.onload = () => {
+      render();
+    };
+  </script>
+</body>
+</html>
