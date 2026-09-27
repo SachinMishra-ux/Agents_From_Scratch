@@ -89,11 +89,8 @@ def vision_agent(state: WhatsAppState, config):
         content=SYSTEM_PROMPT.format(memory=memory_text)
     )
 
-    last_user_message_with_memory = system_msg+last_user_message
-        
-    
-
     response = llm.invoke([
+        system_msg,
         {
             "role": "user",
             "content": [
@@ -103,7 +100,7 @@ def vision_agent(state: WhatsAppState, config):
                 },
                 {
                     "type": "text",
-                    "text": last_user_message_with_memory or "Describe this image"
+                    "text": last_user_message or "Describe this image"
                 }
             ]
         }

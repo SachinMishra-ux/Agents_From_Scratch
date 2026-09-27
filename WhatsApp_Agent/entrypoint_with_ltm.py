@@ -45,6 +45,8 @@ async def whatsapp_webhook(request: Request):
 
     reply = result["messages"][-1].content
 
+    print(f"AI Response: {reply}")
+
     twilio_response = MessagingResponse()
     twilio_response.message(reply)
 
