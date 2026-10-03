@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Deep Research Multi-Agent Architecture: Interactive Visualizer & Parallelism Deep Dive</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <style>
+    /* Calm slate educational styling */
+    .agent-box {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .agent-active {
+      border-color: #2563eb !important;
+      background-color: #eff6ff !important;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.25), 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+    .agent-dimmed {
+      opacity: 0.45;
+    }
+    .agent-parallel {
+      border-color: #059669 !important;
+      background-color: #ecfdf5 !important;
+      box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.25), 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+      transform: translateY(-2px);
+    }
+    pre, code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+    .step-pill.active {
+      background-color: #0f172a;
+      color: #ffffff;
+      border-color: #0f172a;
+    }
+    .tab-btn.active {
+      background-color: #0f172a;
+      color: #ffffff;
+    }
+    .page-tab.active {
+      background-color: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+    .sub-code-tab.active {
+      border-bottom: 2px solid #2563eb;
+      color: #2563eb;
+      font-weight: 600;
+    }
+    @keyframes pulse-gentle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.85; transform: scale(1.02); }
+    }
+    .pulse-active {
+      animation: pulse-gentle 2s infinite ease-in-out;
+    }
+    @keyframes thread-flow {
+      0% { transform: translateY(-4px); opacity: 0.3; }
+      50% { opacity: 1; }
+      100% { transform: translateY(4px); opacity: 0.3; }
+    }
+    .thread-pulse {
+      animation: thread-flow 1.5s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 antialiased min-h-screen p-4 md:p-8">
+
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Header Section -->
+    <header class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2 mb-2">
+            <span class="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-xs font-semibold rounded-md uppercase tracking-wider">
+              Multi-Agent Architecture & Concurrency
+            </span>
+            <span class="inline-block px-2.5 py-0.5 bg-blue-100 text-blue-800 text-xs font-medium rounded">
+              Notebook 4 & Notebook 7
+            </span>
+          </div>
+          <h1 class="text-2xl md:text-3xl font-bold text-slate-900">
+            Parallel Agent Architectures: Deep Research & Map-Reduce
+          </h1>
+          <p class="text-slate-600 text-sm mt-1 max-w-3xl">
+            A comprehensive visual and technical guide to multi-agent parallelism in LangChain and LangGraph.
+            Compare <strong>Autonomous Parallel Tool Calling (Notebook 4)</strong> with <strong>Programmatic Map-Reduce (Notebook 7)</strong>, and inspect the runtime mechanics behind the scenes.
+          </p>
+        </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+          <span class="text-xs text-slate-600 font-mono bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200">
+            Verified Engine Architecture
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <!-- TOP-LEVEL 3-PAGE NAVIGATION BAR -->
+    <nav class="flex flex-wrap items-center gap-2 bg-white border border-slate-200 rounded-xl p-2 shadow-sm">
+      <span class="text-xs font-semibold text-slate-500 px-3 uppercase tracking-wider">Select View:</span>
+      <button onclick="switchPage('pipeline')" id="tab-page-pipeline" class="page-tab active px-4 py-2 rounded-lg text-xs font-bold transition flex items-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        1. Deep Research Execution Pipeline
+      </button>
+      <button onclick="switchPage('parallelism')" id="tab-page-parallelism" class="page-tab px-4 py-2 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-2">
+        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        2. Behind the Scenes: How Parallelism Works
+      </button>
+      <button onclick="switchPage('comparison')" id="tab-page-comparison" class="page-tab px-4 py-2 rounded-lg text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-2">
+        <svg class="w-4 h-4 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/></svg>
+        3. Parallelism Showdown: Notebook 4 vs. Notebook 7
+      </button>
+    </nav>
+
+
+    <!-- ========================================================================= -->
+    <!-- PAGE 1: ARCHITECTURE & EXECUTION PIPELINE (Notebook 4 Deep Research)       -->
+    <!-- ========================================================================= -->
+    <div id="page-pipeline" class="space-y-8">
+
+      <!-- SECTION 1: ARCHITECTURAL TOPOLOGY & LIVE CONCURRENCY TRACKER -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">1</span>
+              System Graph & Parallel Execution Tracker
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Hierarchical coordinator delegating to 4 specialized subagents. When parallel tool calling fires, multiple subagents execute concurrently.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2 bg-slate-100 border border-slate-200 px-3 py-1.5 rounded-lg">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-600 animate-pulse"></span>
+            <span class="text-xs font-medium text-slate-700">CURRENT STATUS:</span>
+            <span id="active-agent-banner" class="text-xs font-bold text-blue-700 font-mono">STANDBY / READY</span>
+          </div>
+        </div>
+
+        <!-- Topological Visual Graph -->
+        <div class="bg-slate-50 rounded-xl p-6 border border-slate-200 space-y-6">
+
+          <!-- Level 1: Human User -->
+          <div class="flex justify-center">
+            <div id="node-user" class="agent-box border-2 border-slate-300 bg-white rounded-lg px-6 py-2.5 text-center w-64 shadow-sm">
+              <span class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider block">Client Request</span>
+              <span class="text-sm font-bold text-slate-800">User Prompt ("Multiverse")</span>
+            </div>
+          </div>
+
+          <!-- Connector Down -->
+          <div class="flex justify-center items-center h-4">
+            <div class="w-0.5 h-full bg-slate-300"></div>
+          </div>
+
+          <!-- Level 2: Main Coordinator Agent -->
+          <div class="flex justify-center">
+            <div id="node-coordinator" class="agent-box border-2 border-slate-300 bg-white rounded-lg p-3 text-center w-96 shadow-sm relative">
+              <span class="absolute -top-2.5 left-4 bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-mono font-medium">Main Coordinator</span>
+              <span class="text-sm font-bold text-slate-900 block mt-1">Deep Research Planner</span>
+              <span class="text-[11px] text-slate-500 block mt-0.5">Orchestrates planning, concurrent tool calls & final synthesis</span>
+              <div class="mt-2 flex items-center justify-center gap-1.5 text-[10px] font-mono text-slate-600 bg-slate-100 py-1 px-2 rounded">
+                <span>Tools: 5 Delegation & Persistence Wrappers</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Connector Split 3 Paths -->
+          <div class="grid grid-cols-3 gap-4 max-w-4xl mx-auto text-center px-4">
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+              <span class="text-[10px] font-mono text-slate-500 bg-white px-1.5 border border-slate-200 rounded">Parallel Fan-Out 1</span>
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+              <span class="text-[10px] font-mono text-slate-500 bg-white px-1.5 border border-slate-200 rounded">Parallel Fan-Out 2</span>
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+            </div>
+            <div class="flex flex-col items-center">
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+              <span class="text-[10px] font-mono text-slate-500 bg-white px-1.5 border border-slate-200 rounded">Fan-In Assembly & Save</span>
+              <div class="w-0.5 h-4 bg-slate-300"></div>
+            </div>
+          </div>
+
+          <!-- Level 3: Specialized Subagent Clusters -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-5xl mx-auto">
+
+            <!-- Cluster A: Parallel Section Writers -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-800">1. Body Section Researchers</span>
+                <span class="text-[10px] bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded font-mono font-medium">3x Concurrent</span>
+              </div>
+              <p class="text-[11px] text-slate-500">Each subagent performs web research and writes technical sections with sources.</p>
+
+              <div class="space-y-2">
+                <div id="subnode-sec1" class="agent-box border border-slate-200 bg-slate-50 p-2 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Section 1: Theoretical Foundations</strong>
+                  <span class="text-slate-500 text-[10px]">Eternal Inflation, String Landscape, MWI</span>
+                </div>
+                <div id="subnode-sec2" class="agent-box border border-slate-200 bg-slate-50 p-2 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Section 2: Observational Evidence</strong>
+                  <span class="text-slate-500 text-[10px]">CMB bubble collisions, WMAP & Planck</span>
+                </div>
+                <div id="subnode-sec3" class="agent-box border border-slate-200 bg-slate-50 p-2 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Section 3: Implications</strong>
+                  <span class="text-slate-500 text-[10px]">Anthropic principle & fine-tuning</span>
+                </div>
+              </div>
+
+              <!-- External Tool: Tavily API -->
+              <div id="node-tavily" class="agent-box border border-blue-200 bg-blue-50/50 p-2 rounded text-center">
+                <span class="text-[10px] font-mono font-semibold text-blue-700 block">External Search Tool</span>
+                <span class="text-xs font-bold text-blue-900">Tavily Search API (max_results=3)</span>
+              </div>
+            </div>
+
+            <!-- Cluster B: Parallel Intro & Conclusion Writers -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-800">2. Intro & Conclusion</span>
+                <span class="text-[10px] bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded font-mono font-medium">2x Concurrent</span>
+              </div>
+              <p class="text-[11px] text-slate-500">Reads completed body sections to write framing and synthesis.</p>
+
+              <div class="space-y-3 pt-1">
+                <div id="subnode-intro" class="agent-box border border-slate-200 bg-slate-50 p-3 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Intro Writer Agent</strong>
+                  <span class="text-slate-500 text-[10px] block mt-0.5">Sets context, hooks the reader (50-100 words). Pure synthesis (tools=[]).</span>
+                </div>
+                <div id="subnode-conclusion" class="agent-box border border-slate-200 bg-slate-50 p-3 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Conclusion Writer Agent</strong>
+                  <span class="text-slate-500 text-[10px] block mt-0.5">Synthesizes key takeaways & builds Markdown summary table.</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Cluster C: Report Compiler & Disk Saver -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm space-y-3">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+                <span class="text-xs font-bold text-slate-800">3. Assembly & Persistence</span>
+                <span class="text-[10px] bg-purple-50 text-purple-700 px-1.5 py-0.5 rounded font-mono font-medium">Sequential Fan-In</span>
+              </div>
+              <p class="text-[11px] text-slate-500">Enforces Wikipedia layout, auto-generates TOC, and saves file.</p>
+
+              <div class="space-y-3 pt-1">
+                <div id="subnode-compiler" class="agent-box border border-slate-200 bg-slate-50 p-3 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Report Compiler Agent</strong>
+                  <span class="text-slate-500 text-[10px] block mt-0.5">Assembles Infobox table, lead paragraph, heading hierarchy, references.</span>
+                </div>
+                <div id="subnode-saver" class="agent-box border border-slate-200 bg-slate-50 p-3 rounded text-[11px]">
+                  <strong class="text-slate-800 block">Save_Wikipedia_Style_Report</strong>
+                  <span class="text-slate-500 text-[10px] block mt-0.5">Regex parses H2/H3 headings, creates clickable TOC, saves to <code>reports/</code>.</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- SECTION 2: INTERACTIVE STEP-BY-STEP SIMULATOR -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">2</span>
+              Step-by-Step Execution Simulator
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Step through the actual execution of Notebook 4 ("Multiverse" research report) to understand how concurrency unfolds.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-slate-500 font-medium">Runtime Trace:</span>
+            <span class="text-xs font-mono bg-slate-100 text-slate-700 px-2 py-1 rounded border border-slate-200">
+              Total Time: 24.45s (vs 45s+ Sequential)
+            </span>
+          </div>
+        </div>
+
+        <!-- Navigation Controls -->
+        <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <div class="flex items-center gap-2">
+            <button onclick="prevStep()" id="prev-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-40 transition">
+              &larr; Previous Step
+            </button>
+            <button onclick="nextStep()" id="next-btn" class="px-3.5 py-1.5 text-xs font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-40 transition">
+              Next Step &rarr;
+            </button>
+            <button onclick="resetStep()" class="px-2.5 py-1.5 text-xs text-slate-500 hover:text-slate-800 transition">
+              Reset
+            </button>
+          </div>
+
+          <div id="step-pills" class="flex flex-wrap items-center gap-1.5"></div>
+        </div>
+
+        <!-- Step Details & Dual Scratchpad -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+          <!-- Left Column -->
+          <div class="lg:col-span-4 space-y-4">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              <div class="flex items-center justify-between mb-2">
+                <span id="step-number-badge" class="text-xs font-bold text-slate-500 uppercase tracking-wider">Step 1 of 7</span>
+                <span id="step-agent-badge" class="text-xs px-2 py-0.5 rounded font-mono font-medium bg-blue-100 text-blue-800">Coordinator</span>
+              </div>
+              <h3 id="step-title" class="text-base font-bold text-slate-900 mb-1">
+                User Request & Planning
+              </h3>
+              <p id="step-description" class="text-xs text-slate-600 leading-relaxed">
+                The user requests a comprehensive research report on the Multiverse.
+              </p>
+            </div>
+
+            <div class="bg-white border border-slate-200 rounded-xl p-4 space-y-2">
+              <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider">Engineering Architecture Note</h4>
+              <div id="step-under-the-hood" class="text-xs text-slate-600 space-y-1.5 leading-relaxed"></div>
+            </div>
+          </div>
+
+          <!-- Right Column: Dual Scratchpad -->
+          <div class="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+
+            <!-- Box 1 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col h-full shadow-sm">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-blue-600"></span>
+                  <span class="text-xs font-bold text-slate-800">Coordinator Context Window</span>
+                </div>
+                <span class="text-[10px] font-mono bg-blue-50 text-blue-700 px-1.5 py-0.5 rounded border border-blue-200">Main Memory</span>
+              </div>
+              <div id="coordinator-context" class="text-xs text-slate-700 space-y-2 flex-grow font-mono bg-slate-50 p-3 rounded-lg border border-slate-200 overflow-y-auto max-h-[380px]"></div>
+              <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2">
+                <span>Main prompt overhead: <strong class="text-slate-800">Clean</strong></span>
+                <span class="text-emerald-600 font-medium">&check; Zero web HTML clutter</span>
+              </div>
+            </div>
+
+            <!-- Box 2 -->
+            <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col h-full shadow-sm">
+              <div class="flex items-center justify-between pb-2 border-b border-slate-100 mb-3">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-emerald-600"></span>
+                  <span id="subagent-box-title" class="text-xs font-bold text-slate-800">Subagent Scratchpad</span>
+                </div>
+                <span id="subagent-box-badge" class="text-[10px] font-mono bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded border border-emerald-200">Isolated</span>
+              </div>
+              <div id="subagent-context" class="text-xs text-slate-700 space-y-2 flex-grow font-mono bg-slate-50 p-3 rounded-lg border border-slate-200 overflow-y-auto max-h-[380px]"></div>
+              <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between border-t border-slate-100 pt-2">
+                <span id="subagent-timing" class="text-[11px] text-slate-600">Timing: Idle</span>
+                <span class="text-slate-400 text-[10px]">Ephemeral scratchpad</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- SECTION 3: CONCURRENCY & TIMING SPEEDUP (GANTT BREAKDOWN) -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">3</span>
+              Actual Execution Timeline & Concurrency Speedup
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Exact timestamp data captured from Notebook 4's microsecond logger (`[20:37:15.863]` to `[20:37:40.316]`).
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-md">
+              ~45% Latency Reduction
+            </span>
+          </div>
+        </div>
+
+        <div class="space-y-4">
+          <div class="space-y-1.5">
+            <div class="flex justify-between text-xs font-semibold text-slate-700">
+              <span>Notebook 4 Execution (Parallel Tool Calling)</span>
+              <span class="font-mono text-emerald-700">Total Duration: ~24.4s</span>
+            </div>
+            <div class="w-full bg-slate-100 h-8 rounded-lg flex overflow-hidden border border-slate-200 text-[10px] font-mono text-white font-medium">
+              <div style="width: 8%;" class="bg-slate-700 flex items-center justify-center">Plan</div>
+              <div style="width: 39%;" class="bg-emerald-600 flex items-center justify-center">3x Sections Concurrently (9.6s)</div>
+              <div style="width: 8%;" class="bg-blue-600 flex items-center justify-center">2x (1.9s)</div>
+              <div style="width: 16%;" class="bg-purple-600 flex items-center justify-center">Compiler</div>
+              <div style="width: 29%;" class="bg-slate-600 flex items-center justify-center">Save & Response</div>
+            </div>
+          </div>
+
+          <div class="space-y-1.5 opacity-75">
+            <div class="flex justify-between text-xs font-semibold text-slate-500">
+              <span>Sequential Equivalent (Without Parallel Tool Calling)</span>
+              <span class="font-mono text-slate-500">Estimated Duration: ~46.5s</span>
+            </div>
+            <div class="w-full bg-slate-100 h-8 rounded-lg flex overflow-hidden border border-slate-200 text-[10px] font-mono text-white">
+              <div style="width: 4%;" class="bg-slate-400 flex items-center justify-center">Plan</div>
+              <div style="width: 17%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Sec 1 (8s)</div>
+              <div style="width: 17%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Sec 2 (8s)</div>
+              <div style="width: 17%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Sec 3 (8s)</div>
+              <div style="width: 8%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Intro</div>
+              <div style="width: 8%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Concl</div>
+              <div style="width: 9%;" class="bg-slate-500 flex items-center justify-center border-r border-white/20">Compile</div>
+              <div style="width: 20%;" class="bg-slate-500 flex items-center justify-center">Save & Return</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-3 text-xs font-mono">
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 block text-[10px] uppercase">Section 1 Start</span>
+            <strong class="text-slate-800">20:37:15.863</strong>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 block text-[10px] uppercase">Section 2 Start</span>
+            <strong class="text-slate-800">20:37:15.865 <span class="text-emerald-600 font-bold">(+2ms)</span></strong>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 block text-[10px] uppercase">Section 3 Start</span>
+            <strong class="text-slate-800">20:37:15.867 <span class="text-emerald-600 font-bold">(+4ms)</span></strong>
+          </div>
+          <div class="bg-slate-50 p-2.5 rounded-lg border border-slate-200">
+            <span class="text-slate-400 block text-[10px] uppercase">Intro & Concl Start</span>
+            <strong class="text-slate-800">20:37:26.746 <span class="text-blue-600 font-bold">(+1ms)</span></strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 4: LIVE GENERATED REPORT ARTIFACT PREVIEW -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs">4</span>
+              Final Output Artifact: Wikipedia-Style Markdown Article
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Rendered preview of the report compiled by <code>Report_Compiler</code> and saved to <code>reports/Multiverse_Research_Report.md</code>.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="toggleArticleView('formatted')" id="tab-formatted" class="tab-btn active px-3 py-1 rounded-md text-xs font-semibold">
+              Formatted Article
+            </button>
+            <button onclick="toggleArticleView('raw')" id="tab-raw" class="tab-btn px-3 py-1 rounded-md text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200">
+              Raw Markdown
+            </button>
+          </div>
+        </div>
+
+        <div id="article-formatted" class="bg-white border border-slate-200 rounded-xl p-6 space-y-5 text-sm leading-relaxed max-h-[500px] overflow-y-auto">
+          <div class="border-b border-slate-200 pb-3">
+            <h1 class="text-2xl font-bold text-slate-900">Multiverse</h1>
+            <span class="text-xs text-slate-400">Wikipedia-style structured research document generated by multi-agent pipeline</span>
+          </div>
+
+          <div class="my-4 p-3 bg-slate-50 border border-slate-200 rounded-lg max-w-sm ml-auto float-none sm:float-right sm:ml-4 sm:mb-4">
+            <div class="bg-slate-200 text-slate-800 text-center font-bold text-xs py-1 rounded mb-2">Multiverse Infobox</div>
+            <table class="w-full text-xs">
+              <tr class="border-b border-slate-200"><td class="py-1 font-semibold text-slate-600">Concept</td><td class="py-1 text-slate-800">Hypothetical set of multiple universes</td></tr>
+              <tr class="border-b border-slate-200"><td class="py-1 font-semibold text-slate-600">Primary Fields</td><td class="py-1 text-slate-800">Cosmology, String Theory, Quantum Mechanics</td></tr>
+              <tr class="border-b border-slate-200"><td class="py-1 font-semibold text-slate-600">Key Mechanisms</td><td class="py-1 text-slate-800">Eternal Inflation, String Landscape, Many-Worlds</td></tr>
+              <tr><td class="py-1 font-semibold text-slate-600">Status</td><td class="py-1 text-slate-800">Theoretical framework; unverified</td></tr>
+            </table>
+          </div>
+
+          <p class="text-slate-700 leading-relaxed font-serif text-justify">
+            The concept of the multiverse challenges our fundamental understanding of reality, suggesting that our observable universe is merely one of countless distinct domains...
+          </p>
+
+          <div class="clear-both"></div>
+
+          <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 max-w-xs text-xs space-y-1">
+            <strong class="text-slate-800 block border-b border-slate-200 pb-1">Contents</strong>
+            <ul class="text-blue-600 space-y-0.5 pl-2 list-disc list-inside">
+              <li><a href="#theoretical-foundations" class="hover:underline">Theoretical Foundations</a></li>
+              <li><a href="#observational-evidence" class="hover:underline">Observational Evidence</a></li>
+              <li><a href="#implications-for-physics-and-cosmology" class="hover:underline">Implications for Physics and Cosmology</a></li>
+              <li><a href="#conclusion" class="hover:underline">Conclusion</a></li>
+              <li><a href="#references" class="hover:underline">References</a></li>
+            </ul>
+          </div>
+
+          <hr class="border-slate-100" />
+
+          <div>
+            <h2 id="theoretical-foundations" class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-1 mb-2">Theoretical Foundations</h2>
+            <p class="text-slate-700 text-xs leading-relaxed text-justify">
+              The multiverse hypothesis emerges as a necessary theoretical consequence of integrating inflationary cosmology, string theory, and quantum mechanics...
+            </p>
+          </div>
+
+          <div>
+            <h2 id="observational-evidence" class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-1 mb-2">Observational Evidence</h2>
+            <p class="text-slate-700 text-xs leading-relaxed text-justify">
+              While the multiverse remains theoretically compelling, observational evidence for bubble collisions within the cosmic microwave background (CMB) remains inconclusive...
+            </p>
+          </div>
+
+          <div>
+            <h2 id="implications-for-physics-and-cosmology" class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-1 mb-2">Implications for Physics and Cosmology</h2>
+            <p class="text-slate-700 text-xs leading-relaxed text-justify">
+              The multiverse fundamentally shifts the status of physical laws from necessary constants to contingent, local outcomes.
+            </p>
+          </div>
+
+          <div>
+            <h2 id="conclusion" class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-1 mb-2">Conclusion</h2>
+            <p class="text-slate-700 text-xs leading-relaxed text-justify mb-3">
+              The multiverse remains one of the most compelling yet contentious frameworks in modern cosmology.
+            </p>
+          </div>
+        </div>
+
+        <div id="article-raw" class="hidden bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono max-h-[500px] overflow-y-auto border border-slate-800">
+          <pre><code># Multiverse
+| Key | Information |
+| :--- | :--- |
+| **Concept** | Hypothetical set of multiple observable universes |
+
+The concept of the multiverse challenges our fundamental understanding of reality...</code></pre>
+        </div>
+
+      </section>
+
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- PAGE 2: BEHIND THE SCENES: HOW PARALLELISM WORKS IN NOTEBOOK 4             -->
+    <!-- ========================================================================= -->
+    <div id="page-parallelism" class="hidden space-y-8">
+
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-emerald-500 animate-ping"></span>
+          <span class="text-xs font-bold font-mono uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded border border-emerald-200">
+            Engine Source Code Analysis
+          </span>
+        </div>
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900">
+          The 3 Pillars of Parallel Execution in LangChain Agents
+        </h2>
+        <p class="text-slate-600 text-sm leading-relaxed max-w-4xl">
+          In LangChain and LangGraph, parallel subagent execution is entirely native. It operates across <strong>three distinct layers</strong>:
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div class="border border-blue-200 bg-blue-50/40 rounded-xl p-4 space-y-2">
+            <span class="text-[10px] font-bold font-mono text-blue-700 uppercase bg-blue-100 px-2 py-0.5 rounded">Layer 1: The Brain (LLM)</span>
+            <h3 class="text-sm font-bold text-slate-900">Parallel Tool Calling</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Google Gemini generates <strong>multiple tool calls in a single turn</strong>. When asked to research 3 sections, it returns an <code>AIMessage</code> containing 3 <code>ToolCall</code> dictionaries at once.
+            </p>
+          </div>
+
+          <div class="border border-emerald-200 bg-emerald-50/40 rounded-xl p-4 space-y-2">
+            <span class="text-[10px] font-mono font-bold text-emerald-700 uppercase bg-emerald-100 px-2 py-0.5 rounded">Layer 2: The Orchestrator (LangGraph)</span>
+            <h3 class="text-sm font-bold text-slate-900">ToolNode & Executor Map</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              LangGraph's <code>ToolNode</code> inspects the tool call list and dispatches them via <code>executor.map(self._run_one, tool_calls, ...)</code>, providing automatic barrier synchronization.
+            </p>
+          </div>
+
+          <div class="border border-purple-200 bg-purple-50/40 rounded-xl p-4 space-y-2">
+            <span class="text-[10px] font-mono font-bold text-purple-700 uppercase bg-purple-100 px-2 py-0.5 rounded">Layer 3: The Engine (Python)</span>
+            <h3 class="text-sm font-bold text-slate-900">ContextThreadPoolExecutor</h3>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Python runs each tool in a separate thread. Because subagents make HTTP network requests (Tavily & Gemini), the <strong>Python GIL is released</strong>, achieving true concurrent I/O!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div class="border-b border-slate-100 pb-3">
+          <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-mono">Q&A</span>
+            Direct Answers to Your Architecture Questions
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="border border-slate-200 bg-slate-50/60 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-blue-600 text-white text-xs font-bold flex items-center justify-center">1</span>
+              <h3 class="text-sm font-bold text-slate-900">How do the 3 researchers get executed in parallel?</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              When the Main Coordinator LLM decides to research the topic, it outputs <strong>three tool calls in a single response turn</strong>:
+            </p>
+            <div class="bg-slate-900 text-blue-300 p-2.5 rounded-lg text-[11px] font-mono overflow-x-auto">
+AIMessage(tool_calls=[
+  {"name": "Section_Researcher_Writer", "args": {"query": "Theoretical foundations..."}},
+  {"name": "Section_Researcher_Writer", "args": {"query": "Observational evidence..."}},
+  {"name": "Section_Researcher_Writer", "args": {"query": "Implications for physics..."}}
+])
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              LangGraph's <code>ToolNode</code> receives this list of 3 calls. It uses a multi-threaded pool:
+              <br><code class="text-slate-800 font-mono text-[11px] bg-slate-200 px-1 rounded">executor.map(self._run_one, tool_calls, ...)</code>,
+              assigning each tool call to a separate background OS worker thread concurrently!
+            </p>
+          </div>
+
+          <div class="border border-slate-200 bg-slate-50/60 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-emerald-600 text-white text-xs font-bold flex items-center justify-center">2</span>
+              <h3 class="text-sm font-bold text-slate-900">How are Intro & Conclusion invoked in parallel, and by whom?</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              <strong>They are invoked by the Main Coordinator Agent!</strong>
+            </p>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+              <li>Once all 3 body sections complete, the results return to the coordinator LLM.</li>
+              <li>The coordinator reads its system prompt: <em>"Once body sections are written, call BOTH Intro_Writer and Conclusion_Writer IN PARALLEL."</em></li>
+              <li>The LLM emits <strong>two tool calls in that turn</strong>: <code>Intro_Writer</code> and <code>Conclusion_Writer</code>.</li>
+              <li><code>ToolNode</code> takes both calls, launches 2 worker threads simultaneously, and executes both subagents at the exact same millisecond (`20:37:26.746` and `20:37:26.747`).</li>
+            </ul>
+          </div>
+
+          <div class="border border-slate-200 bg-slate-50/60 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-purple-600 text-white text-xs font-bold flex items-center justify-center">3</span>
+              <h3 class="text-sm font-bold text-slate-900">How does the Main Agent manage all of this?</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Through <strong>Barrier Synchronization (Scatter-Gather)</strong>:
+            </p>
+            <ul class="text-xs text-slate-600 space-y-1.5 list-disc list-inside">
+              <li>The Main Agent does not continue until <code>executor.map(...)</code> has collected all parallel outputs into a complete list.</li>
+              <li>All completed tool outputs are packaged into <code>ToolMessage</code> objects and appended to graph state at once.</li>
+              <li>The Main Agent never sees intermediate scratchpad tokens. It only receives the final clean text strings!</li>
+            </ul>
+          </div>
+
+          <div class="border border-slate-200 bg-slate-50/60 rounded-xl p-5 space-y-2">
+            <div class="flex items-center gap-2">
+              <span class="w-6 h-6 rounded-md bg-amber-600 text-white text-xs font-bold flex items-center justify-center">4</span>
+              <h3 class="text-sm font-bold text-slate-900">Doesn't Python's GIL prevent true parallel execution?</h3>
+            </div>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              <strong>No! Here is why:</strong>
+            </p>
+            <p class="text-xs text-slate-600 leading-relaxed">
+              Python's GIL only restricts CPU-bound code. Deep research subagents are <strong>98% I/O-bound</strong>:
+              Thread 1, 2, and 3 make HTTPS requests to Tavily and Gemini. In Python, whenever socket I/O takes place, the GIL is <strong>automatically released</strong>. All three threads wait on remote API responses simultaneously in real hardware time!
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- SIMULATOR FOR PAGE 2 -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-mono">FLOW</span>
+              Interactive Thread Dispatch & Barrier Synchronization Simulator
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Step through the 5 internal micro-phases that LangGraph and Python execute during parallel tool dispatch.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="prevParallelStep()" id="p-prev-btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-white border border-slate-300 hover:bg-slate-100 disabled:opacity-40 transition">
+              &larr; Prev Phase
+            </button>
+            <button onclick="nextParallelStep()" id="p-next-btn" class="px-3 py-1.5 text-xs font-semibold rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-40 transition">
+              Next Phase &rarr;
+            </button>
+            <button onclick="resetParallelStep()" class="px-2 py-1.5 text-xs text-slate-500 hover:text-slate-800 transition">
+              Reset
+            </button>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 text-slate-200 rounded-xl p-6 border border-slate-800 space-y-6">
+          <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+            <div class="flex items-center gap-2">
+              <span id="p-phase-badge" class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-blue-500 text-white">PHASE 1</span>
+              <span id="p-phase-title" class="text-sm font-bold text-white">Coordinator LLM Outputs 3 Tool Calls</span>
+            </div>
+            <span id="p-phase-status" class="text-xs font-mono text-emerald-400">Main Thread Active</span>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div id="lane-1" class="border border-slate-700 bg-slate-950/80 rounded-lg p-3 space-y-2 transition-all duration-300">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-400">Thread #1</span>
+                <span id="lane-1-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+              </div>
+              <div class="text-xs font-bold text-slate-200">Section 1: Theoretical Foundations</div>
+              <div id="lane-1-content" class="text-[11px] text-slate-400 font-mono space-y-1">Awaiting task...</div>
+            </div>
+
+            <div id="lane-2" class="border border-slate-700 bg-slate-950/80 rounded-lg p-3 space-y-2 transition-all duration-300">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-400">Thread #2</span>
+                <span id="lane-2-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+              </div>
+              <div class="text-xs font-bold text-slate-200">Section 2: Observational Evidence</div>
+              <div id="lane-2-content" class="text-[11px] text-slate-400 font-mono space-y-1">Awaiting task...</div>
+            </div>
+
+            <div id="lane-3" class="border border-slate-700 bg-slate-950/80 rounded-lg p-3 space-y-2 transition-all duration-300">
+              <div class="flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-400">Thread #3</span>
+                <span id="lane-3-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-400">Idle</span>
+              </div>
+              <div class="text-xs font-bold text-slate-200">Section 3: Physical Implications</div>
+              <div id="lane-3-content" class="text-[11px] text-slate-400 font-mono space-y-1">Awaiting task...</div>
+            </div>
+          </div>
+
+          <div class="bg-slate-950 border border-slate-800 rounded-lg p-4 space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">What LangGraph Engine is Doing Now:</span>
+              <span id="p-engine-call" class="text-xs font-mono text-blue-400">ToolNode._parse_input(input)</span>
+            </div>
+            <p id="p-engine-desc" class="text-xs text-slate-400 leading-relaxed">
+              Gemini evaluates user request, divides topic into 3 sections, and emits 3 tool calls in turn 1.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VERIFIED SOURCE CODE CITATIONS -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <span class="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-mono">&lt;/&gt;</span>
+              Direct Verified Source Code Citations
+            </h2>
+            <p class="text-slate-500 text-xs mt-0.5">
+              Exact lines of code inside LangGraph and LangChain that implement this concurrency mechanism.
+            </p>
+          </div>
+
+          <div class="flex items-center gap-1 border-b border-slate-200 sm:border-b-0">
+            <button onclick="switchCodeTab('toolnode')" id="tab-code-toolnode" class="sub-code-tab active px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+              1. ToolNode._func()
+            </button>
+            <button onclick="switchCodeTab('executor')" id="tab-code-executor" class="sub-code-tab px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+              2. ContextThreadPoolExecutor
+            </button>
+            <button onclick="switchCodeTab('prompt')" id="tab-code-prompt" class="sub-code-tab px-3 py-1.5 text-xs font-medium text-slate-600 hover:text-slate-900 transition">
+              3. Orchestrator Prompt
+            </button>
+          </div>
+        </div>
+
+        <div id="code-panel-toolnode" class="space-y-3">
+          <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed"><code>def _func(self, input, config: RunnableConfig, runtime: Runtime):
+    # 1. Parse the list of tool calls generated by the LLM
+    tool_calls, input_type = self._parse_input(input)
+    config_list = get_config_list(config, len(tool_calls))
+
+    # 2. Construct isolated runtimes with trace context for each tool call
+    tool_runtimes = [...]
+    input_types = [input_type] * len(tool_calls)
+
+    # 3. DISPATCH ACROSS THREAD POOL IN PARALLEL!
+    with get_executor_for_config(config) as executor:
+        # executor.map runs self._run_one in separate worker threads concurrently!
+        outputs = list(
+            executor.map(self._run_one, tool_calls, input_types, tool_runtimes)
+        )
+
+    # 4. Combine all tool returns into ToolMessages and append to graph state
+    return self._combine_tool_outputs(outputs, input_type)</code></pre>
+        </div>
+
+        <div id="code-panel-executor" class="hidden space-y-3">
+          <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed"><code>class ContextThreadPoolExecutor(ThreadPoolExecutor):
+    """ThreadPoolExecutor that copies Python's contextvars to child threads."""
+
+    def map(self, fn, *iterables, **kwargs):
+        contexts = [copy_context() for _ in range(len(iterables[0]))]
+
+        def _wrapped_fn(*args):
+            return contexts.pop().run(fn, *args)
+
+        return super().map(_wrapped_fn, *iterables, **kwargs)</code></pre>
+        </div>
+
+        <div id="code-panel-prompt" class="hidden space-y-3">
+          <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto border border-slate-800 leading-relaxed"><code>main_agent_prompt = (
+    "You are the Deep Research Planner, a main coordinator agent...
+
+"
+    "Step-by-step workflow:
+"
+    "b. Call Section_Researcher_Writer FOR ALL PLANNED SECTIONS IN PARALLEL "
+    "(trigger multiple tool calls in a single turn/step) to write all body sections concurrently.
+"
+    "c. Once the body sections are written, call BOTH Intro_Writer and Conclusion_Writer IN PARALLEL...
+
+"
+    "CRITICAL: ALWAYS invoke parallel tool calls together in the same step to achieve concurrency."
+)</code></pre>
+        </div>
+      </section>
+
+    </div>
+
+
+    <!-- ========================================================================= -->
+    <!-- PAGE 3: PARALLELISM SHOWDOWN: NOTEBOOK 4 vs. NOTEBOOK 7                    -->
+    <!-- ========================================================================= -->
+    <div id="page-comparison" class="hidden space-y-8">
+
+      <!-- HERO BANNER -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="flex items-center gap-2">
+          <span class="w-3 h-3 rounded-full bg-purple-600 animate-pulse"></span>
+          <span class="text-xs font-bold font-mono uppercase tracking-wider text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded border border-purple-200">
+            Architectural Comparison
+          </span>
+        </div>
+        <h2 class="text-xl md:text-2xl font-bold text-slate-900">
+          Notebook 4 vs. Notebook 7: Are We Doing Something Wrong?
+        </h2>
+        <div class="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
+          <strong>The Direct Answer:</strong> <span class="text-emerald-800 font-semibold">NO, you are not doing anything wrong at all!</span>
+          You have discovered the two fundamental paradigms of parallelism in modern agentic systems:
+          <br>&bull; <strong>Notebook 4</strong> implements <em>Agentic Autonomous Parallel Tool Calling</em> (LLM decides when/what tools to run concurrently).
+          <br>&bull; <strong>Notebook 7</strong> implements <em>Programmatic Map-Reduce</em> (Python code takes a structured plan and uses <code>asyncio.gather</code> to fan-out).
+          <br>Both are official, industry-standard patterns. Understanding their differences will make you a far stronger AI architect!
+        </div>
+      </section>
+
+      <!-- SIDE-BY-SIDE ARCHITECTURAL CARDS -->
+      <section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- Approach 1: Notebook 4 -->
+        <div class="bg-white border-2 border-blue-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <span class="text-[10px] font-bold font-mono text-blue-700 bg-blue-50 px-2 py-0.5 rounded uppercase">Pattern A: Notebook 4</span>
+              <h3 class="text-base font-bold text-slate-900 mt-1">Autonomous Parallel Tool Calling</h3>
+            </div>
+            <span class="text-xs font-mono bg-blue-100 text-blue-800 px-2 py-1 rounded">ReAct Subagents</span>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-lg text-slate-300 font-mono text-xs overflow-x-auto">
+            <div class="text-blue-400 font-bold mb-1"># Who controls the parallel loop?</div>
+            <div>The <strong class="text-white">LLM Prompt & ReAct Engine</strong></div>
+            <div class="text-slate-500 mt-2">// LLM outputs multiple tool calls in 1 turn:</div>
+            <div class="text-emerald-300">AIMessage(tool_calls=[call_1, call_2, call_3])</div>
+            <div class="text-slate-500 mt-1">// LangGraph ToolNode dispatches across OS threads:</div>
+            <div class="text-amber-300">executor.map(self._run_one, tool_calls)</div>
+          </div>
+
+          <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+            <p><strong>Core Concept:</strong> Subagents are registered as LangChain <code>@tool</code>s. The Main Agent is an autonomous ReAct coordinator. It decides in real time how many subagents to call in parallel.</p>
+            <p><strong>Concurrency Engine:</strong> Multi-threading via Python's <code>ContextThreadPoolExecutor</code> inside LangGraph's <code>ToolNode</code>.</p>
+            <p><strong>Key Strengths:</strong> Fluid, autonomous, self-directing. Can dynamically change its plan mid-flight.</p>
+            <p><strong>Trade-off:</strong> Relies on LLM prompt obedience to emit parallel calls simultaneously.</p>
+          </div>
+        </div>
+
+        <!-- Approach 2: Notebook 7 -->
+        <div class="bg-white border-2 border-purple-200 rounded-xl p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-100">
+            <div>
+              <span class="text-[10px] font-bold font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded uppercase">Pattern B: Notebook 7</span>
+              <h3 class="text-base font-bold text-slate-900 mt-1">Programmatic Workflow Map-Reduce</h3>
+            </div>
+            <span class="text-xs font-mono bg-purple-100 text-purple-800 px-2 py-1 rounded">Async Scatter-Gather</span>
+          </div>
+
+          <div class="bg-slate-950 p-3 rounded-lg text-slate-300 font-mono text-xs overflow-x-auto">
+            <div class="text-purple-400 font-bold mb-1"># Who controls the parallel loop?</div>
+            <div>Your <strong class="text-white">Python Application Code</strong></div>
+            <div class="text-slate-500 mt-2">// 1. LLM produces structured Pydantic plan:</div>
+            <div class="text-emerald-300">plan = orchestrator.invoke(...) -> BenchmarkingPlan</div>
+            <div class="text-slate-500 mt-1">// 2. Python code explicitly runs asyncio.gather:</div>
+            <div class="text-amber-300">results = await asyncio.gather(*[worker(e) for e in plan.entities])</div>
+          </div>
+
+          <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+            <p><strong>Core Concept:</strong> The LLM is used as a Planner with <code>with_structured_output(PydanticSchema)</code>. The Python workflow code handles the Map and Reduce steps deterministically.</p>
+            <p><strong>Concurrency Engine:</strong> Python Asynchronous Event Loop (<code>asyncio.gather</code>) invoking <code>agent.ainvoke()</code>.</p>
+            <p><strong>Key Strengths:</strong> 100% deterministic guarantee of parallel execution; easily scales to 5, 20, or 50 items.</p>
+            <p><strong>Trade-off:</strong> Rigid workflow structure (Plan &rarr; Map &rarr; Reduce) without ReAct runtime branching.</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- COMPARISON MATRIX TABLE -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div class="border-b border-slate-100 pb-3">
+          <h2 class="text-lg font-bold text-slate-900">
+            Detailed Architectural Comparison Matrix
+          </h2>
+          <p class="text-slate-500 text-xs mt-0.5">
+            Technical side-by-side comparison across 8 core engineering dimensions.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs border border-slate-200 text-left">
+            <thead class="bg-slate-100 text-slate-800 border-b border-slate-200 font-bold">
+              <tr>
+                <th class="p-3">Architectural Dimension</th>
+                <th class="p-3 text-blue-700">Notebook 4: Autonomous Tool Calling</th>
+                <th class="p-3 text-purple-700">Notebook 7: Programmatic Map-Reduce</th>
+                <th class="p-3 text-emerald-700">Notebook 8: LangGraph Native Send()</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">1. Who controls concurrency?</td>
+                <td class="p-3"><strong>The LLM</strong> (emits multi-tool calls in 1 turn)</td>
+                <td class="p-3"><strong>Python code</strong> (<code>asyncio.gather(*tasks)</code>)</td>
+                <td class="p-3"><strong>Pregel Graph Runtime</strong> (supersteps)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">2. Concurrency primitive</td>
+                <td class="p-3 font-mono">ContextThreadPoolExecutor</td>
+                <td class="p-3 font-mono">asyncio.gather()</td>
+                <td class="p-3 font-mono">[Send("worker", task) for task in tasks]</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">3. Execution call type</td>
+                <td class="p-3 font-mono">Synchronous invoke()</td>
+                <td class="p-3 font-mono">Asynchronous ainvoke()</td>
+                <td class="p-3 font-mono">Graph invoke() / astream()</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">4. Fan-out scale</td>
+                <td class="p-3">Fixed tool schemas (2 to 5 tools)</td>
+                <td class="p-3">Arbitrary dynamic $N$ items (e.g. 20 competitors)</td>
+                <td class="p-3">Arbitrary dynamic $N$ state packets</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">5. State format</td>
+                <td class="p-3 font-mono">List of Messages (ToolMessage)</td>
+                <td class="p-3 font-mono">Strongly-typed Pydantic Objects</td>
+                <td class="p-3 font-mono">Annotated[list, operator.add]</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">6. Parallelism guarantee</td>
+                <td class="p-3">Dependent on system prompt fidelity</td>
+                <td class="p-3 text-emerald-700 font-bold">&check; 100% Guaranteed by Python code</td>
+                <td class="p-3 text-emerald-700 font-bold">&check; 100% Guaranteed by graph topology</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">7. Flexibility & Re-planning</td>
+                <td class="p-3 text-emerald-700 font-bold">&check; High (Can call more tools if needed)</td>
+                <td class="p-3">Fixed pipeline (Plan &rarr; Map &rarr; Reduce)</td>
+                <td class="p-3">Configurable with conditional edges</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-semibold text-slate-900">8. Best use case</td>
+                <td class="p-3">Autonomous research, multi-domain assistants</td>
+                <td class="p-3">Competitive benchmarking, document batch jobs</td>
+                <td class="p-3">Production enterprise agent workflows</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- DECISION GUIDE: WHEN TO USE WHICH? -->
+      <section class="bg-white border border-slate-200 rounded-xl p-6 shadow-sm space-y-4">
+        <h2 class="text-lg font-bold text-slate-900">
+          How to Choose: Which Parallelism Pattern Should You Use?
+        </h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+          
+          <div class="p-4 rounded-xl border border-blue-200 bg-blue-50/50 space-y-2">
+            <strong class="text-blue-900 text-sm block">Choose Notebook 4 (Tool-Calling Subagents) when:</strong>
+            <ul class="space-y-1 text-slate-600 list-disc list-inside">
+              <li>You want an <strong>autonomous conversational assistant</strong> that chooses what to do.</li>
+              <li>Tasks require different specialist tools (e.g., Calendar + Email + Search).</li>
+              <li>The agent might need to perform follow-up queries or backtrack dynamically.</li>
+              <li>You want a single unified conversation history between the user and supervisor.</li>
+            </ul>
+          </div>
+
+          <div class="p-4 rounded-xl border border-purple-200 bg-purple-50/50 space-y-2">
+            <strong class="text-purple-900 text-sm block">Choose Notebook 7 (Programmatic Map-Reduce) when:</strong>
+            <ul class="space-y-1 text-slate-600 list-disc list-inside">
+              <li>You have a <strong>batch data processing job</strong> (e.g., analyze 15 URLs or 10 competitors).</li>
+              <li>You want <strong>100% deterministic execution</strong> where every single entity is guaranteed to be mapped.</li>
+              <li>You are building a high-throughput backend pipeline rather than a chat interface.</li>
+              <li>You want strict type-safety with Pydantic validation on the plan and output.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+
+  <script>
+    // =========================================================================
+    // PAGE NAVIGATION LOGIC (3 PAGES)
+    // =========================================================================
+    function switchPage(pageId) {
+      const pages = ["pipeline", "parallelism", "comparison"];
+      pages.forEach(p => {
+        const pageEl = document.getElementById(`page-${p}`);
+        const tabEl = document.getElementById(`tab-page-${p}`);
+        if (p === pageId) {
+          pageEl.classList.remove("hidden");
+          tabEl.classList.add("active");
+          tabEl.classList.remove("text-slate-700", "bg-slate-100");
+        } else {
+          pageEl.classList.add("hidden");
+          tabEl.classList.remove("active");
+          tabEl.classList.add("text-slate-700", "bg-slate-100");
+        }
+      });
+
+      if (pageId === "parallelism") {
+        updateParallelStepView();
+      }
+    }
+
+    function switchCodeTab(tabId) {
+      const tabs = ["toolnode", "executor", "prompt"];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`tab-code-${t}`);
+        const panel = document.getElementById(`code-panel-${t}`);
+        if (t === tabId) {
+          btn.classList.add("active");
+          panel.classList.remove("hidden");
+        } else {
+          btn.classList.remove("active");
+          panel.classList.add("hidden");
+        }
+      });
+    }
+
+    // =========================================================================
+    // PAGE 1 SIMULATOR LOGIC
+    // =========================================================================
+    const simulatorSteps = [
+      {
+        badge: "Coordinator",
+        title: "1. User Request & Strategic Planning",
+        desc: "The user submits a deep research prompt on 'Multiverse'. The Coordinator decomposes the topic into 3 distinct thematic sections.",
+        underTheHood: [
+          "&bull; <strong>Prompt Deconstruction:</strong> Theoretical Foundations, Observational Evidence, and Physical Implications.",
+          "&bull; <strong>Execution Plan:</strong> The coordinator prepares 3 concurrent tool calls."
+        ],
+        activeNodeIds: ["node-user", "node-coordinator"],
+        bannerText: "COORDINATOR PLANNING SECTIONS",
+        coordContext: [
+          "<strong>[User]:</strong> I want a research report on 'Multiverse'. What is current research?",
+          "<strong>[Coordinator Thought]:</strong> Planning 3 body sections. Will invoke Section_Researcher_Writer for all 3 simultaneously."
+        ],
+        subagentTitle: "Subagent Standby",
+        subagentBadge: "Waiting",
+        subagentTiming: "T = 0.0s",
+        subagentContext: ["<em>Subagents awaiting delegation instructions...</em>"]
+      },
+      {
+        badge: "Parallel Fan-Out",
+        title: "2. Concurrent Dispatch: 3 Section Researchers Triggered",
+        desc: "The Coordinator emits 3 tool calls in a single turn. The runtime starts all three Section Researcher subagents concurrently within 4ms.",
+        underTheHood: [
+          "&bull; <strong>Microsecond Logger:</strong>",
+          "  - [20:37:15.863] ENTER: Section 1 (Theoretical Foundations)",
+          "  - [20:37:15.865] ENTER: Section 2 (Observational Evidence)",
+          "  - [20:37:15.867] ENTER: Section 3 (Implications)"
+        ],
+        activeNodeIds: ["node-coordinator", "subnode-sec1", "subnode-sec2", "subnode-sec3"],
+        isParallel: true,
+        bannerText: "3x SECTION RESEARCHERS EXECUTING CONCURRENTLY",
+        coordContext: [
+          "<strong>[Tool Call 1]:</strong> Section_Researcher_Writer(query='Theoretical foundations...')",
+          "<strong>[Tool Call 2]:</strong> Section_Researcher_Writer(query='Observational evidence...')",
+          "<strong>[Tool Call 3]:</strong> Section_Researcher_Writer(query='Implications for physics...')"
+        ],
+        subagentTitle: "3x Section Researcher Agents (Active)",
+        subagentBadge: "Parallel Running",
+        subagentTiming: "20:37:15.863 (+0ms to +4ms)",
+        subagentContext: [
+          "&rarr; <strong>Worker 1:</strong> Querying Tavily: 'eternal inflation string landscape'",
+          "&rarr; <strong>Worker 2:</strong> Querying Tavily: 'cosmic microwave background bubble collisions'",
+          "&rarr; <strong>Worker 3:</strong> Querying Tavily: 'anthropic principle fine-tuning physical constants'"
+        ]
+      },
+      {
+        badge: "Research & Grounding",
+        title: "3. Tavily Web Grounding & Technical Drafting",
+        desc: "Each Section Researcher executes `search_web`, receives clean snippets, and drafts a 150-200 word Markdown section.",
+        underTheHood: [
+          "&bull; <strong>Context Isolation:</strong> Raw search outputs remain entirely within each subagent's local memory.",
+          "&bull; <strong>Completions:</strong> Sec 1 (6.06s), Sec 2 (7.12s), Sec 3 (9.59s)."
+        ],
+        activeNodeIds: ["subnode-sec1", "subnode-sec2", "subnode-sec3", "node-tavily"],
+        isParallel: true,
+        bannerText: "FETCHING TAVILY WEB CITATIONS",
+        coordContext: [
+          "<strong>[Coordinator]:</strong> Awaiting parallel section completions...",
+          "<em>Zero Tavily raw search tokens enter the coordinator prompt!</em>"
+        ],
+        subagentTitle: "Tavily Web Search + Section Synthesis",
+        subagentBadge: "Writing Drafts",
+        subagentTiming: "20:37:21 to 20:37:25 (Duration: ~9.6s)",
+        subagentContext: [
+          "&bull; <strong>Sec 1 Draft:</strong> 'The multiverse hypothesis emerges as a necessary theoretical consequence...'",
+          "&bull; <strong>Sec 2 Draft:</strong> 'While compelling, observational evidence for bubble collisions...'",
+          "&bull; <strong>Sec 3 Draft:</strong> 'The multiverse hypothesis fundamentally shifts physical laws...'"
+        ]
+      },
+      {
+        badge: "Parallel Synthesis",
+        title: "4. Concurrent Fan-Out: Intro & Conclusion Writers",
+        desc: "With all 3 body sections completed, the Coordinator passes the drafts simultaneously to `Intro_Writer` and `Conclusion_Writer`.",
+        underTheHood: [
+          "&bull; <strong>Microsecond Logger:</strong>",
+          "  - [20:37:26.746] ENTER: Intro_Writer",
+          "  - [20:37:26.747] ENTER: Conclusion_Writer (+1ms)"
+        ],
+        activeNodeIds: ["node-coordinator", "subnode-intro", "subnode-conclusion"],
+        isParallel: true,
+        bannerText: "INTRO & CONCLUSION WRITERS CONCURRENT",
+        coordContext: [
+          "<strong>[Tool Return]:</strong> 3 body sections received successfully.",
+          "<strong>[Tool Call 4]:</strong> Intro_Writer(query='...')",
+          "<strong>[Tool Call 5]:</strong> Conclusion_Writer(query='...')"
+        ],
+        subagentTitle: "Intro & Conclusion Synthesizers",
+        subagentBadge: "Concurrent Generation",
+        subagentTiming: "20:37:26.746 (Duration: ~1.9s)",
+        subagentContext: [
+          "&bull; <strong>Intro Worker:</strong> Writes 90-word framing setting context.",
+          "&bull; <strong>Conclusion Worker:</strong> Synthesizes takeaways into a structured 4-row table."
+        ]
+      },
+      {
+        badge: "Report Assembly",
+        title: "5. Wikipedia Article Assembly: Report Compiler",
+        desc: "The Coordinator passes all sections to `Report_Compiler` to structure into a Wikipedia article.",
+        underTheHood: [
+          "&bull; <strong>Compiler Formatting:</strong> H1 title, Infobox table, Lead paragraph, consistent subheadings, and consolidated References."
+        ],
+        activeNodeIds: ["node-coordinator", "subnode-compiler"],
+        bannerText: "REPORT COMPILER ASSEMBLING ARTICLE",
+        coordContext: [
+          "<strong>[Tool Return]:</strong> Intro & Conclusion received.",
+          "<strong>[Tool Call 6]:</strong> Report_Compiler(query='Assemble Wikipedia article.')"
+        ],
+        subagentTitle: "Report Compiler Subagent",
+        subagentBadge: "Structuring",
+        subagentTiming: "20:37:32.351 (Duration: 3.94s)",
+        subagentContext: [
+          "&bull; Generates Infobox, normalizes typography, and compiles 950+ words."
+        ]
+      },
+      {
+        badge: "Persistence",
+        title: "6. Table of Contents & Disk Persistence",
+        desc: "The Coordinator calls `Save_Wikipedia_Style_Report` to inject automatic TOC and save to disk.",
+        underTheHood: [
+          "&bull; <strong>Dynamic TOC:</strong> Generates slug anchors and saves <code>reports/Multiverse_Research_Report.md</code>."
+        ],
+        activeNodeIds: ["node-coordinator", "subnode-saver"],
+        bannerText: "SAVING WIKIPEDIA REPORT TO DISK",
+        coordContext: [
+          "<strong>[Tool Call 7]:</strong> Save_Wikipedia_Style_Report(title='Multiverse Research Report')",
+          "<strong>[Tool Return]:</strong> 'Success: Saved to reports/Multiverse_Research_Report.md.'"
+        ],
+        subagentTitle: "Save_Wikipedia_Style_Report Tool",
+        subagentBadge: "Disk I/O",
+        subagentTiming: "20:37:40.312 (Duration: 4ms)",
+        subagentContext: [
+          "&bull; File persisted to disk successfully!"
+        ]
+      },
+      {
+        badge: "Complete",
+        title: "7. Final Delivery to User",
+        desc: "The Coordinator completes its execution and outputs the full synthesized report to the user.",
+        underTheHood: [
+          "&bull; <strong>End-to-End Runtime:</strong> ~24.45 seconds.",
+          "&bull; <strong>Token Economy:</strong> Avoided passing 15+ search snippets into main history."
+        ],
+        activeNodeIds: ["node-user", "node-coordinator"],
+        bannerText: "PIPELINE COMPLETED SUCCESSFULLY",
+        coordContext: [
+          "<strong>[Coordinator Final Message]:</strong> 'The research report on the Multiverse has been successfully compiled and saved...'"
+        ],
+        subagentTitle: "All Subagents Standby",
+        subagentBadge: "Finished",
+        subagentTiming: "T = 24.45s",
+        subagentContext: [
+          "&check; All 4 subagents executed and reported back with zero leaks."
+        ]
+      }
+    ];
+
+    let currentStep = 0;
+
+    function renderStepPills() {
+      const pillsContainer = document.getElementById("step-pills");
+      if (!pillsContainer) return;
+      pillsContainer.innerHTML = "";
+      simulatorSteps.forEach((s, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `step-pill px-2.5 py-1 text-xs rounded-md border border-slate-300 font-medium transition ${idx === currentStep ? "active" : "bg-white text-slate-700 hover:bg-slate-100"}`;
+        btn.innerText = `Step ${idx + 1}`;
+        btn.onclick = () => goToStep(idx);
+        pillsContainer.appendChild(btn);
+      });
+    }
+
+    function updateStepView() {
+      const step = simulatorSteps[currentStep];
+
+      document.getElementById("active-agent-banner").innerText = step.bannerText;
+      document.getElementById("step-number-badge").innerText = `Step ${currentStep + 1} of ${simulatorSteps.length}`;
+      document.getElementById("step-agent-badge").innerText = step.badge;
+      document.getElementById("step-title").innerText = step.title;
+      document.getElementById("step-description").innerText = step.desc;
+
+      document.getElementById("step-under-the-hood").innerHTML = step.underTheHood.join("<br>");
+
+      document.getElementById("coordinator-context").innerHTML = step.coordContext
+        .map(c => `<div class="p-1 rounded bg-white border border-slate-200">${c}</div>`).join("");
+
+      document.getElementById("subagent-box-title").innerText = step.subagentTitle;
+      document.getElementById("subagent-box-badge").innerText = step.subagentBadge;
+      document.getElementById("subagent-timing").innerText = `Timing: ${step.subagentTiming}`;
+      document.getElementById("subagent-context").innerHTML = step.subagentContext
+        .map(c => `<div class="p-1 rounded bg-white border border-slate-200">${c}</div>`).join("");
+
+      const allNodeIds = [
+        "node-user", "node-coordinator", 
+        "subnode-sec1", "subnode-sec2", "subnode-sec3", "node-tavily",
+        "subnode-intro", "subnode-conclusion",
+        "subnode-compiler", "subnode-saver"
+      ];
+
+      allNodeIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.classList.remove("agent-active", "agent-parallel", "pulse-active");
+          el.classList.add("agent-dimmed");
+        }
+      });
+
+      if (step.activeNodeIds) {
+        step.activeNodeIds.forEach(id => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.remove("agent-dimmed");
+            if (step.isParallel) {
+              el.classList.add("agent-parallel", "pulse-active");
+            } else {
+              el.classList.add("agent-active");
+            }
+          }
+        });
+      }
+
+      document.getElementById("prev-btn").disabled = (currentStep === 0);
+      document.getElementById("next-btn").disabled = (currentStep === simulatorSteps.length - 1);
+
+      renderStepPills();
+    }
+
+    function nextStep() {
+      if (currentStep < simulatorSteps.length - 1) {
+        currentStep++;
+        updateStepView();
+      }
+    }
+
+    function prevStep() {
+      if (currentStep > 0) {
+        currentStep--;
+        updateStepView();
+      }
+    }
+
+    function goToStep(idx) {
+      currentStep = idx;
+      updateStepView();
+    }
+
+    function resetStep() {
+      currentStep = 0;
+      updateStepView();
+    }
+
+    function toggleArticleView(view) {
+      const formatted = document.getElementById("article-formatted");
+      const raw = document.getElementById("article-raw");
+      const tabF = document.getElementById("tab-formatted");
+      const tabR = document.getElementById("tab-raw");
+
+      if (view === "formatted") {
+        formatted.classList.remove("hidden");
+        raw.classList.add("hidden");
+        tabF.classList.add("active");
+        tabF.classList.remove("bg-slate-100", "text-slate-600");
+        tabR.classList.remove("active");
+        tabR.classList.add("bg-slate-100", "text-slate-600");
+      } else {
+        formatted.classList.add("hidden");
+        raw.classList.remove("hidden");
+        tabR.classList.add("active");
+        tabR.classList.remove("bg-slate-100", "text-slate-600");
+        tabF.classList.remove("active");
+        tabF.classList.add("bg-slate-100", "text-slate-600");
+      }
+    }
+
+    // =========================================================================
+    // PAGE 2 PARALLEL LIFE-CYCLE SIMULATOR
+    // =========================================================================
+    const parallelPhases = [
+      {
+        badge: "PHASE 1",
+        title: "Coordinator LLM Emits Multiple Tool Calls in 1 Turn",
+        status: "Main Thread Active (Single-Turn Emission)",
+        engineCall: "main_agent.invoke() -> LLM returns AIMessage(tool_calls=[...])",
+        engineDesc: "The coordinator LLM plans the 3 body sections. Following prompt instructions, it outputs all 3 tool calls simultaneously in turn 1.",
+        lanes: [
+          { status: "Assigned", content: "Query: 'Theoretical foundations of Multiverse...'", borderClass: "border-blue-500", badgeClass: "bg-blue-900 text-blue-300" },
+          { status: "Assigned", content: "Query: 'Observational evidence in CMB...'", borderClass: "border-blue-500", badgeClass: "bg-blue-900 text-blue-300" },
+          { status: "Assigned", content: "Query: 'Implications for physics constants...'", borderClass: "border-blue-500", badgeClass: "bg-blue-900 text-blue-300" }
+        ]
+      },
+      {
+        badge: "PHASE 2",
+        title: "ToolNode Spawns ContextThreadPoolExecutor Workers",
+        status: "Worker Threads Forking (0.002s)",
+        engineCall: "ToolNode._func() -> executor.map(self._run_one, tool_calls, ...)",
+        engineDesc: "ToolNode detects 3 tool calls. It wraps each in a thread-safe context with config_list and submits them to ContextThreadPoolExecutor.",
+        lanes: [
+          { status: "Spawning Thread", content: "Thread #1 allocated with copied contextvars.", borderClass: "border-amber-500", badgeClass: "bg-amber-900 text-amber-300" },
+          { status: "Spawning Thread", content: "Thread #2 allocated with copied contextvars.", borderClass: "border-amber-500", badgeClass: "bg-amber-900 text-amber-300" },
+          { status: "Spawning Thread", content: "Thread #3 allocated with copied contextvars.", borderClass: "border-amber-500", badgeClass: "bg-amber-900 text-amber-300" }
+        ]
+      },
+      {
+        badge: "PHASE 3",
+        title: "Parallel Web Search & Synthesis (GIL Released on Network I/O)",
+        status: "TRUE CONCURRENT EXECUTION (Active HTTP)",
+        engineCall: "section_writer_agent.invoke() -> Tavily API HTTP GET & Gemini HTTP POST",
+        engineDesc: "All 3 subagents run concurrently. Because HTTP network calls release Python's GIL, all 3 query Tavily search and generate drafts simultaneously.",
+        lanes: [
+          { status: "Running (Tavily)", content: "HTTP socket open: fetching inflation/string data. Writing section draft...", borderClass: "border-emerald-500 thread-pulse", badgeClass: "bg-emerald-800 text-emerald-200" },
+          { status: "Running (Tavily)", content: "HTTP socket open: fetching WMAP & Planck CMB data. Writing section draft...", borderClass: "border-emerald-500 thread-pulse", badgeClass: "bg-emerald-800 text-emerald-200" },
+          { status: "Running (Tavily)", content: "HTTP socket open: fetching anthropic principle data. Writing section draft...", borderClass: "border-emerald-500 thread-pulse", badgeClass: "bg-emerald-800 text-emerald-200" }
+        ]
+      },
+      {
+        badge: "PHASE 4",
+        title: "Barrier Synchronization (Gather / Fan-In)",
+        status: "Gathering Returns (Barrier Complete)",
+        engineCall: "outputs = list(executor.map(...)) -> All threads joined",
+        engineDesc: "executor.map blocks until all 3 worker threads return. All section drafts are gathered cleanly without racing or data corruption.",
+        lanes: [
+          { status: "Finished (6.06s)", content: "Returned: 180 words + citations (Guth, Susskind).", borderClass: "border-purple-500", badgeClass: "bg-purple-900 text-purple-300" },
+          { status: "Finished (7.12s)", content: "Returned: 195 words + citations (Planck 2018).", borderClass: "border-purple-500", badgeClass: "bg-purple-900 text-purple-300" },
+          { status: "Finished (9.59s)", content: "Returned: 175 words + citations (Everett 1957).", borderClass: "border-purple-500", badgeClass: "bg-purple-900 text-purple-300" }
+        ]
+      },
+      {
+        badge: "PHASE 5",
+        title: "State Graph Update & Next Parallel Phase Trigger",
+        status: "State Updated with 3 ToolMessages",
+        engineCall: "ToolNode._combine_tool_outputs() -> Appends to graph messages -> Wakes Coordinator",
+        engineDesc: "ToolNode converts the 3 outputs into ToolMessage instances. The Main Coordinator wakes up, sees all 3 sections, and triggers Intro & Conclusion in parallel!",
+        lanes: [
+          { status: "Packaged", content: "ToolMessage(call_id='1', content='...')", borderClass: "border-slate-600", badgeClass: "bg-slate-800 text-slate-300" },
+          { status: "Packaged", content: "ToolMessage(call_id='2', content='...')", borderClass: "border-slate-600", badgeClass: "bg-slate-800 text-slate-300" },
+          { status: "Packaged", content: "ToolMessage(call_id='3', content='...')", borderClass: "border-slate-600", badgeClass: "bg-slate-800 text-slate-300" }
+        ]
+      }
+    ];
+
+    let currentParallelStep = 0;
+
+    function updateParallelStepView() {
+      const p = parallelPhases[currentParallelStep];
+      document.getElementById("p-phase-badge").innerText = p.badge;
+      document.getElementById("p-phase-title").innerText = p.title;
+      document.getElementById("p-phase-status").innerText = p.status;
+      document.getElementById("p-engine-call").innerText = p.engineCall;
+      document.getElementById("p-engine-desc").innerText = p.engineDesc;
+
+      [1, 2, 3].forEach(idx => {
+        const lane = document.getElementById(`lane-${idx}`);
+        const badge = document.getElementById(`lane-${idx}-badge`);
+        const content = document.getElementById(`lane-${idx}-content`);
+        const laneData = p.lanes[idx - 1];
+
+        lane.className = `border ${laneData.borderClass} bg-slate-950/80 rounded-lg p-3 space-y-2 transition-all duration-300`;
+        badge.className = `text-[10px] px-1.5 py-0.5 rounded ${laneData.badgeClass}`;
+        badge.innerText = laneData.status;
+        content.innerHTML = laneData.content;
+      });
+
+      document.getElementById("p-prev-btn").disabled = (currentParallelStep === 0);
+      document.getElementById("p-next-btn").disabled = (currentParallelStep === parallelPhases.length - 1);
+    }
+
+    function nextParallelStep() {
+      if (currentParallelStep < parallelPhases.length - 1) {
+        currentParallelStep++;
+        updateParallelStepView();
+      }
+    }
+
+    function prevParallelStep() {
+      if (currentParallelStep > 0) {
+        currentParallelStep--;
+        updateParallelStepView();
+      }
+    }
+
+    function resetParallelStep() {
+      currentParallelStep = 0;
+      updateParallelStepView();
+    }
+
+    // Initialize Page 1
+    updateStepView();
+  </script>
+</body>
+</html>

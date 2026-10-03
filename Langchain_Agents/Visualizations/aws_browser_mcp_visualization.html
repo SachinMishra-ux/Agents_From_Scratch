@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Unified Multi-Server MCP Agent: AWS Documentation + Browser MCP</title>
+  <style>
+    :root {
+      --bg: #080d1a;
+      --panel: #10192e;
+      --panel-2: #16223d;
+      --border: #26385e;
+      --text: #f1f5f9;
+      --muted: #94a3b8;
+      --cyan: #22d3ee;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --purple: #a855f7;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: radial-gradient(circle at 15% 15%, #111f3d 0%, #080d1a 70%);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 24px;
+    }
+    header {
+      max-width: 1440px;
+      margin: 0 auto 20px auto;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      padding: 20px 24px;
+      background: rgba(16, 25, 46, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+    }
+    .title-group h1 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      background: linear-gradient(90deg, #22d3ee, #f59e0b, #a855f7);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 6px;
+    }
+    .title-group p {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .badges {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .badge {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      border: 1px solid var(--border);
+      background: var(--panel-2);
+    }
+    .badge.aws { border-color: var(--amber); color: #fcd34d; }
+    .badge.browser { border-color: var(--cyan); color: #67e8f9; }
+    .badge.lc { border-color: var(--purple); color: #d8b4fe; }
+
+    .main-grid {
+      max-width: 1440px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 20px;
+    }
+    @media (max-width: 1100px) {
+      .main-grid { grid-template-columns: 1fr; }
+    }
+    .card {
+      background: rgba(16, 25, 46, 0.92);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+    }
+    .controls-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .btn-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    button {
+      background: var(--panel-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      padding: 8px 13px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover { border-color: var(--cyan); }
+    button.active {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .svg-wrap {
+      width: 100%;
+      background: #070b16;
+      border: 1px solid #1e2d4d;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    svg { width: 100%; height: auto; display: block; }
+    .node { cursor: pointer; transition: opacity 0.25s; }
+    .node rect, .node polygon { transition: all 0.25s; }
+    .node.active-node rect, .node.active-node polygon {
+      stroke-width: 3px;
+      filter: drop-shadow(0 0 12px rgba(34, 211, 238, 0.55));
+    }
+    .edge {
+      stroke: #334155;
+      stroke-width: 2.2;
+      fill: none;
+      transition: stroke 0.25s;
+    }
+    .edge.active-edge {
+      stroke: #22d3ee;
+      stroke-width: 3;
+      stroke-dasharray: 8 5;
+      animation: flow 0.9s linear infinite;
+    }
+    .edge.active-edge-aws {
+      stroke: #f59e0b;
+      stroke-width: 3;
+      stroke-dasharray: 8 5;
+      animation: flow 0.9s linear infinite;
+    }
+    @keyframes flow {
+      to { stroke-dashoffset: -26; }
+    }
+    .detail-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .step-pill {
+      background: rgba(34, 211, 238, 0.15);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+    .detail-title { font-size: 1.15rem; font-weight: 700; }
+    .section-box {
+      background: #0a1020;
+      border: 1px solid #1e2d4d;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+    .section-box h4 {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--cyan);
+      margin-bottom: 8px;
+    }
+    .section-box p {
+      font-size: 0.88rem;
+      line-height: 1.55;
+      color: #cbd5e1;
+    }
+    pre {
+      background: #050811;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 12px;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.78rem;
+      color: #a5f3fc;
+      overflow-x: auto;
+      line-height: 1.45;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="title-group">
+      <h1>Unified LangChain Multi-Server MCP Architecture</h1>
+      <p>Connecting AWS Documentation MCP Server (<code>uvx</code>) &amp; Browser MCP Server (<code>npx @browsermcp/mcp</code>) via <code>MultiServerMCPClient</code></p>
+    </div>
+    <div class="badges">
+      <span class="badge lc">LangChain create_agent + AsyncSqliteSaver</span>
+      <span class="badge aws">AWS Docs MCP (5 Tools via uvx stdio)</span>
+      <span class="badge browser">Browser MCP (12 Tools via npx stdio + Chrome Extension WS:9009)</span>
+    </div>
+  </header>
+
+  <div class="main-grid">
+    <div class="card">
+      <div class="controls-bar">
+        <div class="btn-row">
+          <button id="btn-play" onclick="togglePlay()">▶ Auto-Play Flow</button>
+          <button onclick="prevStep()">◀ Prev</button>
+          <button onclick="nextStep()">Next ▶</button>
+        </div>
+        <div class="btn-row" id="step-buttons"></div>
+      </div>
+
+      <div class="svg-wrap">
+        <svg viewBox="0 0 920 690">
+          <defs>
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b" />
+            </marker>
+          </defs>
+
+          <!-- Edges -->
+          <path id="e-user-agent" class="edge" d="M 460 75 L 460 125" marker-end="url(#arrow)" />
+          <path id="e-agent-sqlite" class="edge" d="M 610 165 L 710 165" marker-end="url(#arrow)" />
+          <path id="e-agent-router" class="edge" d="M 460 205 L 460 250" marker-end="url(#arrow)" />
+          <path id="e-router-aws" class="edge" d="M 380 295 L 220 355" marker-end="url(#arrow)" />
+          <path id="e-router-browser" class="edge" d="M 540 295 L 700 355" marker-end="url(#arrow)" />
+          <path id="e-aws-api" class="edge" d="M 220 470 L 220 535" marker-end="url(#arrow)" />
+          <path id="e-browser-ext" class="edge" d="M 700 470 L 700 525" marker-end="url(#arrow)" />
+          <path id="e-ext-shop" class="edge" d="M 700 590 L 700 620" marker-end="url(#arrow)" />
+
+          <!-- Node: User -->
+          <g id="n-user" class="node" onclick="selectStep(0)">
+            <rect x="310" y="20" width="300" height="55" rx="10" fill="#111c35" stroke="#38bdf8" stroke-width="2" />
+            <text x="460" y="44" text-anchor="middle" fill="#f8fafc" font-size="13" font-weight="700">1. User Natural Language Prompt</text>
+            <text x="460" y="62" text-anchor="middle" fill="#94a3b8" font-size="11">AWS Docs Query OR iPhone 17 Amazon/Flipkart Query</text>
+          </g>
+
+          <!-- Node: LangChain Agent -->
+          <g id="n-agent" class="node" onclick="selectStep(1)">
+            <rect x="310" y="125" width="300" height="80" rx="12" fill="#17153b" stroke="#a855f7" stroke-width="2" />
+            <text x="460" y="152" text-anchor="middle" fill="#e9d5ff" font-size="14" font-weight="700">2. LangChain MCP Agent (create_agent)</text>
+            <text x="460" y="172" text-anchor="middle" fill="#cbd5e1" font-size="11">LLM: ChatGoogleGenerativeAI (gemini-2.5-flash)</text>
+            <text x="460" y="190" text-anchor="middle" fill="#a855f7" font-size="10.5">MultiServerMCPClient (17 Bound MCP Tools)</text>
+          </g>
+
+          <!-- Node: SQLite Saver -->
+          <g id="n-sqlite" class="node" onclick="selectStep(5)">
+            <rect x="710" y="132" width="185" height="66" rx="10" fill="#0f2922" stroke="#10b981" stroke-width="2" />
+            <text x="802" y="158" text-anchor="middle" fill="#6ee7b7" font-size="12.5" font-weight="700">AsyncSqliteSaver</text>
+            <text x="802" y="176" text-anchor="middle" fill="#94a3b8" font-size="10.5">aws_browser_mcp_history.db</text>
+            <text x="802" y="190" text-anchor="middle" fill="#10b981" font-size="10">Thread State Persistence</text>
+          </g>
+
+          <!-- Node: Intent Diamond -->
+          <g id="n-router" class="node" onclick="selectStep(1)">
+            <polygon points="460,250 565,295 460,340 355,295" fill="#1e293b" stroke="#eab308" stroke-width="2" />
+            <text x="460" y="292" text-anchor="middle" fill="#fef08a" font-size="11.5" font-weight="700">Intent Router</text>
+            <text x="460" y="307" text-anchor="middle" fill="#cbd5e1" font-size="10">AWS Docs vs Browser</text>
+          </g>
+
+          <!-- Node: AWS Documentation MCP Server -->
+          <g id="n-aws" class="node" onclick="selectStep(2)">
+            <rect x="45" y="355" width="350" height="115" rx="12" fill="#23190b" stroke="#f59e0b" stroke-width="2" />
+            <text x="220" y="380" text-anchor="middle" fill="#fcd34d" font-size="13.5" font-weight="700">Server 1: AWS Documentation MCP</text>
+            <text x="220" y="398" text-anchor="middle" fill="#fde68a" font-size="10.5">uvx awslabs.aws-documentation-mcp-server@latest (stdio)</text>
+            <text x="220" y="419" text-anchor="middle" fill="#cbd5e1" font-size="10.5">• search_documentation   • read_documentation</text>
+            <text x="220" y="436" text-anchor="middle" fill="#cbd5e1" font-size="10.5">• read_sections          • search_table</text>
+            <text x="220" y="453" text-anchor="middle" fill="#cbd5e1" font-size="10.5">• recommend (5 Official AWS Tools)</text>
+          </g>
+
+          <!-- Node: Browser MCP Server -->
+          <g id="n-browser" class="node" onclick="selectStep(3)">
+            <rect x="525" y="355" width="350" height="115" rx="12" fill="#082431" stroke="#22d3ee" stroke-width="2" />
+            <text x="700" y="380" text-anchor="middle" fill="#67e8f9" font-size="13.5" font-weight="700">Server 2: Browser MCP Server</text>
+            <text x="700" y="398" text-anchor="middle" fill="#a5f3fc" font-size="10.5">npx -y @browsermcp/mcp@latest (Persistent stdio Session)</text>
+            <text x="700" y="419" text-anchor="middle" fill="#cbd5e1" font-size="10.5">• browser_navigate   • browser_type     • browser_click</text>
+            <text x="700" y="436" text-anchor="middle" fill="#cbd5e1" font-size="10.5">• browser_snapshot   • browser_wait     • browser_press_key</text>
+            <text x="700" y="453" text-anchor="middle" fill="#38bdf8" font-size="10.5">• browser_go_back / forward / hover / select / screenshot</text>
+          </g>
+
+          <!-- Node: Official AWS Docs -->
+          <g id="n-aws-api" class="node" onclick="selectStep(2)">
+            <rect x="65" y="535" width="310" height="80" rx="10" fill="#1c1917" stroke="#f59e0b" stroke-width="1.8" />
+            <text x="220" y="562" text-anchor="middle" fill="#fde68a" font-size="12.5" font-weight="700">docs.aws.amazon.com Search &amp; Reader</text>
+            <text x="220" y="581" text-anchor="middle" fill="#94a3b8" font-size="10.5">Converts Official AWS Docs HTML → Clean Markdown</text>
+            <text x="220" y="598" text-anchor="middle" fill="#f59e0b" font-size="10">Lambda Concurrency, EventBridge, Quotas, Pricing</text>
+          </g>
+
+          <!-- Node: Browser MCP Chrome Extension -->
+          <g id="n-ext" class="node" onclick="selectStep(3)">
+            <rect x="545" y="525" width="310" height="65" rx="10" fill="#0d283a" stroke="#38bdf8" stroke-width="1.8" />
+            <text x="700" y="550" text-anchor="middle" fill="#7dd3fc" font-size="12" font-weight="700">Browser MCP Chrome Extension</text>
+            <text x="700" y="568" text-anchor="middle" fill="#cbd5e1" font-size="10.5">WebSocket Bridge (ws://localhost:9009) → Connected Tab</text>
+          </g>
+
+          <!-- Node: Amazon & Flipkart Live Tab -->
+          <g id="n-shop" class="node" onclick="selectStep(4)">
+            <rect x="545" y="620" width="310" height="58" rx="10" fill="#091e26" stroke="#22d3ee" stroke-width="1.8" />
+            <text x="700" y="644" text-anchor="middle" fill="#a5f3fc" font-size="12" font-weight="700">Live Chrome Tab: Amazon.in &amp; Flipkart.com</text>
+            <text x="700" y="662" text-anchor="middle" fill="#94a3b8" font-size="10">Searches "iPhone 17" &amp; Reads Accessibility Snapshots</text>
+          </g>
+        </svg>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="detail-header">
+        <span class="step-pill" id="step-badge">STEP 1 / 6</span>
+        <div class="detail-title" id="step-title">Loading...</div>
+      </div>
+
+      <div class="section-box">
+        <h4>How It Works Behind the Scenes</h4>
+        <p id="step-desc"></p>
+      </div>
+
+      <div class="section-box">
+        <h4>Architectural Role &amp; Protocol Transport</h4>
+        <p id="step-rationale"></p>
+      </div>
+
+      <div class="section-box">
+        <h4>Live MCP Configuration / Tool Trace</h4>
+        <pre id="step-code"></pre>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      {
+        badge: "STEP 1 / 6",
+        title: "MultiServerMCPClient Initialization (Two MCP Servers)",
+        nodes: ["n-user", "n-agent"],
+        edges: ["e-user-agent"],
+        edgeClass: "active-edge",
+        desc: "LangChain's MultiServerMCPClient connects strictly to the two official MCP servers over stdio transport: 'aws_docs' (spawned via uvx awslabs.aws-documentation-mcp-server@latest) and 'browsermcp' (spawned via npx -y @browsermcp/mcp@latest). Persistent sessions are opened via AsyncExitStack and load_mcp_tools() loads all 17 MCP tools.",
+        rationale: "Opening persistent sessions via mcp_client.session('browsermcp') ensures @browsermcp/mcp stays alive and keeps its local WebSocket server (ws://localhost:9009) open for the Browser MCP Chrome Extension.",
+        code: `mcp_client = MultiServerMCPClient({
+  "aws_docs": {
+    "command": "uvx",
+    "args": ["awslabs.aws-documentation-mcp-server@latest"],
+    "transport": "stdio",
+    "env": {"FASTMCP_LOG_LEVEL": "ERROR", "AWS_DOCUMENTATION_PARTITION": "aws"}
+  },
+  "browsermcp": {
+    "command": "npx",
+    "args": ["-y", "@browsermcp/mcp@latest"],
+    "transport": "stdio"
+  }
+})`
+      },
+      {
+        badge: "STEP 2 / 6",
+        title: "Intent Classification & Dynamic MCP Server Routing",
+        nodes: ["n-agent", "n-router"],
+        edges: ["e-agent-router"],
+        edgeClass: "active-edge",
+        desc: "When the user submits a prompt, the LangChain agent evaluates the intent against all 17 bound MCP tools. Questions about AWS services or documentation route to the AWS Documentation MCP Server ('aws_docs'), while browser automation and e-commerce price checks route to the Browser MCP Server ('browsermcp').",
+        rationale: "A single LangChain agent seamlessly orchestrates both technical documentation lookup and browser automation using standard MCP tool schemas.",
+        code: `# Bound Tool Inventory (17 Tools Total):
+# [aws_docs]   (5)  -> search_documentation, read_documentation, read_sections, search_table, recommend
+# [browsermcp] (12) -> browser_navigate, browser_snapshot, browser_type, browser_click,
+#                      browser_hover, browser_select_option, browser_press_key, browser_wait,
+#                      browser_go_back, browser_go_forward, browser_get_console_logs, browser_screenshot`
+      },
+      {
+        badge: "STEP 3 / 6",
+        title: "AWS Documentation MCP Server Execution (uvx)",
+        nodes: ["n-router", "n-aws", "n-aws-api"],
+        edges: ["e-router-aws", "e-aws-api"],
+        edgeClass: "active-edge-aws",
+        desc: "For AWS documentation questions (e.g., 'What are the AWS Lambda concurrency quotas and Reserved vs Provisioned Concurrency?'), the agent calls search_documentation() against AWS's official search API, then calls read_sections() and read_documentation() to convert the AWS docs page into Markdown.",
+        rationale: "Fetches authoritative, up-to-date AWS documentation directly from docs.aws.amazon.com over stdio.",
+        code: `[MCP Tool] search_documentation({
+  "search_phrase": "AWS Lambda concurrency quotas Reserved Concurrency Provisioned Concurrency",
+  "product_types": ["AWS Lambda"]
+})
+[MCP Tool] read_sections({
+  "url": "https://docs.aws.amazon.com/lambda/latest/dg/lambda-concurrency.html",
+  "section_titles": ["Concurrency quotas", "Comparing reserved concurrency and provisioned concurrency"]
+})`
+      },
+      {
+        badge: "STEP 4 / 6",
+        title: "Browser MCP Server & Chrome Extension Bridge (ws://localhost:9009)",
+        nodes: ["n-router", "n-browser", "n-ext"],
+        edges: ["e-router-browser", "e-browser-ext"],
+        edgeClass: "active-edge",
+        desc: "When the user connects a Chrome tab using the Browser MCP Chrome Extension (clicking 'Connect' in the toolbar popup), the extension establishes a WebSocket connection to @browsermcp/mcp on ws://localhost:9009. Every MCP tool call from LangChain is forwarded directly to the active browser tab.",
+        rationale: "Automating the user's real Chrome browser via the Browser MCP extension preserves existing browser sessions and avoids bot-detection captchas.",
+        code: `# Persistent Session Setup in LangChain:
+mcp_exit_stack = AsyncExitStack()
+aws_session = await mcp_exit_stack.enter_async_context(mcp_client.session("aws_docs"))
+browser_session = await mcp_exit_stack.enter_async_context(mcp_client.session("browsermcp"))
+
+aws_tools = await load_mcp_tools(aws_session, server_name="aws_docs")
+browser_tools = await load_mcp_tools(browser_session, server_name="browsermcp")`
+      },
+      {
+        badge: "STEP 5 / 6",
+        title: "Browser Automation: iPhone 17 Price Comparison on Amazon & Flipkart",
+        nodes: ["n-browser", "n-ext", "n-shop"],
+        edges: ["e-browser-ext", "e-ext-shop"],
+        edgeClass: "active-edge",
+        desc: "To compare iPhone 17 prices across Amazon and Flipkart, the agent calls browser_navigate('https://www.amazon.in') -> browser_snapshot() -> browser_type(text='iPhone 17', submit=True) -> browser_snapshot(), and repeats the same sequence on 'https://www.flipkart.com' to extract and compare live prices.",
+        rationale: "Browser MCP captures lightweight DOM accessibility snapshots with [ref=...] element identifiers so the LLM can accurately target search inputs and read product prices.",
+        code: `[Browser MCP] browser_navigate({"url": "https://www.amazon.in"})
+[Browser MCP] browser_snapshot({})
+[Browser MCP] browser_type({"element": "Search Amazon.in", "ref": "...", "text": "iPhone 17", "submit": true})
+[Browser MCP] browser_navigate({"url": "https://www.flipkart.com"})
+[Browser MCP] browser_snapshot({})
+[Browser MCP] browser_type({"element": "Search for Products", "ref": "...", "text": "iPhone 17", "submit": true})`
+      },
+      {
+        badge: "STEP 6 / 6",
+        title: "Persistent Conversation State with AsyncSqliteSaver",
+        nodes: ["n-agent", "n-sqlite"],
+        edges: ["e-agent-sqlite"],
+        edgeClass: "active-edge",
+        desc: "Every conversation turn and MCP tool execution is persisted in aws_browser_mcp_history.db using LangGraph's AsyncSqliteSaver checkpointer, allowing multi-turn follow-up questions across both MCP servers.",
+        rationale: "SQLite checkpointing preserves full message and tool call history across turns by thread_id.",
+        code: `sqlite_conn = await aiosqlite.connect("aws_browser_mcp_history.db")
+memory = AsyncSqliteSaver(sqlite_conn)
+
+mcp_agent = create_agent(
+    model=llm,
+    tools=all_mcp_tools,
+    system_prompt=SYSTEM_PROMPT,
+    checkpointer=memory,
+)`
+      }
+    ];
+
+    let current = 0;
+    let timer = null;
+
+    function renderButtons() {
+      const wrap = document.getElementById("step-buttons");
+      wrap.innerHTML = "";
+      steps.forEach((_, i) => {
+        const b = document.createElement("button");
+        b.textContent = `S${i + 1}`;
+        if (i === current) b.classList.add("active");
+        b.onclick = () => selectStep(i);
+        wrap.appendChild(b);
+      });
+    }
+
+    function selectStep(idx) {
+      current = idx;
+      const s = steps[idx];
+      document.getElementById("step-badge").textContent = s.badge;
+      document.getElementById("step-title").textContent = s.title;
+      document.getElementById("step-desc").textContent = s.desc;
+      document.getElementById("step-rationale").textContent = s.rationale;
+      document.getElementById("step-code").textContent = s.code;
+
+      document.querySelectorAll(".node").forEach(el => el.classList.remove("active-node"));
+      document.querySelectorAll(".edge").forEach(el => {
+        el.classList.remove("active-edge", "active-edge-aws");
+      });
+
+      s.nodes.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add("active-node");
+      });
+      s.edges.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add(s.edgeClass);
+      });
+      renderButtons();
+    }
+
+    function nextStep() { selectStep((current + 1) % steps.length); }
+    function prevStep() { selectStep((current - 1 + steps.length) % steps.length); }
+    function togglePlay() {
+      const btn = document.getElementById("btn-play");
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+        btn.textContent = "▶ Auto-Play Flow";
+      } else {
+        timer = setInterval(nextStep, 3200);
+        btn.textContent = "⏸ Pause Flow";
+      }
+    }
+
+    selectStep(0);
+  </script>
+</body>
+</html>

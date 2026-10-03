@@ -1,0 +1,121 @@
+{
+  "topic": "The Human Immune System: Innate vs. Adaptive Defense Architecture",
+  "target_audience": "Executive",
+  "total_slides": 8,
+  "slides": [
+    {
+      "slide_number": 1,
+      "section_tag": "01 // INTRODUCTION",
+      "title": "The Human Immune System: Innate vs. Adaptive Defense Architecture",
+      "layout": "title",
+      "needs_image": false,
+      "image_position": "none",
+      "visual_prompt": null,
+      "planned_key_points": [
+        "Overview of Immune System",
+        "Innate vs. Adaptive Distinction"
+      ]
+    },
+    {
+      "slide_number": 2,
+      "section_tag": "02 // INNATE IMMUNITY",
+      "title": "Innate Immunity: Our First Line of Defense",
+      "layout": "image_right",
+      "needs_image": true,
+      "image_position": "right",
+      "visual_prompt": "An illustration depicting the innate immune system as a rapid, non-specific first line of defense. Show physical barriers like skin and mucous membranes, and cellular components like macrophages and neutrophils engulfing pathogens. Use a clean, modern, and slightly abstract style with a dark background.",
+      "planned_key_points": [
+        "Physical Barriers",
+        "Cellular Defenders",
+        "Inflammation Response"
+      ]
+    },
+    {
+      "slide_number": 3,
+      "section_tag": "03 // ADAPTIVE IMMUNITY",
+      "title": "Adaptive Immunity: Targeted & Memory-Driven Response",
+      "layout": "image_left",
+      "needs_image": true,
+      "image_position": "left",
+      "visual_prompt": "An illustration showcasing the adaptive immune system with T-cells and B-cells. Depict T-cells recognizing infected cells and B-cells producing antibodies. Emphasize specificity and memory, perhaps with a visual representation of memory cells. Use a clean, modern, and slightly abstract style with a dark background.",
+      "planned_key_points": [
+        "T-Cell Activation",
+        "B-Cell Antibody Production",
+        "Immunological Memory"
+      ]
+    },
+    {
+      "slide_number": 4,
+      "section_tag": "04 // COMPARISON",
+      "title": "Innate vs. Adaptive: Key Differentiators",
+      "layout": "table",
+      "needs_image": true,
+      "image_position": "table_companion",
+      "visual_prompt": "A table infographic visually comparing innate and adaptive immunity. Use icons or simple diagrams to represent key differences like speed (fast vs. slow), specificity (non-specific vs. specific), memory (none vs. yes), and main components (phagocytes vs. lymphocytes). The visual should complement a detailed comparison table.",
+      "planned_key_points": [
+        "Response Time",
+        "Specificity",
+        "Memory",
+        "Components"
+      ]
+    },
+    {
+      "slide_number": 5,
+      "section_tag": "05 // VACCINE INNOVATION",
+      "title": "mRNA Vaccines: Precision Delivery & Immune Activation",
+      "layout": "image_left",
+      "needs_image": true,
+      "image_position": "left",
+      "visual_prompt": "An illustration showing the mechanism of mRNA vaccine delivery. Depict mRNA encapsulated within a lipid nanoparticle (LNP) entering a cell, releasing mRNA, and the cell producing viral spike proteins to trigger an immune response. Use a clear, scientific, and modern diagrammatic style with a dark background.",
+      "planned_key_points": [
+        "mRNA Encapsulation",
+        "Cellular Uptake",
+        "Antigen Production",
+        "Immune Response"
+      ]
+    },
+    {
+      "slide_number": 6,
+      "section_tag": "06 // IMMUNOTHERAPY FRONTIERS",
+      "title": "CAR-T Cell Therapy: Engineering Immunity Against Cancer",
+      "layout": "image_right",
+      "needs_image": true,
+      "image_position": "right",
+      "visual_prompt": "An illustration demonstrating CAR-T cell therapy. Show T-cells being extracted from a patient, genetically engineered with Chimeric Antigen Receptors (CARs), expanded in vitro, and then re-infused to target and destroy cancer cells. Use a clear, scientific, and modern diagrammatic style with a dark background.",
+      "planned_key_points": [
+        "T-Cell Collection",
+        "CAR Gene Insertion",
+        "Expansion & Infusion",
+        "Targeted Cancer Killing"
+      ]
+    },
+    {
+      "slide_number": 7,
+      "section_tag": "07 // IMMUNOLOGICAL MEMORY",
+      "title": "Immunological Memory & Vaccine Principles",
+      "layout": "cards",
+      "needs_image": false,
+      "image_position": "none",
+      "visual_prompt": null,
+      "planned_key_points": [
+        "Memory Cell Function",
+        "Vaccine Principles",
+        "Herd Immunity"
+      ]
+    },
+    {
+      "slide_number": 8,
+      "section_tag": "08 // CONCLUSION",
+      "title": "Executive Summary & Clinical Outlook",
+      "layout": "ending",
+      "needs_image": false,
+      "image_position": "none",
+      "visual_prompt": null,
+      "planned_key_points": [
+        "Key Takeaways",
+        "Future Research",
+        "Therapeutic Implications"
+      ]
+    }
+  ]
+}

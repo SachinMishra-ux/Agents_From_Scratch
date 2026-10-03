@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Executive PPT Agent — Dynamic System Architecture &amp; Behind-the-Scenes Visualizer</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      background-color: #0b0f19;
+      color: #e2e8f0;
+      font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    }
+    pre, code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    /* Dynamic SVG Flowchart Styling */
+    .arch-node {
+      cursor: pointer;
+      transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .arch-node rect, .arch-node polygon, .arch-node path, .arch-node ellipse {
+      transition: all 0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .arch-node:hover {
+      filter: brightness(1.18);
+    }
+    .arch-node.node-dimmed {
+      opacity: 0.32;
+    }
+    .arch-node.node-active rect,
+    .arch-node.node-active polygon,
+    .arch-node.node-active path,
+    .arch-node.node-active ellipse {
+      stroke-width: 2.8px !important;
+      filter: drop-shadow(0 0 12px rgba(56, 189, 248, 0.55));
+    }
+    .arch-node.node-hitl rect,
+    .arch-node.node-hitl polygon {
+      stroke: #f59e0b !important;
+      stroke-width: 3px !important;
+      filter: drop-shadow(0 0 14px rgba(245, 158, 11, 0.65));
+    }
+
+    /* Animated SVG Edges */
+    .arch-edge {
+      stroke: #334155;
+      stroke-width: 2;
+      fill: none;
+      transition: stroke 0.3s ease, stroke-width 0.3s ease, opacity 0.3s ease;
+      opacity: 0.35;
+    }
+    .arch-edge.edge-dashed {
+      stroke-dasharray: 6 5;
+    }
+    .arch-edge.edge-active {
+      stroke: #38bdf8;
+      stroke-width: 3;
+      opacity: 1;
+      stroke-dasharray: 8 6;
+      animation: flowDash 0.75s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(56, 189, 248, 0.6));
+    }
+    .arch-edge.edge-active-amber {
+      stroke: #f59e0b;
+      stroke-width: 3;
+      opacity: 1;
+      stroke-dasharray: 8 6;
+      animation: flowDash 0.75s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(245, 158, 11, 0.6));
+    }
+    .arch-edge.edge-active-emerald {
+      stroke: #10b981;
+      stroke-width: 3;
+      opacity: 1;
+      stroke-dasharray: 8 6;
+      animation: flowDash 0.75s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(16, 185, 129, 0.6));
+    }
+    .arch-edge.edge-active-purple {
+      stroke: #a855f7;
+      stroke-width: 3;
+      opacity: 1;
+      stroke-dasharray: 8 6;
+      animation: flowDash 0.75s linear infinite;
+      filter: drop-shadow(0 0 6px rgba(168, 85, 247, 0.6));
+    }
+
+    .edge-label-bg {
+      fill: #0f172a;
+      stroke: #334155;
+      stroke-width: 1;
+      transition: all 0.25s ease;
+      opacity: 0.55;
+    }
+    .edge-label-text {
+      fill: #94a3b8;
+      font-size: 10.5px;
+      font-weight: 600;
+      transition: all 0.25s ease;
+      opacity: 0.65;
+    }
+    .edge-label-active .edge-label-bg {
+      fill: #0c192c;
+      stroke: #38bdf8;
+      opacity: 1;
+    }
+    .edge-label-active .edge-label-text {
+      fill: #e0f2fe;
+      opacity: 1;
+    }
+
+    @keyframes flowDash {
+      to {
+        stroke-dashoffset: -28;
+      }
+    }
+
+    .step-btn.active, .tab-btn.active, .layout-btn.active, .subtab-btn.active {
+      background-color: #0284c7;
+      color: #ffffff;
+      border-color: #38bdf8;
+    }
+
+    .slide-hitbox {
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .slide-hitbox:hover, .slide-hitbox.selected {
+      outline: 2.5px solid #38bdf8;
+      box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Top Header -->
+  <header class="bg-slate-900/95 border-b border-slate-800 sticky top-0 z-30 backdrop-blur">
+    <div class="max-w-[1440px] mx-auto px-6 py-3.5 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3">
+      <div>
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-cyan-950 text-cyan-300 px-2.5 py-0.5 rounded border border-cyan-800">
+            Gemini 2.5 Flash + Flash Image
+          </span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-purple-950 text-purple-300 px-2.5 py-0.5 rounded border border-purple-800">
+            Progressive Skill Disclosure (SKILL.md)
+          </span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-indigo-950 text-indigo-300 px-2.5 py-0.5 rounded border border-indigo-800">
+            Plan-First Blueprint Tool
+          </span>
+          <span class="text-[11px] font-bold uppercase tracking-wider bg-amber-950 text-amber-300 px-2.5 py-0.5 rounded border border-amber-800">
+            HumanInTheLoopMiddleware + SqliteSaver
+          </span>
+        </div>
+        <h1 class="text-xl md:text-2xl font-bold text-white mt-1">
+          Autonomous Executive PPT Agent — Dynamic System Architecture &amp; Workflow Visualizer
+        </h1>
+      </div>
+
+      <!-- Mode Switcher Tabs -->
+      <div class="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800 self-start lg:self-auto">
+        <button id="tabBtn1" onclick="switchMainTab(1)" class="tab-btn active px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition">
+          1. Dynamic System Architecture &amp; Execution Flow
+        </button>
+        <button id="tabBtn2" onclick="switchMainTab(2)" class="tab-btn px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider text-slate-400 hover:text-white transition">
+          2. 6-Layout python-pptx Wireframe Explorer
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-[1440px] w-full mx-auto px-6 py-6 flex-1 space-y-6">
+
+    <!-- ========================================================================= -->
+    <!-- TAB 1: DYNAMIC ARCHITECTURE DIAGRAM & BEHIND-THE-SCENES WALKTHROUGH       -->
+    <!-- ========================================================================= -->
+    <div id="mainTab1" class="space-y-6">
+
+      <!-- Top Interactive Playback & Step Controls Bar -->
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl">
+        <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
+          <div class="flex items-center gap-3 flex-wrap">
+            <span id="phaseBadge" class="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">
+              STEP 1 OF 8
+            </span>
+            <h2 id="bannerTitle" class="text-base md:text-lg font-bold text-white"></h2>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="prevBtn" onclick="prevStep()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold disabled:opacity-40 transition">
+              &larr; Prev Step
+            </button>
+            <button id="playBtn" onclick="toggleAutoPlay()" class="px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold uppercase tracking-wider transition flex items-center gap-1.5">
+              <span id="playIcon">&#9654;</span> <span id="playText">Auto-Play Flow</span>
+            </button>
+            <button id="nextBtn" onclick="nextStep()" class="px-3 py-1.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold disabled:opacity-40 transition">
+              Next Step &rarr;
+            </button>
+            <div class="h-5 w-[1px] bg-slate-800 mx-1 hidden sm:block"></div>
+            <div id="stepPillsContainer" class="flex flex-wrap gap-1.5"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Main Split View: Left Dynamic Architecture Flowchart (7 cols) + Right Deep Explanation Panel (5 cols) -->
+      <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
+
+        <!-- LEFT 7 COLUMNS: DYNAMIC SVG SYSTEM ARCHITECTURE DIAGRAM -->
+        <div class="xl:col-span-7 bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Interactive System Architecture Diagram (Click Any Node or Step Through Flow)
+              </h3>
+              <p class="text-[11px] text-slate-500 mt-0.5">
+                Animated edges show live control flow, tool invocations, skill injection, SQLite checkpointing, and the HITL review loop
+              </p>
+            </div>
+            <div class="flex items-center gap-3 text-[11px]">
+              <span class="flex items-center gap-1 text-sky-400"><span class="w-2.5 h-2.5 rounded-full bg-sky-400 inline-block"></span> Active Flow</span>
+              <span class="flex items-center gap-1 text-purple-400"><span class="w-2.5 h-2.5 rounded-full bg-purple-400 inline-block"></span> Skill / Resources</span>
+              <span class="flex items-center gap-1 text-amber-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-400 inline-block"></span> HITL Interrupt Loop</span>
+            </div>
+          </div>
+
+          <!-- SVG Architecture Canvas -->
+          <div class="w-full overflow-x-auto bg-[#070b12] rounded-xl border border-slate-800/90 p-2">
+            <svg id="archSvg" viewBox="0 0 980 700" class="w-full h-auto min-w-[680px] select-none">
+              <defs>
+                <marker id="arrow-muted" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569" />
+                </marker>
+                <marker id="arrow-cyan" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#38bdf8" />
+                </marker>
+                <marker id="arrow-amber" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+                </marker>
+                <marker id="arrow-emerald" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+                </marker>
+                <marker id="arrow-purple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+                </marker>
+                <!-- Subtle grid pattern -->
+                <pattern id="archGrid" width="28" height="28" patternUnits="userSpaceOnUse">
+                  <circle cx="2" cy="2" r="1" fill="#1e293b" />
+                </pattern>
+              </defs>
+
+              <!-- Background Grid -->
+              <rect x="0" y="0" width="980" height="700" fill="url(#archGrid)" />
+
+              <!-- ============================================================ -->
+              <!-- DIRECTIONAL EDGES (LINES & PATHS)                            -->
+              <!-- ============================================================ -->
+
+              <!-- Edge 1: User Topic Request -> Main Agent -->
+              <path id="edge-user-agent" class="arch-edge" d="M 520 345 L 520 402" marker-end="url(#arrow-muted)" />
+              <g id="label-user-agent">
+                <rect class="edge-label-bg" x="458" y="362" width="124" height="19" rx="4" />
+                <text class="edge-label-text" x="520" y="375" text-anchor="middle">1. Topic &amp; Constraints</text>
+              </g>
+
+              <!-- Edge 2: SKILL.md Cylinder -> @tool load_skill & Main Agent -->
+              <path id="edge-skill-agent" class="arch-edge edge-dashed" d="M 815 260 L 815 445 L 675 445" marker-end="url(#arrow-muted)" />
+              <g id="label-skill-agent">
+                <rect class="edge-label-bg" x="705" y="338" width="210" height="22" rx="4" />
+                <text class="edge-label-text" x="810" y="353" text-anchor="middle">Injected via load_skill &amp; PPTX Engine</text>
+              </g>
+
+              <!-- Edge 3: Main Agent <-> SqliteSaver Checkpointer -->
+              <path id="edge-agent-sqlite" class="arch-edge edge-dashed" d="M 675 478 L 745 478" marker-end="url(#arrow-muted)" />
+
+              <!-- Edge 4: Main Agent -> Step 1: @tool load_skill -->
+              <path id="edge-agent-loadskill" class="arch-edge" d="M 420 505 L 420 545 L 115 545 L 115 592" marker-end="url(#arrow-muted)" />
+              <g id="label-agent-loadskill">
+                <rect class="edge-label-bg" x="55" y="555" width="120" height="19" rx="4" />
+                <text class="edge-label-text" x="115" y="568" text-anchor="middle">Step 1: Load Skill</text>
+              </g>
+
+              <!-- Edge 5: Main Agent -> Step 2: @tool plan_presentation_blueprint -->
+              <path id="edge-agent-plan" class="arch-edge" d="M 475 505 L 475 555 L 355 555 L 355 592" marker-end="url(#arrow-muted)" />
+              <g id="label-agent-plan">
+                <rect class="edge-label-bg" x="280" y="555" width="150" height="19" rx="4" />
+                <text class="edge-label-text" x="355" y="568" text-anchor="middle">Step 2: Plan Blueprint</text>
+              </g>
+
+              <!-- Edge 6: Main Agent -> Step 3: @tool generate_slide_image -->
+              <path id="edge-agent-imggen" class="arch-edge" d="M 555 505 L 555 555 L 615 555 L 615 592" marker-end="url(#arrow-muted)" />
+              <g id="label-agent-imggen">
+                <rect class="edge-label-bg" x="540" y="555" width="150" height="19" rx="4" />
+                <text class="edge-label-text" x="615" y="568" text-anchor="middle">Step 3: Planned Visuals</text>
+              </g>
+
+              <!-- Edge 7: Main Agent -> Step 4: @tool create_premium_presentation -->
+              <path id="edge-agent-pptx" class="arch-edge" d="M 620 505 L 620 545 L 855 545 L 855 592" marker-end="url(#arrow-muted)" />
+              <g id="label-agent-pptx">
+                <rect class="edge-label-bg" x="780" y="555" width="150" height="19" rx="4" />
+                <text class="edge-label-text" x="855" y="568" text-anchor="middle">Step 4: Compile PPTX</text>
+              </g>
+
+              <!-- Edge 8: @tool create_premium_presentation -> Draft / V2 PPTX Generated (Top Left) -->
+              <path id="edge-pptx-draft" class="arch-edge" d="M 855 672 L 855 690 L 22 690 L 22 52 L 105 52" marker-end="url(#arrow-muted)" />
+              <g id="label-pptx-draft">
+                <rect class="edge-label-bg" x="32" y="290" width="142" height="20" rx="4" />
+                <text class="edge-label-text" x="103" y="304" text-anchor="middle">Saves .pptx + Calls Review</text>
+              </g>
+
+              <!-- Edge 9: Draft PPTX Generated -> 5. Human Review & Enhancement Diamond -->
+              <path id="edge-draft-hitl" class="arch-edge" d="M 225 76 L 225 100 L 290 100 L 290 124" marker-end="url(#arrow-muted)" />
+
+              <!-- Edge 10: HITL Diamond -> Reject / Enhance Feedback Loop -> Main Agent -->
+              <path id="edge-hitl-reject" class="arch-edge" d="M 345 270 L 345 310 L 420 310 L 420 402" marker-end="url(#arrow-muted)" />
+              <g id="label-hitl-reject">
+                <rect class="edge-label-bg" x="275" y="295" width="232" height="22" rx="4" />
+                <text class="edge-label-text" x="391" y="310" text-anchor="middle">Reject + Feedback (Add Slides / New Layout)</text>
+              </g>
+
+              <!-- Edge 11: HITL Diamond -> Approve -> Final Enhanced PPTX Deck -->
+              <path id="edge-hitl-approve" class="arch-edge" d="M 235 270 L 235 310 L 185 310 L 185 402" marker-end="url(#arrow-muted)" />
+              <g id="label-hitl-approve">
+                <rect class="edge-label-bg" x="110" y="338" width="150" height="22" rx="4" />
+                <text class="edge-label-text" x="185" y="353" text-anchor="middle">User Satisfied / Approve</text>
+              </g>
+
+              <!-- ============================================================ -->
+              <!-- ARCHITECTURAL NODES                                          -->
+              <!-- ============================================================ -->
+
+              <!-- Node: Draft 1 / V2 PPTX Generated (Top Left Pill) -->
+              <g id="node-draft" class="arch-node" onclick="inspectNode('draft')">
+                <rect x="110" y="28" width="230" height="48" rx="24" fill="#111827" stroke="#64748b" stroke-width="1.8" />
+                <text x="225" y="49" text-anchor="middle" fill="#f8fafc" font-size="12.5" font-weight="700">Draft / V2 PPTX Compiled</text>
+                <text x="225" y="65" text-anchor="middle" fill="#38bdf8" font-size="10" font-family="monospace">submit_presentation_for_review()</text>
+              </g>
+
+              <!-- Node: 5. Human Review & Enhancement Feedback (Diamond Gate) -->
+              <g id="node-hitl" class="arch-node" onclick="inspectNode('hitl')">
+                <polygon points="290,128 415,215 290,302 165,215" fill="#17130a" stroke="#f59e0b" stroke-width="2" />
+                <text x="290" y="192" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-weight="700">HUMAN-IN-THE-LOOP GATE</text>
+                <text x="290" y="211" text-anchor="middle" fill="#f8fafc" font-size="12.5" font-weight="700">5. Human Review &amp;</text>
+                <text x="290" y="228" text-anchor="middle" fill="#f8fafc" font-size="12.5" font-weight="700">Enhancement Feedback</text>
+                <text x="290" y="247" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="monospace">HumanInTheLoopMiddleware</text>
+              </g>
+
+              <!-- Node: Final Enhanced PPTX Deck (Left Middle Pill) -->
+              <g id="node-final" class="arch-node" onclick="inspectNode('final')">
+                <rect x="75" y="406" width="225" height="58" rx="29" fill="#062419" stroke="#10b981" stroke-width="2" />
+                <text x="187" y="431" text-anchor="middle" fill="#ecfdf5" font-size="13" font-weight="700">Final Approved PPTX Deck</text>
+                <text x="187" y="449" text-anchor="middle" fill="#34d399" font-size="10" font-family="monospace">Human_Immune_System_v2.pptx</text>
+              </g>
+
+              <!-- Node: 1. User Topic Request (Center Pill) -->
+              <g id="node-user" class="arch-node" onclick="inspectNode('user')">
+                <rect x="425" y="298" width="195" height="46" rx="23" fill="#0f172a" stroke="#38bdf8" stroke-width="1.8" />
+                <text x="522" y="320" text-anchor="middle" fill="#f8fafc" font-size="12.5" font-weight="700">1. User Topic Request</text>
+                <text x="522" y="335" text-anchor="middle" fill="#94a3b8" font-size="10">&quot;Human Immune System...&quot;</text>
+              </g>
+
+              <!-- Node: SKILL.md + 4 Slide Backgrounds + 6 Layouts (Right Cylinder Node) -->
+              <g id="node-skill" class="arch-node" onclick="inspectNode('skill')">
+                <!-- Cylinder Body -->
+                <path d="M 670 75 L 955 75 L 955 245 C 955 260 670 260 670 245 Z" fill="#161124" stroke="#a855f7" stroke-width="2" />
+                <!-- Cylinder Top Cap -->
+                <ellipse cx="812.5" cy="75" rx="142.5" ry="16" fill="#23183b" stroke="#a855f7" stroke-width="2" />
+                <text x="812" y="79" text-anchor="middle" fill="#e9d5ff" font-size="11" font-weight="700">SKILL STORE: skills/ppt_design/</text>
+                <text x="812" y="108" text-anchor="middle" fill="#f8fafc" font-size="12.5" font-weight="700">SKILL.md + 4 Slide Backgrounds</text>
+                <text x="690" y="130" fill="#38bdf8" font-size="10.5" font-family="monospace">• bg_opening_slide.png  (title)</text>
+                <text x="690" y="147" fill="#38bdf8" font-size="10.5" font-family="monospace">• bg_content_text.png   (cards / table)</text>
+                <text x="690" y="164" fill="#38bdf8" font-size="10.5" font-family="monospace">• bg_content_image.png  (left / right)</text>
+                <text x="690" y="181" fill="#38bdf8" font-size="10.5" font-family="monospace">• bg_closing_slide.png  (ending)</text>
+                <line x1="690" y1="192" x2="935" y2="192" stroke="#3b2760" stroke-width="1" />
+                <text x="812" y="209" text-anchor="middle" fill="#facc15" font-size="10.5" font-weight="700">6 Dynamic Layouts &amp; Card Typography</text>
+                <text x="812" y="226" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="monospace">title | image_right | image_left</text>
+                <text x="812" y="241" text-anchor="middle" fill="#cbd5e1" font-size="10" font-family="monospace">table + infographic | cards | ending</text>
+              </g>
+
+              <!-- Node: Main PPT Design & Research Agent (Center Box) -->
+              <g id="node-agent" class="arch-node" onclick="inspectNode('agent')">
+                <rect x="345" y="405" width="330" height="100" rx="10" fill="#0f1b2d" stroke="#38bdf8" stroke-width="2.2" />
+                <text x="510" y="429" text-anchor="middle" fill="#38bdf8" font-size="10.5" font-weight="700" letter-spacing="0.06em">ORCHESTRATOR AGENT (create_agent)</text>
+                <text x="510" y="450" text-anchor="middle" fill="#ffffff" font-size="14" font-weight="700">Executive PPT Design Agent</text>
+                <text x="510" y="469" text-anchor="middle" fill="#cbd5e1" font-size="11.5" font-family="monospace">Model: google_genai:gemini-2.5-flash</text>
+                <text x="510" y="489" text-anchor="middle" fill="#fbbf24" font-size="10.5" font-family="monospace">+ HumanInTheLoopMiddleware + SqliteSaver</text>
+              </g>
+
+              <!-- Node: SqliteSaver Checkpointer (Right of Agent) -->
+              <g id="node-sqlite" class="arch-node" onclick="inspectNode('sqlite')">
+                <rect x="748" y="445" width="208" height="62" rx="8" fill="#09221c" stroke="#10b981" stroke-width="1.8" />
+                <text x="852" y="467" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">SqliteSaver Checkpointer</text>
+                <text x="852" y="484" text-anchor="middle" fill="#e2e8f0" font-size="10.5" font-family="monospace">ppt_agent_memory.db</text>
+                <text x="852" y="499" text-anchor="middle" fill="#94a3b8" font-size="9.5">Persists Thread &amp; HITL Interrupts</text>
+              </g>
+
+              <!-- Bottom Row Tool 1: @tool load_skill -->
+              <g id="node-tool-skill" class="arch-node" onclick="inspectNode('tool_skill')">
+                <rect x="20" y="595" width="195" height="75" rx="8" fill="#131c31" stroke="#a855f7" stroke-width="1.8" />
+                <text x="117" y="618" text-anchor="middle" fill="#e9d5ff" font-size="11.5" font-weight="700" font-family="monospace">@tool load_skill</text>
+                <text x="117" y="636" text-anchor="middle" fill="#cbd5e1" font-size="10.5">(Progressive Disclosure)</text>
+                <text x="117" y="654" text-anchor="middle" fill="#94a3b8" font-size="9.5">Reads SKILL.md rules on demand</text>
+              </g>
+
+              <!-- Bottom Row Tool 2: @tool plan_presentation_blueprint -->
+              <g id="node-tool-plan" class="arch-node" onclick="inspectNode('tool_plan')">
+                <rect x="235" y="595" width="240" height="75" rx="8" fill="#131c31" stroke="#6366f1" stroke-width="1.8" />
+                <text x="355" y="618" text-anchor="middle" fill="#c7d2fe" font-size="11" font-weight="700" font-family="monospace">@tool plan_presentation_blueprint</text>
+                <text x="355" y="636" text-anchor="middle" fill="#cbd5e1" font-size="10.5">(Mandatory Step 1 Planner)</text>
+                <text x="355" y="654" text-anchor="middle" fill="#94a3b8" font-size="9.5">Locks Left/Right/Table/Cards Plan</text>
+              </g>
+
+              <!-- Bottom Row Tool 3: @tool generate_slide_image -->
+              <g id="node-tool-imggen" class="arch-node" onclick="inspectNode('tool_imggen')">
+                <rect x="495" y="595" width="235" height="75" rx="8" fill="#131c31" stroke="#38bdf8" stroke-width="1.8" />
+                <text x="612" y="618" text-anchor="middle" fill="#bae6fd" font-size="11.5" font-weight="700" font-family="monospace">@tool generate_slide_image</text>
+                <text x="612" y="636" text-anchor="middle" fill="#cbd5e1" font-size="10.5">(gemini-2.5-flash-image)</text>
+                <text x="612" y="654" text-anchor="middle" fill="#94a3b8" font-size="9.5">Generates PNGs per Blueprint</text>
+              </g>
+
+              <!-- Bottom Row Tool 4: @tool create_premium_presentation -->
+              <g id="node-tool-pptx" class="arch-node" onclick="inspectNode('tool_pptx')">
+                <rect x="748" y="595" width="215" height="75" rx="8" fill="#131c31" stroke="#10b981" stroke-width="1.8" />
+                <text x="855" y="618" text-anchor="middle" fill="#a7f3d0" font-size="10.5" font-weight="700" font-family="monospace">@tool create_premium_presentation</text>
+                <text x="855" y="636" text-anchor="middle" fill="#cbd5e1" font-size="10.5">(python-pptx 16:9 Engine)</text>
+                <text x="855" y="654" text-anchor="middle" fill="#94a3b8" font-size="9.5">Cards + Left/Right Visuals + Tables</text>
+              </g>
+
+            </svg>
+          </div>
+
+          <!-- Skill & Layout Mapping Reference Strip (Text-Based, Zero Images) -->
+          <div class="bg-slate-950/90 border border-slate-800 rounded-xl p-3.5 grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+            <div class="border-l-2 border-purple-500 pl-3">
+              <div class="font-bold text-purple-300 uppercase tracking-wider text-[10px]">Progressive Skill Loaded</div>
+              <div class="font-mono text-white mt-0.5">skills/ppt_design/SKILL.md</div>
+              <div class="text-slate-400 text-[11px] mt-0.5">Defines 16:9 canvas (<code>13.333&quot; &times; 7.5&quot;</code>), RGB color tokens &amp; card typography.</div>
+            </div>
+            <div class="border-l-2 border-cyan-500 pl-3">
+              <div class="font-bold text-cyan-300 uppercase tracking-wider text-[10px]">4 Skill Background Resources</div>
+              <div class="font-mono text-slate-200 text-[11px] mt-0.5">
+                • bg_opening_slide.png &rarr; <span class="text-cyan-400">title</span><br/>
+                • bg_content_image.png &rarr; <span class="text-cyan-400">image_right / image_left</span><br/>
+                • bg_content_text.png &rarr; <span class="text-cyan-400">table / cards</span><br/>
+                • bg_closing_slide.png &rarr; <span class="text-cyan-400">ending</span>
+              </div>
+            </div>
+            <div class="border-l-2 border-amber-500 pl-3">
+              <div class="font-bold text-amber-300 uppercase tracking-wider text-[10px]">Plan-First + HITL Loop</div>
+              <div class="text-slate-300 text-[11px] mt-0.5">
+                1. Plan Blueprint (<code>latest_presentation_blueprint.json</code>)<br/>
+                2. Generate Planned Gemini Visuals<br/>
+                3. Compile <code>.pptx</code> &amp; Pause at <code>HumanInTheLoopMiddleware</code>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT 5 COLUMNS: DYNAMIC BEHIND-THE-SCENES EXPLANATION & CODE/STATE INSPECTOR -->
+        <div class="xl:col-span-5 space-y-4">
+
+          <!-- Card 1: Behind-the-Scenes Architectural Explanation -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+              <div>
+                <span id="explainCategory" class="text-[11px] font-bold uppercase tracking-wider text-sky-400">
+                  BEHIND THE SCENES EXPLANATION
+                </span>
+                <h3 id="explainHeading" class="text-lg font-bold text-white mt-0.5"></h3>
+              </div>
+              <span id="statusPill" class="text-[11px] font-mono px-2.5 py-1 rounded bg-slate-800 text-emerald-400 border border-slate-700"></span>
+            </div>
+
+            <!-- Narrative Paragraph -->
+            <p id="explainSummary" class="text-sm text-slate-300 leading-relaxed"></p>
+
+            <!-- How It Works Under the Hood (Numbered Mechanics) -->
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2.5">
+              <div class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <span>&#9881;</span> How It Works Behind the Scenes:
+              </div>
+              <ul id="explainMechanics" class="text-xs text-slate-300 space-y-2 leading-relaxed"></ul>
+            </div>
+
+            <!-- Why This Architectural Pattern Matters -->
+            <div class="bg-indigo-950/30 border border-indigo-800/50 rounded-xl p-3.5">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-indigo-300">
+                Architectural Rationale
+              </div>
+              <p id="explainWhy" class="text-xs text-indigo-100/90 mt-1 leading-relaxed"></p>
+            </div>
+          </div>
+
+          <!-- Card 2: Sub-Tabbed Live Payload & Python Implementation Inspector -->
+          <div class="bg-slate-900 border border-slate-800 rounded-2xl p-4 shadow-xl space-y-3">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-2.5">
+              <div class="flex items-center gap-2">
+                <button id="subTabPayload" onclick="switchSubTab('payload')" class="subtab-btn active px-3 py-1 rounded-lg text-xs font-bold border border-slate-700 transition">
+                  Live State / Tool Payload (JSON)
+                </button>
+                <button id="subTabCode" onclick="switchSubTab('code')" class="subtab-btn px-3 py-1 rounded-lg text-xs font-bold text-slate-400 border border-slate-800 hover:text-white transition">
+                  Python Code Behind This Step
+                </button>
+              </div>
+              <span class="text-[11px] font-mono text-slate-500">ppt_agent.ipynb</span>
+            </div>
+
+            <pre id="inspectorPre" class="text-xs leading-relaxed overflow-x-auto max-h-[300px] p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-emerald-300"></pre>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ========================================================================= -->
+    <!-- TAB 2: INTERACTIVE 6-LAYOUT PYTHON-PPTX WIREFRAME & COORDINATE EXPLORER   -->
+    <!-- ========================================================================= -->
+    <div id="mainTab2" class="hidden space-y-6">
+      <section class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-5">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-lg font-bold text-white">
+              Interactive <code>python-pptx</code> 16:9 Executive Layout Wireframe Explorer (<code>13.333&quot; &times; 7.5&quot;</code>)
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">
+              Select any of the <strong>6 Dynamic Layouts</strong> planned by <code>plan_presentation_blueprint</code>, then click any shape container on the wireframe to inspect its exact <code>Inches(left, top, width, height)</code> geometry and code!
+            </p>
+          </div>
+          <div class="flex flex-wrap gap-1.5">
+            <button onclick="selectLayout('title')" id="layoutBtn-title" class="layout-btn px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold bg-slate-800 text-slate-300">1. Opening ('title')</button>
+            <button onclick="selectLayout('image_right')" id="layoutBtn-image_right" class="layout-btn active px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold">2. Image Right ('image_right')</button>
+            <button onclick="selectLayout('image_left')" id="layoutBtn-image_left" class="layout-btn px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold bg-slate-800 text-slate-300">3. Image Left ('image_left')</button>
+            <button onclick="selectLayout('table')" id="layoutBtn-table" class="layout-btn px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold bg-slate-800 text-slate-300">4. Table + Visual ('table')</button>
+            <button onclick="selectLayout('cards')" id="layoutBtn-cards" class="layout-btn px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold bg-slate-800 text-slate-300">5. Cards + Synthesis ('cards')</button>
+            <button onclick="selectLayout('ending')" id="layoutBtn-ending" class="layout-btn px-3 py-1.5 rounded-lg border border-slate-700 text-xs font-bold bg-slate-800 text-slate-300">6. Closing ('ending')</button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Left 7 Cols: Clean Geometric 16:9 Wireframe Canvas (Zero Images) -->
+          <div class="lg:col-span-7 space-y-3">
+            <div class="flex items-center justify-between text-xs text-slate-400 font-mono">
+              <span>Origin (0&quot;, 0&quot;) Top-Left</span>
+              <span id="canvasBgLabel" class="text-purple-400 font-bold">Skill Background Resource: bg_content_image.png</span>
+              <span>Canvas: 13.333&quot; &times; 7.5&quot;</span>
+            </div>
+
+            <div id="slideCanvas" class="relative w-full aspect-video rounded-xl overflow-hidden border-2 border-slate-700 shadow-2xl select-none bg-[#090d18]">
+              <!-- Populated dynamically by renderSlideBlueprint() -->
+            </div>
+
+            <div class="flex flex-wrap gap-2 pt-1" id="layerButtonsBar"></div>
+          </div>
+
+          <!-- Right 5 Cols: Coordinate & Code Inspector for Selected Shape -->
+          <div class="lg:col-span-5 space-y-4">
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+              <div class="flex items-center justify-between">
+                <span id="elLayerBadge" class="text-xs font-bold uppercase px-2.5 py-0.5 rounded bg-sky-950 text-sky-300 border border-sky-800"></span>
+                <span id="elCoordsBadge" class="text-xs font-mono font-bold text-amber-400"></span>
+              </div>
+              <h3 id="elTitle" class="text-base font-bold text-white"></h3>
+              <p id="elExplanation" class="text-xs text-slate-300 leading-relaxed"></p>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2">
+              <div class="text-xs text-slate-400 border-b border-slate-800 pb-1.5 flex items-center justify-between">
+                <span>Exact <code>python-pptx</code> Code for This Shape Layer</span>
+                <span class="font-mono text-cyan-400">create_premium_presentation()</span>
+              </div>
+              <pre id="elCode" class="text-xs leading-relaxed overflow-x-auto text-cyan-300"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </main>
+
+  <script>
+    // =========================================================================
+    // TAB 1: DYNAMIC 8-STEP EXECUTION FLOW & ARCHITECTURAL NODE DATA
+    // =========================================================================
+    const executionSteps = [
+      {
+        stepNumber: 1,
+        phase: "STEP 1 OF 8 • USER INPUT & SKILL INITIALIZATION",
+        bannerTitle: "1. User Sends Topic Request & Agent Loads Design Skill (load_skill)",
+        category: "PROGRESSIVE SKILL DISCLOSURE",
+        heading: "Loading skills/ppt_design/SKILL.md into Agent Context",
+        status: "Skill Loaded (6,933 chars)",
+        activeNodes: ["node-user", "node-agent", "node-tool-skill", "node-skill", "node-sqlite"],
+        hitlNodes: [],
+        activeEdges: [
+          { id: "edge-user-agent", color: "cyan", labelId: "label-user-agent" },
+          { id: "edge-agent-loadskill", color: "purple", labelId: "label-agent-loadskill" },
+          { id: "edge-skill-agent", color: "purple", labelId: "label-skill-agent" },
+          { id: "edge-agent-sqlite", color: "emerald" }
+        ],
+        summary: "When the user asks for a 6-slide presentation on 'The Human Immune System', the orchestrator agent (gemini-2.5-flash) starts by calling @tool load_skill('ppt_design'). This reads skills/ppt_design/SKILL.md from disk and injects the complete design system into the conversation.",
+        mechanics: [
+          "1. User Input Recorded: LangGraph's SqliteSaver (ppt_agent_memory.db) creates a new checkpoint under thread_id='immune_system_executive_v2'.",
+          "2. Progressive Skill Disclosure: Instead of bloating the base prompt permanently, @tool load_skill('ppt_design') dynamically loads the 16:9 coordinate rules, the 4 background resource mappings (bg_opening_slide.png, bg_content_text.png, bg_content_image.png, bg_closing_slide.png), and the 6 layout schemas.",
+          "3. Card Typography Enforcement: SKILL.md instructs the agent to format every bullet as 'Bold Concept Title: Detailed explanation' so bullets render as elevated Feature Cards rather than plain floating text."
+        ],
+        why: "Separating domain design rules into skills/ppt_design/SKILL.md allows you to update slide themes, background filenames, or layout rules without modifying the core agent orchestration code.",
+        payload: {
+          thread_id: "immune_system_executive_v2",
+          active_tool_call: "load_skill(skill_name='ppt_design')",
+          skill_file_loaded: "skills/ppt_design/SKILL.md",
+          injected_rules: {
+            mandatory_step_1: "plan_presentation_blueprint",
+            background_resources: [
+              "bg_opening_slide.png -> layout='title'",
+              "bg_content_image.png -> layout='image_right' | 'image_left'",
+              "bg_content_text.png  -> layout='table' | 'cards'",
+              "bg_closing_slide.png -> layout='ending'"
+            ],
+            supported_layouts: ["title", "image_right", "image_left", "table", "cards", "ending"]
+          }
+        },
+        code: `@tool
+def load_skill(skill_name: str) -> str:
+    # Loads the full design instructions from skills/<skill_name>/SKILL.md
+    skill_path = os.path.join(SKILLS_DIR, skill_name, "SKILL.md")
+    with open(skill_path, "r", encoding="utf-8") as f:
+        return f.read()
+
+# Agent automatically invokes load_skill("ppt_design") as its first action`
+      },
+      {
+        stepNumber: 2,
+        phase: "STEP 2 OF 8 • MANDATORY PRESENTATION BLUEPRINT PLANNING",
+        bannerTitle: "2. Agent Plans Complete Slide-by-Slide Blueprint First (plan_presentation_blueprint)",
+        category: "PLAN-FIRST ARCHITECTURE",
+        heading: "Locking Dynamic Layouts & Visual Prompts Before Image Generation",
+        status: "Blueprint Saved (6 Slides)",
+        activeNodes: ["node-agent", "node-tool-plan", "node-sqlite"],
+        hitlNodes: [],
+        activeEdges: [
+          { id: "edge-agent-plan", color: "cyan", labelId: "label-agent-plan" },
+          { id: "edge-agent-sqlite", color: "emerald" }
+        ],
+        summary: "Before generating a single image or slide, the agent calls @tool plan_presentation_blueprint. It plans all 6 slides upfront, explicitly alternating layouts (title, image_right, image_left, table, cards, ending) so images are never stuck only on the right-hand side!",
+        mechanics: [
+          "1. Structured Pydantic Validation: Each slide in slide_plans is validated against SlideBlueprintItem (slide_number, section_tag, title, layout, needs_image, image_position, visual_prompt).",
+          "2. Dynamic Layout Variety: Slide 2 is assigned layout='image_right' (image_position='right'), Slide 3 is assigned layout='image_left' (image_position='left'), and Slide 4 is assigned layout='table' (image_position='table_companion').",
+          "3. Blueprint Persistence: Saved to generated_Blueprint_Plans/latest_presentation_blueprint.json and recorded in SqliteSaver."
+        ],
+        why: "Planning the presentation first ensures visual coherence: the agent knows exactly which slides need an illustration (image_right / image_left) and which slide needs a table_infographic companion chart before calling the image model.",
+        payload: {
+          tool_call: "plan_presentation_blueprint",
+          blueprint_file: "generated_Blueprint_Plans/latest_presentation_blueprint.json",
+          total_slides: 6,
+          slides: [
+            { slide: 1, layout: "title", needs_image: false, image_position: "none" },
+            { slide: 2, layout: "image_right", needs_image: true, image_position: "right", title: "Innate Immunity: First Line of Defense" },
+            { slide: 3, layout: "image_left", needs_image: true, image_position: "left", title: "Adaptive Immunity: Targeted Response" },
+            { slide: 4, layout: "table", needs_image: true, image_position: "table_companion", title: "Innate vs. Adaptive Differentiators" },
+            { slide: 5, layout: "cards", needs_image: false, image_position: "none", title: "Immunological Memory & Vaccines" },
+            { slide: 6, layout: "ending", needs_image: false, image_position: "none", title: "Executive Summary & Clinical Outlook" }
+          ]
+        },
+        code: `@tool
+def plan_presentation_blueprint(
+    topic: str,
+    target_audience: str,
+    slide_plans: List[SlideBlueprintItem],
+) -> str:
+    # MANDATORY STEP 1: Plans the slide-by-slide blueprint BEFORE generating images
+    plan_path = "generated_Blueprint_Plans/latest_presentation_blueprint.json"
+    with open(plan_path, "w") as f:
+        json.dump([s.model_dump() for s in slide_plans], f, indent=2)
+    return "Blueprint locked. Proceed to call generate_slide_image for planned visual slides."`
+      },
+      {
+        stepNumber: 3,
+        phase: "STEP 3 OF 8 • TARGETED GEMINI IMAGE GENERATION",
+        bannerTitle: "3. Agent Generates Planned Slide Visuals & Table Infographic (generate_slide_image)",
+        category: "GOOGLE GENAI SDK (gemini-2.5-flash-image)",
+        heading: "Generating Binary PNG Assets According to the Locked Blueprint",
+        status: "3 PNG Visuals Generated",
+        activeNodes: ["node-agent", "node-tool-imggen", "node-sqlite"],
+        hitlNodes: [],
+        activeEdges: [
+          { id: "edge-agent-imggen", color: "cyan", labelId: "label-agent-imggen" },
+          { id: "edge-agent-sqlite", color: "emerald" }
+        ],
+        summary: "Following the blueprint from Step 2, the agent calls @tool generate_slide_image three times — once for Slide 2 (image_right), once for Slide 3 (image_left), and once for Slide 4 (table with visual_type='table_infographic').",
+        mechanics: [
+          "1. Native Google GenAI SDK: Calls client.models.generate_content(model='gemini-2.5-flash-image', config=GenerateContentConfig(response_modalities=['IMAGE'])).",
+          "2. Visual Type Styling: Appends dark-slate (#0F172A), neon cyan (#00F2FE), and royal purple (#A855F7) theme instructions so every generated PNG matches the presentation background seamlessly.",
+          "3. Companion Table Infographic: When visual_type='table_infographic' is passed for Slide 4, Gemini generates a structured visual comparison matrix to sit alongside the native PowerPoint table."
+        ],
+        why: "Because images are generated strictly from the blueprint prompts, the agent only calls gemini-2.5-flash-image for slides that actually require visuals, saving latency and tokens.",
+        payload: {
+          tool_call: "generate_slide_image",
+          model: "gemini-2.5-flash-image",
+          response_modalities: ["IMAGE"],
+          generated_assets: [
+            { slide_number: 2, visual_type: "illustration", path: "generated_Slide_Images/slide_2_illustration.png", bytes: 1212342 },
+            { slide_number: 3, visual_type: "illustration", path: "generated_Slide_Images/slide_3_illustration.png", bytes: 1124056 },
+            { slide_number: 4, visual_type: "table_infographic", path: "generated_Slide_Images/slide_4_table_infographic.png", bytes: 1121224 }
+          ]
+        },
+        code: `resp = client.models.generate_content(
+    model="gemini-2.5-flash-image",
+    contents=enhanced_prompt,
+    config=types.GenerateContentConfig(response_modalities=["IMAGE"]),
+)
+# Extracts binary bytes from resp.candidates[0].content.parts -> inline_data.data
+with open(file_path, "wb") as f:
+    f.write(img_bytes)`
+      },
+      {
+        stepNumber: 4,
+        phase: "STEP 4 OF 8 • COMPILING EXECUTIVE DRAFT 1 (.PPTX)",
+        bannerTitle: "4. Compiling 6-Slide Executive Deck via python-pptx (create_premium_presentation)",
+        category: "PYTHON-PPTX 16:9 LAYOUT ENGINE",
+        heading: "Building Feature Cards, Left/Right Visual Frames & Styled Native Tables",
+        status: "Draft 1 Saved to Disk",
+        activeNodes: ["node-agent", "node-tool-pptx", "node-skill", "node-draft", "node-sqlite"],
+        hitlNodes: [],
+        activeEdges: [
+          { id: "edge-skill-agent", color: "purple", labelId: "label-skill-agent" },
+          { id: "edge-agent-pptx", color: "emerald", labelId: "label-agent-pptx" },
+          { id: "edge-pptx-draft", color: "emerald", labelId: "label-pptx-draft" }
+        ],
+        summary: "With all 3 visual assets saved on disk, the agent calls @tool create_premium_presentation to compile Human_Immune_System_v1_Draft.pptx. The python-pptx engine applies the 4 skill backgrounds and builds each slide's custom geometry.",
+        mechanics: [
+          "1. Layer 0 Background Mapping: Places bg_opening_slide.png, bg_content_image.png, bg_content_text.png, or bg_closing_slide.png across (0\", 0\", 13.333\", 7.5\").",
+          "2. Executive Feature Cards (_render_feature_cards_column): Splits each 'Heading: Body' bullet into a rounded dark-slate card (RGB(20, 30, 52)), a left vertical neon accent bar, a numbered badge (01..04), a 14pt Bold White title, and an 11.5pt Bright Silver body.",
+          "3. Dynamic Left/Right & Table Layouts: Places the framed Gemini visual on the RIGHT for Slide 2 (left=6.95\"), on the LEFT for Slide 3 (left=0.75\"), and builds a native slide.shapes.add_table(...) + companion infographic on Slide 4!"
+        ],
+        why: "Programmatic shape composition in python-pptx guarantees pixel-accurate alignment, consistent dark-mode contrast, and editable native PowerPoint tables and text cards.",
+        payload: {
+          tool_call: "create_premium_presentation",
+          file_name: "Human_Immune_System_v1_Draft.pptx",
+          slide_dimensions: "13.333 in x 7.5 in (16:9 Widescreen)",
+          compiled_slides: [
+            "Slide 1 [title]       -> Hero Glass Card + bg_opening_slide.png",
+            "Slide 2 [image_right] -> 4 Feature Cards (Left) + Framed Gemini Image (Right)",
+            "Slide 3 [image_left]  -> Framed Gemini Image (Left) + 4 Feature Cards (Right)",
+            "Slide 4 [table]       -> Native Styled Table (Left) + Table Infographic (Right)",
+            "Slide 5 [cards]       -> 4 Feature Cards (Left) + Strategic Synthesis Card (Right)",
+            "Slide 6 [ending]      -> Takeaway Cards (Left) + Executive Finale Card (Right)"
+          ]
+        },
+        code: `@tool
+def create_premium_presentation(slides_data: List[Dict[str, Any]], file_name: str) -> str:
+    prs = Presentation()
+    prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
+    for idx, slide_info in enumerate(slides_data, start=1):
+        # Dispatches to 'title', 'image_right', 'image_left', 'table', 'cards', or 'ending'
+        ...
+    prs.save(os.path.abspath(file_name))`
+      },
+      {
+        stepNumber: 5,
+        phase: "STEP 5 OF 8 • HUMAN-IN-THE-LOOP MIDDLEWARE INTERRUPT (DRAFT 1 REVIEW)",
+        bannerTitle: "5. Agent Calls submit_presentation_for_review -> Paused by HumanInTheLoopMiddleware!",
+        category: "HUMAN-IN-THE-LOOP INTERRUPT GATE",
+        heading: "Execution Pauses Before Tool Completion so User Can Inspect Draft 1",
+        status: "PAUSED AT HITL GATE",
+        activeNodes: ["node-draft", "node-hitl", "node-sqlite"],
+        hitlNodes: ["node-hitl"],
+        activeEdges: [
+          { id: "edge-draft-hitl", color: "amber" },
+          { id: "edge-agent-sqlite", color: "amber" }
+        ],
+        summary: "Immediately after Human_Immune_System_v1_Draft.pptx is saved to disk, the agent calls @tool submit_presentation_for_review. HumanInTheLoopMiddleware intercepts this call and pauses graph execution, persisting the exact state into SqliteSaver.",
+        mechanics: [
+          "1. Why Interrupt on submit_presentation_for_review? If we interrupted before create_premium_presentation, the .pptx file wouldn't exist on disk yet! Interrupting on the review gate ensures you can open and inspect the real .pptx file in PowerPoint/Keynote before deciding.",
+          "2. Interrupt Payload: Exposes action_requests with pptx_file_path, slide_count: 6, layout_breakdown, and allowed_decisions: ['approve', 'edit', 'reject'].",
+          "3. Zero Compute While Waiting: Because SqliteSaver writes the state to ppt_agent_memory.db, the Python process can even stop and resume hours later."
+        ],
+        why: "First drafts often inspire new ideas once seen visually. The HITL middleware turns a one-shot generator into an interactive co-designer.",
+        payload: {
+          middleware: "HumanInTheLoopMiddleware",
+          interrupted_tool: "submit_presentation_for_review",
+          allowed_decisions: ["approve", "edit", "reject"],
+          action_request_args: {
+            pptx_file_path: "Human_Immune_System_v1_Draft.pptx",
+            slide_count: 6,
+            layout_breakdown: "Slide 1: title, Slide 2: image_right, Slide 3: image_left, Slide 4: table, Slide 5: cards, Slide 6: ending"
+          }
+        },
+        code: `hitl_middleware = HumanInTheLoopMiddleware(
+    interrupt_on={
+        "submit_presentation_for_review": {
+            "allowed_decisions": ["approve", "edit", "reject"],
+        }
+    }
+)
+# State is now paused at __interrupt__ and saved in ppt_agent_memory.db`
+      },
+      {
+        stepNumber: 6,
+        phase: "STEP 6 OF 8 • USER SUBMITS ENHANCEMENT FEEDBACK (REJECT -> LOOP BACK)",
+        bannerTitle: "6. User Sends Enhancement Feedback via Command(resume={'type': 'reject', ...})",
+        category: "ITERATIVE HUMAN FEEDBACK LOOP",
+        heading: "Routing User Feedback Back into the Agent to Expand Deck to 8 Slides",
+        status: "Resuming with Feedback",
+        activeNodes: ["node-hitl", "node-agent", "node-tool-plan", "node-sqlite"],
+        hitlNodes: ["node-hitl"],
+        activeEdges: [
+          { id: "edge-hitl-reject", color: "amber", labelId: "label-hitl-reject" },
+          { id: "edge-agent-plan", color: "cyan", labelId: "label-agent-plan" }
+        ],
+        summary: "After reviewing Draft 1, the user decides to expand the presentation from 6 slides to 8 slides by adding Slide 5 (layout='image_left': mRNA Vaccines) and Slide 6 (layout='image_right': CAR-T Cell Therapy). We resume the graph using Command(resume=...) with type='reject'.",
+        mechanics: [
+          "1. Synthetic ToolMessage Injection: When type='reject' is sent with a message, HumanInTheLoopMiddleware converts the user's feedback into a ToolMessage returned to the LLM from submit_presentation_for_review.",
+          "2. Re-Planning the Blueprint First: Reading the feedback, the agent calls plan_presentation_blueprint first to update latest_presentation_blueprint.json from 6 slides to 8 slides!",
+          "3. Preserving Existing Work: Slides 1–4 (and their existing generated images) are kept intact in the updated 8-slide blueprint."
+        ],
+        why: "Using Command(resume=...) on the same thread_id gives the agent full memory of the previous 6 slides and existing image paths stored in SqliteSaver.",
+        payload: {
+          resume_command: {
+            decisions: [
+              {
+                type: "reject",
+                message: "Enhance into an 8-slide deck ('Human_Immune_System_v2_Enhanced.pptx') by inserting: Slide 5 (layout='image_left', mRNA Vaccine & LNP Delivery) and Slide 6 (layout='image_right', CAR-T Cell Therapy). Update blueprint first, generate the 2 new images, and re-compile."
+              }
+            ]
+          },
+          updated_blueprint_slides: 8
+        },
+        code: `response_v2 = ppt_agent.invoke(
+    Command(
+        resume={
+            "decisions": [{
+                "type": "reject",
+                "message": human_feedback,
+            }]
+        }
+    ),
+    config={"configurable": {"thread_id": "immune_system_executive_v2"}},
+)`
+      },
+      {
+        stepNumber: 7,
+        phase: "STEP 7 OF 8 • DELTA IMAGE GENERATION & V2 COMPILATION",
+        bannerTitle: "7. Agent Generates Only the 2 New Visuals & Compiles 8-Slide V2 Enhanced Deck",
+        category: "DELTA EXECUTION & V2 COMPILATION",
+        heading: "Generating Slides 5 & 6 Visuals and Compiling Human_Immune_System_v2_Enhanced.pptx",
+        status: "V2 Compiled (8 Slides)",
+        activeNodes: ["node-agent", "node-tool-imggen", "node-tool-pptx", "node-skill", "node-draft", "node-hitl"],
+        hitlNodes: ["node-hitl"],
+        activeEdges: [
+          { id: "edge-agent-imggen", color: "cyan", labelId: "label-agent-imggen" },
+          { id: "edge-agent-pptx", color: "emerald", labelId: "label-agent-pptx" },
+          { id: "edge-pptx-draft", color: "emerald", labelId: "label-pptx-draft" },
+          { id: "edge-draft-hitl", color: "amber" }
+        ],
+        summary: "Following its updated 8-slide blueprint, the agent calls generate_slide_image ONLY for the 2 new slides (slide_5_illustration.png for mRNA Vaccines on the LEFT, and slide_6_illustration.png for CAR-T Therapy on the RIGHT), reuses Slides 2–4 images from Draft 1, compiles Human_Immune_System_v2_Enhanced.pptx, and pauses at the HITL gate again.",
+        mechanics: [
+          "1. Smart Asset Reuse: The agent sees in its SQLite conversation history that slide_2_illustration.png, slide_3_illustration.png, and slide_4_table_infographic.png already exist on disk.",
+          "2. Delta Image Generation: Calls gemini-2.5-flash-image only for slide_5_illustration.png (1.19 MB) and slide_6_illustration.png (1.03 MB).",
+          "3. V2 Compilation & Second Review Gate: Compiles all 8 slides into Human_Immune_System_v2_Enhanced.pptx and pauses at submit_presentation_for_review."
+        ],
+        why: "Delta asset generation makes iterative human-in-the-loop refinements fast and cost-effective.",
+        payload: {
+          reused_images: [
+            "generated_Slide_Images/slide_2_illustration.png",
+            "generated_Slide_Images/slide_3_illustration.png",
+            "generated_Slide_Images/slide_4_table_infographic.png"
+          ],
+          newly_generated_images: [
+            "generated_Slide_Images/slide_5_illustration.png (layout='image_left')",
+            "generated_Slide_Images/slide_6_illustration.png (layout='image_right')"
+          ],
+          compiled_v2_deck: "Human_Immune_System_v2_Enhanced.pptx (8 slides)"
+        },
+        code: `# Agent calls generate_slide_image only for Slide 5 & Slide 6:
+generate_slide_image(prompt="mRNA LNP delivery...", slide_number=5, visual_type="illustration")
+generate_slide_image(prompt="CAR-T cell therapy...", slide_number=6, visual_type="illustration")
+
+# Then compiles the 8-slide deck and calls submit_presentation_for_review:
+create_premium_presentation(slides_data=slides_8, file_name="Human_Immune_System_v2_Enhanced.pptx")`
+      },
+      {
+        stepNumber: 8,
+        phase: "STEP 8 OF 8 • FINAL APPROVAL & SQLITE PERSISTENCE",
+        bannerTitle: "8. User Approves V2 Presentation -> Workflow Completes & Persists in SqliteSaver",
+        category: "FINAL APPROVAL & PERSISTENCE",
+        heading: "Completing the HITL Loop with Command(resume={'type': 'approve'})",
+        status: "Approved & Persisted",
+        activeNodes: ["node-hitl", "node-final", "node-agent", "node-sqlite"],
+        hitlNodes: [],
+        activeEdges: [
+          { id: "edge-hitl-approve", color: "emerald", labelId: "label-hitl-approve" },
+          { id: "edge-agent-sqlite", color: "emerald" }
+        ],
+        summary: "Satisfied with the 8-slide Human_Immune_System_v2_Enhanced.pptx presentation, the user resumes the graph with Command(resume={'decisions': [{'type': 'approve'}]}). submit_presentation_for_review executes, and the agent returns the final executive summary.",
+        mechanics: [
+          "1. Tool Execution Allowed: HumanInTheLoopMiddleware lets submit_presentation_for_review run to completion.",
+          "2. Durable Audit Trail: Every message, blueprint JSON, image path, and HITL decision across both iterations is permanently stored in ppt_agent_memory.db.",
+          "3. Ready for Future Sessions: Because SqliteSaver is used instead of InMemorySaver, you can reopen the notebook anytime and request a V3 edit on the exact same thread!"
+        ],
+        why: "Combining HumanInTheLoopMiddleware with SqliteSaver provides production-grade durability and full human oversight over AI-generated deliverables.",
+        payload: {
+          final_decision: { decisions: [{ type: "approve" }] },
+          final_deliverable: "/Users/sachinmishra/Desktop/Agents_From_Scratch/ppt-agent/Human_Immune_System_v2_Enhanced.pptx",
+          final_slide_count: 8,
+          final_layouts: [
+            "1: title", "2: image_right", "3: image_left", "4: table",
+            "5: image_left", "6: image_right", "7: cards", "8: ending"
+          ],
+          sqlite_db: "ppt_agent_memory.db"
+        },
+        code: `final_response = ppt_agent.invoke(
+    Command(resume={"decisions": [{"type": "approve"}]}),
+    config=thread_config,
+)
+print(final_response["messages"][-1].content)`
+      }
+    ];
+
+    // Direct Node Inspection Dictionary (when user clicks any node on the SVG diagram directly)
+    const nodeDirectInfo = {
+      user: 0,
+      skill: 0,
+      tool_skill: 0,
+      tool_plan: 1,
+      tool_imggen: 2,
+      tool_pptx: 3,
+      draft: 4,
+      hitl: 4,
+      agent: 5,
+      sqlite: 7,
+      final: 7
+    };
+
+    let currentStepIdx = 0;
+    let currentSubTab = "payload";
+    let autoPlayTimer = null;
+
+    const allNodeIds = [
+      "node-draft", "node-hitl", "node-final", "node-user", "node-skill",
+      "node-agent", "node-sqlite", "node-tool-skill", "node-tool-plan",
+      "node-tool-imggen", "node-tool-pptx"
+    ];
+    const allEdgeIds = [
+      "edge-user-agent", "edge-skill-agent", "edge-agent-sqlite",
+      "edge-agent-loadskill", "edge-agent-plan", "edge-agent-imggen",
+      "edge-agent-pptx", "edge-pptx-draft", "edge-draft-hitl",
+      "edge-hitl-reject", "edge-hitl-approve"
+    ];
+    const allLabelIds = [
+      "label-user-agent", "label-skill-agent", "label-agent-loadskill",
+      "label-agent-plan", "label-agent-imggen", "label-agent-pptx",
+      "label-pptx-draft", "label-hitl-reject", "label-hitl-approve"
+    ];
+
+    function renderStepPills() {
+      const container = document.getElementById("stepPillsContainer");
+      container.innerHTML = "";
+      executionSteps.forEach((s, idx) => {
+        const btn = document.createElement("button");
+        btn.className = `step-btn px-2.5 py-1 rounded-md text-xs font-bold border border-slate-700 transition ${
+          idx === currentStepIdx ? "active" : "bg-slate-800 text-slate-400 hover:text-white"
+        }`;
+        btn.innerText = `S${idx + 1}`;
+        btn.title = s.bannerTitle;
+        btn.onclick = () => {
+          stopAutoPlay();
+          currentStepIdx = idx;
+          updateArchitectureView();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function updateArchitectureView() {
+      const step = executionSteps[currentStepIdx];
+
+      // Update Header Banner
+      document.getElementById("phaseBadge").innerText = step.phase;
+      document.getElementById("bannerTitle").innerText = step.bannerTitle;
+
+      // Update Right Explanation Panel
+      document.getElementById("explainCategory").innerText = step.category;
+      document.getElementById("explainHeading").innerText = step.heading;
+      document.getElementById("statusPill").innerText = step.status;
+      document.getElementById("explainSummary").innerText = step.summary;
+      document.getElementById("explainMechanics").innerHTML = step.mechanics
+        .map(m => `<li class="border-l-2 border-slate-700 pl-2.5">${m}</li>`)
+        .join("");
+      document.getElementById("explainWhy").innerText = step.why;
+
+      // Update Sub-Tab Inspector Content
+      updateInspectorBox();
+
+      // Update SVG Nodes
+      allNodeIds.forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.classList.remove("node-active", "node-hitl", "node-dimmed");
+        if (step.hitlNodes && step.hitlNodes.includes(id)) {
+          el.classList.add("node-hitl");
+        } else if (step.activeNodes.includes(id)) {
+          el.classList.add("node-active");
+        } else {
+          el.classList.add("node-dimmed");
+        }
+      });
+
+      // Reset all SVG Edges & Labels
+      allEdgeIds.forEach(id => {
+        const edge = document.getElementById(id);
+        if (!edge) return;
+        edge.classList.remove("edge-active", "edge-active-amber", "edge-active-emerald", "edge-active-purple");
+        edge.setAttribute("marker-end", "url(#arrow-muted)");
+      });
+      allLabelIds.forEach(id => {
+        const lbl = document.getElementById(id);
+        if (lbl) lbl.classList.remove("edge-label-active");
+      });
+
+      // Activate current step's SVG Edges & Labels
+      step.activeEdges.forEach(item => {
+        const edge = document.getElementById(item.id);
+        if (!edge) return;
+        if (item.color === "amber") {
+          edge.classList.add("edge-active-amber");
+          edge.setAttribute("marker-end", "url(#arrow-amber)");
+        } else if (item.color === "emerald") {
+          edge.classList.add("edge-active-emerald");
+          edge.setAttribute("marker-end", "url(#arrow-emerald)");
+        } else if (item.color === "purple") {
+          edge.classList.add("edge-active-purple");
+          edge.setAttribute("marker-end", "url(#arrow-purple)");
+        } else {
+          edge.classList.add("edge-active");
+          edge.setAttribute("marker-end", "url(#arrow-cyan)");
+        }
+        if (item.labelId) {
+          const lbl = document.getElementById(item.labelId);
+          if (lbl) lbl.classList.add("edge-label-active");
+        }
+      });
+
+      document.getElementById("prevBtn").disabled = currentStepIdx === 0;
+      document.getElementById("nextBtn").disabled = currentStepIdx === executionSteps.length - 1;
+      renderStepPills();
+    }
+
+    function updateInspectorBox() {
+      const step = executionSteps[currentStepIdx];
+      const pre = document.getElementById("inspectorPre");
+      if (currentSubTab === "payload") {
+        pre.className = "text-xs leading-relaxed overflow-x-auto max-h-[300px] p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-emerald-300";
+        pre.innerText = JSON.stringify(step.payload, null, 2);
+      } else {
+        pre.className = "text-xs leading-relaxed overflow-x-auto max-h-[300px] p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-cyan-300";
+        pre.innerText = step.code;
+      }
+    }
+
+    function switchSubTab(mode) {
+      currentSubTab = mode;
+      document.getElementById("subTabPayload").classList.toggle("active", mode === "payload");
+      document.getElementById("subTabCode").classList.toggle("active", mode === "code");
+      updateInspectorBox();
+    }
+
+    function nextStep() {
+      if (currentStepIdx < executionSteps.length - 1) {
+        currentStepIdx++;
+        updateArchitectureView();
+      }
+    }
+
+    function prevStep() {
+      if (currentStepIdx > 0) {
+        currentStepIdx--;
+        updateArchitectureView();
+      }
+    }
+
+    function inspectNode(nodeKey) {
+      stopAutoPlay();
+      if (nodeKey in nodeDirectInfo) {
+        currentStepIdx = nodeDirectInfo[nodeKey];
+        updateArchitectureView();
+      }
+    }
+
+    function toggleAutoPlay() {
+      if (autoPlayTimer) {
+        stopAutoPlay();
+      } else {
+        document.getElementById("playIcon").innerHTML = "&#9208;";
+        document.getElementById("playText").innerText = "Pause Flow";
+        autoPlayTimer = setInterval(() => {
+          currentStepIdx = (currentStepIdx + 1) % executionSteps.length;
+          updateArchitectureView();
+        }, 3200);
+      }
+    }
+
+    function stopAutoPlay() {
+      if (autoPlayTimer) {
+        clearInterval(autoPlayTimer);
+        autoPlayTimer = null;
+        document.getElementById("playIcon").innerHTML = "&#9654;";
+        document.getElementById("playText").innerText = "Auto-Play Flow";
+      }
+    }
+
+    // =========================================================================
+    // TAB 2: CLEAN WIREFRAME 6-LAYOUT PYTHON-PPTX COORDINATE EXPLORER
+    // =========================================================================
+    const layouts = {
+      title: {
+        bgName: "skills/ppt_design/resources/bg_opening_slide.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Full-Bleed Skill Background (bg_opening_slide.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Placed first on the blank slide (prs.slide_layouts[6]) so all foreground cards sit on top.",
+            code: `_apply_slide_background(slide, prs, "title")
+# Loads skills/ppt_design/resources/bg_opening_slide.png`
+          },
+          {
+            layer: "Layer 1 (Hero Glass Card)",
+            name: "Centered Hero Container Card + Top Cyan Accent Strip",
+            coords: 'left=1.15", top=1.25", width=11.033", height=4.95"',
+            style: "left:8.6%; top:16.6%; width:82.7%; height:66%;",
+            explanation: "Draws an elevated dark-slate rounded rectangle (RGB(14, 22, 40)) with a 1.8pt Neon Cyan border, section pill badge, 36pt Bold White title, 16pt subtitle, and gold metadata bar.",
+            code: `hero_card = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(1.15), Inches(1.25), Inches(11.033), Inches(4.95)
+)`
+          }
+        ]
+      },
+      image_right: {
+        bgName: "skills/ppt_design/resources/bg_content_image.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Skill Background (bg_content_image.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Uniform dark-luxury canvas without fixed boxes so cards and images can sit on either side.",
+            code: `_apply_slide_background(slide, prs, "image_right")`
+          },
+          {
+            layer: "Layer 1 (Executive Header)",
+            name: "Section Pill Badge + Slide Counter + 25pt Bold Title + Divider",
+            coords: 'left=0.75", top=0.32"..1.56", width=11.83"',
+            style: "left:5.6%; top:4.2%; width:88.7%; height:16.5%;",
+            explanation: "Renders the top-left Cyan pill badge (02 // INNATE IMMUNITY), top-right slide counter (SLIDE 02 / 08), 25pt Bold White title, and dual-tone divider line.",
+            code: `_render_executive_header(slide, title_text, subtitle_text, section_tag, idx, total_slides, ACCENT_CYAN)`
+          },
+          {
+            layer: "Layer 2 (Left Feature Cards)",
+            name: "4 Stacked Executive Feature Cards (01..04) on LEFT",
+            coords: 'left=0.75", top=1.74", width=5.95", height=4.48"',
+            style: "left:5.6%; top:23.2%; width:44.6%; height:59.7%;",
+            explanation: "Each 'Title: Description' bullet is rendered inside its own Rounded Rectangle Card (CARD_BG) with a left neon accent bar, numbered badge (01..04), 14pt Bold White title, and 11.5pt Bright Silver body.",
+            code: `_render_feature_cards_column(
+    slide, bullets, col_left=0.75, col_top=1.74, col_width=5.95, col_height=4.48
+)`
+          },
+          {
+            layer: "Layer 3 (Right Framed Visual)",
+            name: "Framed Gemini 2.5 Flash Illustration on RIGHT",
+            coords: 'left=6.95", top=1.74", width=5.63", height=4.48"',
+            style: "left:52.1%; top:23.2%; width:42.2%; height:59.7%;",
+            explanation: "Draws an outer dark-slate frame (FRAME_BG) with a 1.5pt Cyan border, top badge header, embedded high-res PNG (slide_2_illustration.png), and bottom caption bar.",
+            code: `_render_framed_image_panel(
+    slide, image_path=image_path,
+    panel_left=6.95, panel_top=1.74, panel_width=5.63, panel_height=4.48,
+    caption_text=subtitle_text, accent_color=ACCENT_CYAN
+)`
+          },
+          {
+            layer: "Layer 4 (Bottom Takeaway Strip)",
+            name: "Full-Width 'KEY INSIGHT' Banner Strip",
+            coords: 'left=0.75", top=6.42", width=11.83", height=0.68"',
+            style: "left:5.6%; top:85.6%; width:88.7%; height:9.1%;",
+            explanation: "Anchors the bottom of the slide with a full-width rounded banner, solid Cyan KEY INSIGHT pill badge, and bold white takeaway text.",
+            code: `_render_bottom_takeaway_bar(slide, key_insight, ACCENT_CYAN)`
+          }
+        ]
+      },
+      image_left: {
+        bgName: "skills/ppt_design/resources/bg_content_image.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Skill Background (bg_content_image.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Clean dark backdrop supporting left-hand visual placement.",
+            code: `_apply_slide_background(slide, prs, "image_left")`
+          },
+          {
+            layer: "Layer 1 (Executive Header)",
+            name: "Purple Pill Badge + 25pt Bold Title + Divider",
+            coords: 'left=0.75", top=0.32"..1.56", width=11.83"',
+            style: "left:5.6%; top:4.2%; width:88.7%; height:16.5%;",
+            explanation: "Header styled with ACCENT_PURPLE.",
+            code: `_render_executive_header(slide, title_text, subtitle_text, section_tag, idx, total_slides, ACCENT_PURPLE)`
+          },
+          {
+            layer: "Layer 2 (Left Framed Visual)",
+            name: "Framed Gemini 2.5 Flash Illustration on LEFT (panel_left=0.75\")",
+            coords: 'left=0.75", top=1.74", width=5.63", height=4.48"',
+            style: "left:5.6%; top:23.2%; width:42.2%; height:59.7%;",
+            explanation: "Places the framed Gemini visual on the LEFT side (left=0.75\") so visual slides alternate dynamically across the presentation!",
+            code: `_render_framed_image_panel(
+    slide, image_path=image_path,
+    panel_left=0.75, panel_top=1.74, panel_width=5.63, panel_height=4.48,
+    caption_text=subtitle_text, accent_color=ACCENT_PURPLE
+)`
+          },
+          {
+            layer: "Layer 3 (Right Feature Cards)",
+            name: "4 Stacked Executive Feature Cards (01..04) on RIGHT (col_left=6.63\")",
+            coords: 'left=6.63", top=1.74", width=5.95", height=4.48"',
+            style: "left:49.7%; top:23.2%; width:44.6%; height:59.7%;",
+            explanation: "Renders the 4 numbered Executive Feature Cards in the right-hand column (col_left=6.63\").",
+            code: `_render_feature_cards_column(
+    slide, bullets, col_left=6.63, col_top=1.74, col_width=5.95, col_height=4.48
+)`
+          },
+          {
+            layer: "Layer 4 (Bottom Takeaway Strip)",
+            name: "Full-Width 'KEY INSIGHT' Banner Strip",
+            coords: 'left=0.75", top=6.42", width=11.83", height=0.68"',
+            style: "left:5.6%; top:85.6%; width:88.7%; height:9.1%;",
+            explanation: "Full-width Purple KEY INSIGHT banner anchoring the bottom of the slide.",
+            code: `_render_bottom_takeaway_bar(slide, key_insight, ACCENT_PURPLE)`
+          }
+        ]
+      },
+      table: {
+        bgName: "skills/ppt_design/resources/bg_content_text.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Skill Background (bg_content_text.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Architectural grid background for comparison tables and side-by-side infographics.",
+            code: `_apply_slide_background(slide, prs, "table")`
+          },
+          {
+            layer: "Layer 1 (Executive Header)",
+            name: "Emerald Pill Badge (04 // COMPARISON) + 25pt Slide Title",
+            coords: 'left=0.75", top=0.32"..1.56", width=11.83"',
+            style: "left:5.6%; top:4.2%; width:88.7%; height:16.5%;",
+            explanation: "Header styled with ACCENT_EMERALD.",
+            code: `_render_executive_header(slide, title_text, subtitle_text, section_tag, idx, total_slides, ACCENT_EMERALD)`
+          },
+          {
+            layer: "Layer 2 (Left Native PowerPoint Table)",
+            name: "Native Styled PowerPoint Table (slide.shapes.add_table)",
+            coords: 'left=0.81", top=1.80", width=6.75", height=4.36"',
+            style: "left:6.0%; top:24.0%; width:50.6%; height:58.1%;",
+            explanation: "Builds an editable native PowerPoint table (add_table) with Royal Indigo header cells (RGB(26, 49, 94)), Gold feature names in Column 0, and alternating dark-slate rows.",
+            code: `table_shape = slide.shapes.add_table(
+    num_rows, num_cols, Inches(0.81), Inches(1.80), Inches(6.75), Inches(4.36)
+)`
+          },
+          {
+            layer: "Layer 3 (Right Companion Table Visual)",
+            name: "Framed Gemini Comparison Infographic (visual_type='table_infographic')",
+            coords: 'left=7.80", top=1.74", width=4.78", height=4.48"',
+            style: "left:58.5%; top:23.2%; width:35.8%; height:59.7%;",
+            explanation: "Embeds the custom comparison infographic generated by gemini-2.5-flash-image right alongside the native PowerPoint table!",
+            code: `_render_framed_image_panel(
+    slide, image_path=image_path,
+    panel_left=7.80, panel_top=1.74, panel_width=4.78, panel_height=4.48,
+    badge_label="COMPARISON INFOGRAPHIC"
+)`
+          },
+          {
+            layer: "Layer 4 (Bottom Takeaway Strip)",
+            name: "Full-Width 'KEY INSIGHT' Banner Strip",
+            coords: 'left=0.75", top=6.42", width=11.83", height=0.68"',
+            style: "left:5.6%; top:85.6%; width:88.7%; height:9.1%;",
+            explanation: "Summarizes the core strategic difference across the bottom of the table slide.",
+            code: `_render_bottom_takeaway_bar(slide, key_insight, ACCENT_EMERALD)`
+          }
+        ]
+      },
+      cards: {
+        bgName: "skills/ppt_design/resources/bg_content_text.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Skill Background (bg_content_text.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Dark architectural background for multi-card breakdown + strategic synthesis.",
+            code: `_apply_slide_background(slide, prs, "cards")`
+          },
+          {
+            layer: "Layer 2 (Left Feature Cards)",
+            name: "Wide Stacked Executive Feature Cards (01..04)",
+            coords: 'left=0.75", top=1.74", width=7.15", height=5.20"',
+            style: "left:5.6%; top:23.2%; width:53.6%; height:69.3%;",
+            explanation: "Renders 4 wide Executive Feature Cards with numbered badges, neon accent bars, bold white headers, and bright silver descriptions.",
+            code: `_render_feature_cards_column(
+    slide, bullets, col_left=0.75, col_top=1.74, col_width=7.15, col_height=5.20
+)`
+          },
+          {
+            layer: "Layer 3 (Right Strategic Synthesis Panel)",
+            name: "High-Impact 'STRATEGIC SYNTHESIS' Card",
+            coords: 'left=8.15", top=1.74", width=4.43", height=5.20"',
+            style: "left:61.1%; top:23.2%; width:33.2%; height:69.3%;",
+            explanation: "Elevated deep-indigo card bordered in Electric Purple (ACCENT_PURPLE) with a top accent bar, STRATEGIC SYNTHESIS pill badge, and 14pt Bold White synthesis text.",
+            code: `panel = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(8.15), Inches(1.74), Inches(4.43), Inches(5.20)
+)`
+          }
+        ]
+      },
+      ending: {
+        bgName: "skills/ppt_design/resources/bg_closing_slide.png",
+        elements: [
+          {
+            layer: "Layer 0 (Bottom Z-Order)",
+            name: "Closing Skill Background (bg_closing_slide.png)",
+            coords: 'left=0", top=0", width=13.333", height=7.5"',
+            style: "left:0%; top:0%; width:100%; height:100%;",
+            explanation: "Uses bg_closing_slide.png for the closing summary & Q&A slide.",
+            code: `_apply_slide_background(slide, prs, "ending")`
+          },
+          {
+            layer: "Layer 2 (Left Takeaway Cards)",
+            name: "Numbered Executive Takeaway Cards (01..04)",
+            coords: 'left=0.75", top=1.74", width=7.05", height=5.20"',
+            style: "left:5.6%; top:23.2%; width:52.8%; height:69.3%;",
+            explanation: "Renders the closing takeaways as structured, numbered Executive Feature Cards on the left half of the finale slide.",
+            code: `_render_feature_cards_column(
+    slide, bullets, col_left=0.75, col_top=1.74, col_width=7.05, col_height=5.20
+)`
+          },
+          {
+            layer: "Layer 3 (Right Finale Summary Card)",
+            name: "Gold-Bordered 'EXECUTIVE SUMMARY & NEXT STEPS' Card",
+            coords: 'left=8.05", top=1.74", width=4.53", height=5.20"',
+            style: "left:60.3%; top:23.2%; width:33.9%; height:69.3%;",
+            explanation: "A prominent Gold-bordered rounded card (ACCENT_GOLD) displaying the final synthesis and clinical outlook.",
+            code: `end_card = slide.shapes.add_shape(
+    MSO_SHAPE.ROUNDED_RECTANGLE,
+    Inches(8.05), Inches(1.74), Inches(4.53), Inches(5.20)
+)`
+          }
+        ]
+      }
+    };
+
+    let currentLayoutKey = "image_right";
+    let currentElIdx = 2;
+
+    function switchMainTab(tabNum) {
+      stopAutoPlay();
+      document.getElementById("mainTab1").classList.toggle("hidden", tabNum !== 1);
+      document.getElementById("mainTab2").classList.toggle("hidden", tabNum !== 2);
+      document.getElementById("tabBtn1").classList.toggle("active", tabNum === 1);
+      document.getElementById("tabBtn2").classList.toggle("active", tabNum === 2);
+      if (tabNum === 2) renderSlideBlueprint();
+    }
+
+    function selectLayout(key) {
+      currentLayoutKey = key;
+      currentElIdx = layouts[key].elements.length > 1 ? 1 : 0;
+      ["title", "image_right", "image_left", "table", "cards", "ending"].forEach(k => {
+        const btn = document.getElementById("layoutBtn-" + k);
+        btn.classList.toggle("active", k === key);
+      });
+      renderSlideBlueprint();
+    }
+
+    function renderSlideBlueprint() {
+      const lData = layouts[currentLayoutKey];
+      document.getElementById("canvasBgLabel").innerText = "Skill Background Resource: " + lData.bgName;
+
+      const canvas = document.getElementById("slideCanvas");
+      canvas.innerHTML = "";
+
+      // Clean architectural grid background (Zero Base64 Images)
+      const bgDiv = document.createElement("div");
+      bgDiv.className = "absolute inset-0 w-full h-full bg-gradient-to-br from-[#090d18] via-[#0f172a] to-[#131129]";
+      bgDiv.onclick = () => { currentElIdx = 0; updateElementInspector(); };
+      canvas.appendChild(bgDiv);
+
+      lData.elements.forEach((el, idx) => {
+        if (idx === 0) return;
+        const box = document.createElement("div");
+        box.style = el.style;
+        box.className = `slide-hitbox absolute rounded-lg border-2 ${
+          idx === currentElIdx ? "selected border-sky-400 bg-sky-500/20" : "border-slate-600 bg-slate-900/75"
+        } p-2.5 flex flex-col justify-center text-white`;
+        box.onclick = (e) => { e.stopPropagation(); currentElIdx = idx; updateElementInspector(); };
+        box.innerHTML = `
+          <div class="text-[10px] font-mono uppercase text-cyan-300 font-bold">${el.layer}</div>
+          <div class="text-xs font-bold mt-0.5 leading-snug">${el.name}</div>
+          <div class="text-[10px] font-mono text-amber-300 mt-1">${el.coords}</div>
+        `;
+        canvas.appendChild(box);
+      });
+
+      const bar = document.getElementById("layerButtonsBar");
+      bar.innerHTML = "";
+      lData.elements.forEach((el, idx) => {
+        const b = document.createElement("button");
+        b.className = `px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+          idx === currentElIdx
+            ? "bg-sky-600 text-white border-sky-500"
+            : "bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700"
+        }`;
+        b.innerText = `${el.layer}: ${el.name.split(" (")[0]}`;
+        b.onclick = () => { currentElIdx = idx; updateElementInspector(); };
+        bar.appendChild(b);
+      });
+
+      updateElementInspector();
+    }
+
+    function updateElementInspector() {
+      const lData = layouts[currentLayoutKey];
+      const el = lData.elements[currentElIdx];
+      document.getElementById("elLayerBadge").innerText = el.layer;
+      document.getElementById("elCoordsBadge").innerText = el.coords;
+      document.getElementById("elTitle").innerText = el.name;
+      document.getElementById("elExplanation").innerText = el.explanation;
+      document.getElementById("elCode").innerText = el.code;
+
+      const hitboxes = document.querySelectorAll("#slideCanvas .slide-hitbox");
+      hitboxes.forEach((hb, i) => {
+        const match = (i + 1) === currentElIdx;
+        hb.classList.toggle("selected", match);
+      });
+    }
+
+    updateArchitectureView();
+  </script>
+</body>
+</html>
