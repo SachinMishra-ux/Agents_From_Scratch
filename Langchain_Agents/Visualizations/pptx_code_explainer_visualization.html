@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How the PowerPoint Code Works — Simple Classroom Guide</title>
+  <style>
+    :root {
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --bg-subtle: #f1f5f9;
+      --border: #cbd5e1;
+      --border-light: #e2e8f0;
+      --text-main: #0f172a;
+      --text-body: #334155;
+      --text-muted: #64748b;
+      --blue: #2563eb;
+      --blue-light: #eff6ff;
+      --blue-border: #93c5fd;
+      --green: #15803d;
+      --green-light: #f0fdf4;
+      --amber: #b45309;
+      --amber-light: #fffbeb;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg-page);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 24px 16px 48px 16px;
+    }
+
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+    }
+
+    /* 1. Top Title Banner */
+    .header-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+    }
+    .header-box h1 {
+      font-size: 1.55rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+    .header-box p {
+      font-size: 0.98rem;
+      color: var(--text-body);
+    }
+
+    /* 2. "The 1 Secret" Golden Rule Box */
+    .secret-box {
+      background: var(--bg-card);
+      border: 2px solid var(--blue-border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 22px;
+    }
+    .secret-title {
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--blue);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .secret-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 1.3fr;
+      gap: 20px;
+      align-items: center;
+    }
+    @media (max-width: 900px) {
+      .secret-grid { grid-template-columns: 1fr; }
+    }
+    .secret-text p {
+      font-size: 0.94rem;
+      color: var(--text-body);
+      margin-bottom: 10px;
+    }
+    .four-steps-list {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-size: 0.88rem;
+    }
+    .four-steps-list div {
+      margin-bottom: 6px;
+    }
+    .four-steps-list div:last-child { margin-bottom: 0; }
+    .four-steps-list code {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 600;
+      color: var(--blue);
+    }
+
+    /* 3. Interactive End-to-End Flowchart */
+    .flow-section {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 22px;
+    }
+    .flow-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .flow-header h2 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .flow-controls {
+      display: flex;
+      gap: 8px;
+    }
+    .btn {
+      background: var(--bg-card);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn:hover {
+      background: var(--bg-subtle);
+      border-color: var(--blue);
+    }
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+    .btn-primary:hover {
+      background: #1d4ed8;
+      color: #fff;
+    }
+
+    /* Visual Flowchart Nodes */
+    .flowchart-chain {
+      display: grid;
+      grid-template-columns: repeat(8, 1fr);
+      gap: 10px;
+      position: relative;
+    }
+    @media (max-width: 1100px) {
+      .flowchart-chain { grid-template-columns: repeat(4, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .flowchart-chain { grid-template-columns: repeat(2, 1fr); }
+    }
+    .flow-node {
+      background: var(--bg-subtle);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      position: relative;
+    }
+    .flow-node:hover {
+      border-color: var(--blue);
+      background: #fff;
+    }
+    .flow-node.active {
+      background: var(--blue-light);
+      border-color: var(--blue);
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.15);
+    }
+    .flow-node .step-num {
+      font-size: 0.72rem;
+      font-weight: 800;
+      color: var(--blue);
+      text-transform: uppercase;
+      display: block;
+      margin-bottom: 2px;
+    }
+    .flow-node .step-name {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--text-main);
+      display: block;
+      line-height: 1.3;
+      margin-bottom: 4px;
+    }
+    .flow-node .step-fn {
+      font-family: monospace;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      display: block;
+      word-break: break-all;
+    }
+
+    /* 4. Main Detail Split Area */
+    .main-split {
+      display: grid;
+      grid-template-columns: 1.05fr 1fr;
+      gap: 22px;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .main-split { grid-template-columns: 1fr; }
+    }
+
+    .panel-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+
+    /* Left Panel: White Blueprint Slide Preview */
+    .preview-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .preview-top h3 {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+    .ruler-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.76rem;
+      color: var(--text-muted);
+      font-family: monospace;
+      margin-bottom: 6px;
+      background: var(--bg-subtle);
+      padding: 4px 10px;
+      border-radius: 6px;
+    }
+
+    .slide-blueprint {
+      width: 100%;
+      aspect-ratio: 16 / 9;
+      background: #ffffff;
+      border: 2px solid #94a3b8;
+      border-radius: 8px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+
+    /* Layout Switcher inside Left Panel */
+    .layout-bar {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 12px;
+      margin-bottom: 16px;
+    }
+    .layout-bar-label {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin-bottom: 8px;
+    }
+    .layout-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .l-btn {
+      background: #fff;
+      border: 1px solid var(--border);
+      color: var(--text-body);
+      padding: 5px 10px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .l-btn.active {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    /* Visual Mini-Diagram Box */
+    .mini-diagram {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 14px 16px;
+      font-size: 0.88rem;
+      color: var(--text-body);
+    }
+    .mini-diagram h4 {
+      font-size: 0.82rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-main);
+      margin-bottom: 6px;
+    }
+
+    /* Right Panel: Teacher Script + Input/Process/Output + Code */
+    .step-badge {
+      display: inline-block;
+      background: var(--blue-light);
+      color: var(--blue);
+      border: 1px solid var(--blue-border);
+      font-size: 0.76rem;
+      font-weight: 800;
+      padding: 3px 10px;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+    .detail-heading {
+      font-size: 1.3rem;
+      font-weight: 800;
+      color: var(--text-main);
+      margin-bottom: 4px;
+    }
+    .detail-func-sig {
+      font-family: monospace;
+      font-size: 0.84rem;
+      color: var(--blue);
+      background: var(--bg-subtle);
+      padding: 5px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      margin-bottom: 16px;
+    }
+
+    /* Teacher Script Box */
+    .teacher-box {
+      background: var(--amber-light);
+      border: 1px solid #fde68a;
+      border-left: 4px solid var(--amber);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+    }
+    .teacher-box .t-label {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--amber);
+      margin-bottom: 4px;
+    }
+    .teacher-box p {
+      font-size: 0.94rem;
+      color: #451a03;
+    }
+
+    /* Input -> Process -> Output Boxes */
+    .ipo-stack {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .ipo-item {
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-light);
+      border-radius: 8px;
+      padding: 12px 14px;
+    }
+    .ipo-item h4 {
+      font-size: 0.78rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .ipo-in h4 { color: var(--blue); }
+    .ipo-proc h4 { color: var(--text-main); }
+    .ipo-out h4 { color: var(--green); }
+
+    .ipo-item ul {
+      padding-left: 18px;
+      font-size: 0.88rem;
+      color: var(--text-body);
+    }
+    .ipo-item li { margin-bottom: 4px; }
+    .ipo-item code {
+      background: #fff;
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: var(--text-main);
+    }
+
+    /* Clean Code Viewer */
+    .code-box-title {
+      font-size: 0.8rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    pre {
+      background: #f8fafc;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 0.8rem;
+      color: #0f172a;
+      overflow-x: auto;
+      line-height: 1.55;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- 1. Header -->
+    <div class="header-box">
+      <h1>How the PowerPoint (<code>python-pptx</code>) Code Works — Step-by-Step Classroom Guide</h1>
+      <p>A clean, white-board explanation of how our Python code builds a professional PowerPoint presentation from scratch.</p>
+    </div>
+
+    <!-- 2. The 1 Secret That Explains 80% of the Code -->
+    <div class="secret-box">
+      <div class="secret-title">💡 Start Here: The ONE Secret That Makes All 400 Lines Easy to Understand</div>
+      <div class="secret-grid">
+        <div class="secret-text">
+          <p><strong>Why does this Python code look so long?</strong></p>
+          <p>When a human makes a slide in PowerPoint, you drag a box with your mouse, click the paint bucket to color it, and type text inside. <strong>Python does not have a mouse!</strong></p>
+          <p>So to draw <em>any</em> item on a slide (a badge, a title, a card, or a footer), Python repeats the <strong>exact same 4 tiny commands</strong> over and over:</p>
+        </div>
+        <div class="four-steps-list">
+          <div><strong>1. Place a Box (using 4 inch numbers):</strong> <code>box = slide.shapes.add_shape(SHAPE, left, top, width, height)</code></div>
+          <div><strong>2. Color the Box:</strong> <code>box.fill.fore_color.rgb = RGBColor(20, 30, 52)</code></div>
+          <div><strong>3. Put Text Inside:</strong> <code>p = box.text_frame.paragraphs[0]</code> &rarr; <code>p.text = "Hello"</code></div>
+          <div><strong>4. Pick Font Size &amp; Color:</strong> <code>p.font.size = Pt(14)</code> &rarr; <code>p.font.color.rgb = TEXT_WHITE</code></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. End-to-End Execution Flowchart -->
+    <div class="flow-section">
+      <div class="flow-header">
+        <h2>Click Any Step in the Flow Below (Follows the Exact Order Python Runs):</h2>
+        <div class="flow-controls">
+          <button class="btn" onclick="prevStep()">◀ Previous Step</button>
+          <button class="btn btn-primary" onclick="nextStep()">Next Step ▶</button>
+        </div>
+      </div>
+
+      <div class="flowchart-chain" id="flowchart-chain"></div>
+    </div>
+
+    <!-- 4. Split View: Slide Blueprint (Left) + Plain-English Explanation (Right) -->
+    <div class="main-split">
+
+      <!-- LEFT: White Slide Blueprint -->
+      <div class="panel-card">
+        <div class="preview-top">
+          <h3>What Gets Drawn on the Slide in This Step</h3>
+          <span style="font-size:0.78rem; color:var(--blue); font-weight:700;">Blue Box = Active Step</span>
+        </div>
+
+        <div class="ruler-bar">
+          <span>Top-Left Corner = (left: 0", top: 0")</span>
+          <span>Full Slide Size = 13.33" Wide × 7.5" Tall</span>
+        </div>
+
+        <!-- SVG Blueprint of the 13.33" x 7.5" Slide -->
+        <div class="slide-blueprint" id="slide-blueprint"></div>
+
+        <!-- Layout Switcher -->
+        <div class="layout-bar">
+          <div class="layout-bar-label">Switch Slide Layout (See how Step 2's <code>if / elif layout_type</code> rearranges the blocks):</div>
+          <div class="layout-btns" id="layout-btns"></div>
+        </div>
+
+        <!-- Extra Visual Aid for the Active Step -->
+        <div class="mini-diagram">
+          <h4 id="mini-title">How the Math / Logic Works</h4>
+          <div id="mini-body"></div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Plain-English Explanation + Input/Processing/Output + Code -->
+      <div class="panel-card">
+        <div class="step-badge" id="d-badge">STEP 1 OF 8</div>
+        <div class="detail-heading" id="d-title"></div>
+        <div class="detail-func-sig" id="d-sig"></div>
+
+        <!-- What to Say to Students -->
+        <div class="teacher-box">
+          <div class="t-label">🗣️ How to Explain This to a 10–15 Year Old Student</div>
+          <p id="d-teacher"></p>
+        </div>
+
+        <!-- Input / Processing / Output -->
+        <div class="ipo-stack">
+          <div class="ipo-item ipo-in">
+            <h4>📥 1. Input (What we give this function)</h4>
+            <ul id="d-input"></ul>
+          </div>
+          <div class="ipo-item ipo-proc">
+            <h4>⚙️ 2. Processing (What the function does inside)</h4>
+            <ul id="d-proc"></ul>
+          </div>
+          <div class="ipo-item ipo-out">
+            <h4>📤 3. Output (What appears on the slide)</h4>
+            <ul id="d-out"></ul>
+          </div>
+        </div>
+
+        <!-- Simplified Code -->
+        <div class="code-box-title">💻 The Key Python Lines in This Block (With Simple Comments)</div>
+        <pre id="d-code"></pre>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    const steps = [
+      {
+        stepNum: "Step 1",
+        name: "Pick Colors & Wallpapers",
+        fn: "BG_IMAGE_MAP & Colors",
+        title: "Step 1: Prepare the Paint Colors & 4 Wallpaper Images",
+        sig: "BG_DARK_SLATE, ACCENT_PALETTE, BG_IMAGE_MAP = { ... }",
+        teacher: "Before we draw a single slide, we set up our supplies at the top of the file. We save our favorite colors (dark navy for boxes, white for titles, and 4 bright highlight colors) into variables so we don't have to memorize RGB numbers later. We also create a small dictionary called BG_IMAGE_MAP that tells Python which background wallpaper image belongs to which type of slide.",
+        input: [
+          "Red-Green-Blue color numbers like <code>RGBColor(9, 13, 24)</code>.",
+          "File paths to 4 background PNG pictures stored in our <code>resources</code> folder."
+        ],
+        proc: [
+          "Saves box colors (<code>BG_DARK_SLATE</code>, <code>CARD_BG</code>) and text colors (<code>TEXT_WHITE</code>, <code>TEXT_SUBTITLE</code>).",
+          "Creates a list of 4 highlight colors: <code>ACCENT_PALETTE = [Cyan, Purple, Emerald, Gold]</code>.",
+          "Creates <code>BG_IMAGE_MAP</code> matching layout names (<code>'title'</code>, <code>'image_right'</code>, <code>'table'</code>, <code>'ending'</code>) to their PNG files."
+        ],
+        out: [
+          "Global color names and the <code>BG_IMAGE_MAP</code> lookup dictionary ready for the rest of the code to use."
+        ],
+        activePart: "none",
+        miniTitle: "How BG_IMAGE_MAP Matches Slide Types to Wallpapers",
+        miniHtml: `
+          • Opening Slide (<code>'title'</code>) &rarr; <code>bg_opening_slide.png</code><br/>
+          • Picture Slides (<code>'image_right'</code>, <code>'image_left'</code>) &rarr; <code>bg_content_image.png</code><br/>
+          • Text / Table Slides (<code>'table'</code>, <code>'cards'</code>) &rarr; <code>bg_content_text.png</code><br/>
+          • Last Slide (<code>'ending'</code>) &rarr; <code>bg_closing_slide.png</code>
+        `,
+        code: `# Save colors into easy-to-read variable names:
+BG_DARK_SLATE = RGBColor(9, 13, 24)     # Dark background color
+CARD_BG       = RGBColor(20, 30, 52)    # Card box color
+TEXT_WHITE    = RGBColor(248, 250, 252) # White text color
+
+# Put 4 highlight colors in a list so Card 1, Card 2, Card 3 get different colors:
+ACCENT_PALETTE = [ACCENT_CYAN, ACCENT_PURPLE, ACCENT_EMERALD, ACCENT_GOLD]
+
+# Map each slide layout name to its background PNG image:
+BG_IMAGE_MAP = {
+    "title":       "bg_opening_slide.png",
+    "image_right": "bg_content_image.png",
+    "image_left":  "bg_content_image.png",
+    "table":       "bg_content_text.png",
+    "cards":       "bg_content_text.png",
+    "ending":      "bg_closing_slide.png",
+}`
+      },
+      {
+        stepNum: "Step 2",
+        name: "Start Master Loop",
+        fn: "create_premium_presentation()",
+        title: "Step 2: The Master Function Starts & Loops Through Slides",
+        sig: "def create_premium_presentation(slides_data, file_name='presentation.pptx')",
+        teacher: "Think of create_premium_presentation() as the Boss of the factory. All the other functions in the code are just helpers that wait until the Boss calls them! The Boss receives a list of slides (slides_data) from the AI Agent, opens a brand-new 13.33-inch by 7.5-inch PowerPoint file, and runs a 'for loop' to build one slide at a time.",
+        input: [
+          "<code>slides_data</code>: A list of Python dictionaries (one dictionary for each slide, containing its <code>layout</code>, <code>title</code>, <code>bullets</code>, and <code>image_path</code>).",
+          "<code>file_name</code>: The name of the file to save (e.g. <code>'presentation.pptx'</code>)."
+        ],
+        proc: [
+          "<strong>1. Open Blank Deck:</strong> Calls <code>prs = Presentation()</code> and sets the slide size to <code>13.333 inches</code> wide by <code>7.5 inches</code> tall.",
+          "<strong>2. Loop Over Slides:</strong> Runs <code>for idx, slide_info in enumerate(slides_data, start=1):</code> to build Slide 1, Slide 2, Slide 3...",
+          "<strong>3. Traffic Cop (<code>if / elif layout_type == ...</code>):</strong> Checks what layout each slide wants and calls the helper functions in Steps 3 to 8!"
+        ],
+        out: [
+          "Creates the presentation canvas and coordinates all helper functions for every slide."
+        ],
+        activePart: "canvas",
+        miniTitle: "The Master Loop Structure (The Big Picture)",
+        miniHtml: `
+          <code>prs = Presentation()</code> &rarr; <strong>For each slide in <code>slides_data</code>:</strong><br/>
+          &nbsp;&nbsp;1. Add blank slide (<code>prs.slides.add_slide</code>)<br/>
+          &nbsp;&nbsp;2. Call <code>_apply_slide_background()</code> (Step 3)<br/>
+          &nbsp;&nbsp;3. Check <code>if layout_type == 'image_right' / 'image_left' / 'table'...</code> and call Helpers (Steps 4–8)<br/>
+          <strong>Finally:</strong> <code>prs.save(file_name)</code>
+        `,
+        code: `@tool
+def create_premium_presentation(slides_data, file_name="presentation.pptx"):
+    # 1. Create a blank PowerPoint file (13.333 inches wide x 7.5 inches tall)
+    prs = Presentation()
+    prs.slide_width  = Inches(13.333)
+    prs.slide_height = Inches(7.5)
+    blank_layout = prs.slide_layouts[6] # Layout 6 is a completely empty slide
+
+    # 2. Loop through every slide in slides_data one by one
+    for idx, slide_info in enumerate(slides_data, start=1):
+        slide = prs.slides.add_slide(blank_layout)
+        layout_type = slide_info.get("layout", "cards")
+
+        # Call Step 3 to put the wallpaper on the slide
+        _apply_slide_background(slide, prs, layout_type)
+
+        # Then check if/elif layout_type to call Steps 4, 5, 6, 7, 8...`
+      },
+      {
+        stepNum: "Step 3",
+        name: "Glue Background",
+        fn: "_apply_slide_background()",
+        title: "Step 3: Paste the Wallpaper Across the Blank Slide",
+        sig: "def _apply_slide_background(slide, prs, layout_type)",
+        teacher: "Whenever we add a new blank slide in the loop, the very first thing we do is put on the wallpaper! Why first? Because in PowerPoint, whatever you draw FIRST stays at the very back. If we drew the wallpaper last, it would cover up all our text! So this helper paints the slide dark blue and stretches the background picture from corner (0, 0) across the full 13.33 by 7.5 inches.",
+        input: [
+          "<code>slide</code>: The empty slide we just added.",
+          "<code>prs</code>: Tells us the exact width (<code>13.333\"</code>) and height (<code>7.5\"</code>) of the slide.",
+          "<code>layout_type</code>: Tells us which wallpaper to pick from <code>BG_IMAGE_MAP</code>."
+        ],
+        proc: [
+          "<strong>1. Paint Solid Color:</strong> Sets <code>slide.background.fill</code> to dark navy (in case the image file is missing).",
+          "<strong>2. Look Up Image Path:</strong> Finds the right PNG file in <code>BG_IMAGE_MAP</code>.",
+          "<strong>3. Add Full-Size Picture:</strong> Calls <code>slide.shapes.add_picture()</code> starting at <code>left=0\"</code>, <code>top=0\"</code> with <code>width=13.333\"</code> and <code>height=7.5\"</code>."
+        ],
+        out: [
+          "The full slide canvas (`0\"` to `13.333\"`) is covered with the background wallpaper."
+        ],
+        activePart: "bg",
+        miniTitle: "Why Layer Order Matters in python-pptx",
+        miniHtml: `
+          <code>python-pptx</code> stacks shapes like pancakes: the 1st shape added is on the bottom, and later shapes sit on top.<br/>
+          Calling <code>_apply_slide_background()</code> first guarantees the wallpaper stays behind all titles, cards, and images!
+        `,
+        code: `def _apply_slide_background(slide, prs, layout_type: str):
+    # 1. Fill slide background with solid dark color as a backup
+    fill = slide.background.fill
+    fill.solid()
+    fill.fore_color.rgb = BG_DARK_SLATE
+
+    # 2. Look up the wallpaper PNG for this slide's layout_type
+    bg_path = BG_IMAGE_MAP.get(layout_type, BG_IMAGE_MAP["cards"])
+
+    # 3. Glue the picture from top-left (0, 0) across the whole slide
+    if os.path.exists(bg_path):
+        slide.shapes.add_picture(
+            bg_path,
+            left=Inches(0), top=Inches(0),
+            width=prs.slide_width, height=prs.slide_height
+        )`
+      },
+      {
+        stepNum: "Step 4",
+        name: "Draw Top Header",
+        fn: "_render_executive_header()",
+        title: "Step 4: Stamp the Top Banner on the Slide",
+        sig: "def _render_executive_header(slide, title_text, subtitle_text, section_tag, slide_idx, total_slides, ...)",
+        teacher: "Look at the top 1.6 inches of the slide blueprint on the left. Every content slide needs a neat top banner so the audience knows what section they are in, what slide number they are on, and what the slide is about. Instead of writing this code 5 times for 5 different layouts, we put it in one helper function that stamps 5 items at the top of the slide.",
+        input: [
+          "<code>slide</code>: Current slide.",
+          "<code>title_text</code> &amp; <code>subtitle_text</code>: The big heading and smaller subtitle.",
+          "<code>section_tag</code>: Small label like <code>'02 // FIRST-LINE DEFENSE'</code>.",
+          "<code>slide_idx</code> &amp; <code>total_slides</code>: Numbers like <code>2</code> and <code>8</code>."
+        ],
+        proc: [
+          "Draws <strong>5 simple shapes</strong> inside the top <code>1.6 inches</code> of the slide:",
+          "1. <strong>Top-Left Box</strong> (<code>left=0.75\", top=0.32\"</code>): Shows the section tag.",
+          "2. <strong>Top-Right Box</strong> (<code>left=11.43\", top=0.32\"</code>): Shows <code>'SLIDE 02 / 08'</code>.",
+          "3. <strong>Main Title Textbox</strong> (<code>top=0.66\"</code>): Big <code>25pt</code> bold white title.",
+          "4. <strong>Subtitle Textbox</strong> (<code>top=1.17\"</code>): Smaller <code>12.5pt</code> subtitle.",
+          "5. <strong>Underline Bar</strong> (<code>top=1.56\"</code>): Thin horizontal line separating the header from the body."
+        ],
+        out: [
+          "The entire top banner of the slide (`top = 0.32\"` down to `1.58\"`) is finished."
+        ],
+        activePart: "header",
+        miniTitle: "Look at the Blueprint Above: All 5 Shapes Stay Above top = 1.6\"",
+        miniHtml: `
+          Because the header finishes at <strong><code>top = 1.58 inches</code></strong>, everything below <code>top = 1.74 inches</code> is wide open for our Info Cards, Images, or Tables!
+        `,
+        code: `def _render_executive_header(slide, title_text, subtitle_text, section_tag, slide_idx, total_slides, accent_color):
+    # 1. Top-Left Section Badge (at left=0.75", top=0.32")
+    pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.75), Inches(0.32), Inches(3.45), Inches(0.30))
+
+    # 2. Top-Right Slide Counter "SLIDE 02 / 08" (at left=11.43", top=0.32")
+    num_pill = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(11.43), Inches(0.32), Inches(1.15), Inches(0.30))
+
+    # 3. Big Main Title (at top=0.66", font size = 25pt Bold)
+    title_box = slide.shapes.add_textbox(Inches(0.75), Inches(0.66), Inches(11.83), Inches(0.50))
+
+    # 4. Subtitle (at top=1.17", font size = 12.5pt)
+    sub_box = slide.shapes.add_textbox(Inches(0.75), Inches(1.17), Inches(11.83), Inches(0.34))
+
+    # 5. Horizontal Divider Line under the header (at top=1.56")
+    line_accent = slide.shapes.add_shape(MSO_SHAPE.RECTANGLE, Inches(0.75), Inches(1.56), Inches(3.40), Inches(0.035))`
+      },
+      {
+        stepNum: "Step 5",
+        name: "Split Text & Stack Cards",
+        fn: "_split_bullet_title_and_body() + _render_feature_cards_column()",
+        title: "Step 5: Cut Each Bullet in Half & Stack the Numbered Info Cards",
+        sig: "_split_bullet_title_and_body(bullet)  -->  _render_feature_cards_column(slide, bullets, col_left, ...)",
+        teacher: "Plain bullet points look boring. Instead, we draw 3 or 4 stacked 'Flashcards'! First, a tiny helper called _split_bullet_title_and_body() cuts each sentence at the colon ':' so the first part becomes a Bold Title and the second part becomes the explanation. Then _render_feature_cards_column() divides the column height evenly by the number of bullets and draws each numbered card (01, 02, 03) in a loop!",
+        input: [
+          "<code>bullets</code>: A list of 3 or 4 strings like <code>['Physical Barriers: Skin blocks germs', ...]</code>.",
+          "<code>col_left, col_top, col_width, col_height</code>: The box area where the stack of cards should sit."
+        ],
+        proc: [
+          "<strong>Part A (<code>_split_bullet_title_and_body</code>):</strong> Splits <code>\"Physical Barriers: Skin blocks germs\"</code> at the colon <code>:</code> into <code>heading_str = \"Physical Barriers\"</code> and <code>body_str = \"Skin blocks germs\"</code>.",
+          "<strong>Part B (Divide Height Evenly):</strong> Computes <code>card_h = (col_height - gaps) / n</code> so whether there are 2, 3, or 4 cards, they fit the exact same total height!",
+          "<strong>Part C (Loop Over Bullets):</strong> For each bullet, draws: (1) Rounded Card Box, (2) Left Colored Stripe, (3) Number Box <code>01 / 02 / 03</code>, and (4) Textbox with Bold Heading + Body."
+        ],
+        out: [
+          "A neat vertical stack of numbered Info Cards on the left (or right) side of the slide."
+        ],
+        activePart: "cards",
+        miniTitle: "Simple Math: How Python Calculates Each Card's Height",
+        miniHtml: `
+          Available height = <code>4.48 inches</code> &nbsp;|&nbsp; Number of cards (<code>n</code>) = <code>3</code> &nbsp;|&nbsp; Gap between cards = <code>0.14 inches</code><br/>
+          • <code>card_h = (4.48 - 2 × 0.14) ÷ 3 = 1.40 inches tall per card!</code><br/>
+          • Card 1 starts at <code>top = 1.74"</code> &rarr; Card 2 starts at <code>1.74" + 1.40" + 0.14" = 3.28"</code> &rarr; Card 3 starts at <code>4.82"</code>.
+        `,
+        code: `# Helper A: Cut "Title: Explanation" at the colon ':'
+def _split_bullet_title_and_body(bullet_text):
+    clean = bullet_text.strip().lstrip("•-* ").strip()
+    if ":" in clean:
+        return clean.split(":", 1) # Returns (title_part, body_part)
+    return clean, ""
+
+# Helper B: Stack the cards evenly inside (col_left, col_top, col_width, col_height)
+def _render_feature_cards_column(slide, bullets, col_left, col_top, col_width, col_height):
+    items = bullets[:4]
+    n = len(items)
+    gap = 0.14
+    card_h = (col_height - (n - 1) * gap) / n  # Divide height evenly by n cards!
+
+    for idx, raw_bullet in enumerate(items):
+        curr_top = col_top + idx * (card_h + gap) # Move Y down for each card
+        heading_str, body_str = _split_bullet_title_and_body(raw_bullet)
+        # Draw: 1. Card Box -> 2. Left Color Strip -> 3. Badge "01" -> 4. Textbox`
+      },
+      {
+        stepNum: "Step 6",
+        name: "Frame the AI Picture",
+        fn: "_render_framed_image_panel()",
+        title: "Step 6: Draw a Picture Frame & Insert the AI Image",
+        sig: "def _render_framed_image_panel(slide, image_path, panel_left, panel_top, panel_width, panel_height, ...)",
+        teacher: "Now we want to put the AI-generated picture on the slide. Instead of pasting a bare image, this function draws a neat 'Picture Frame' first! Notice that panel_left (the X position) is an input to this function. That means if we pass panel_left = 6.95 inches, the picture goes on the RIGHT. If we pass panel_left = 0.75 inches, the picture goes on the LEFT!",
+        input: [
+          "<code>image_path</code>: File path to the PNG image generated by Gemini.",
+          "<code>panel_left, panel_top, panel_width, panel_height</code>: Where to draw the picture frame.",
+          "<code>caption_text</code> &amp; <code>badge_label</code>: Text for the top label and bottom caption."
+        ],
+        proc: [
+          "1. <strong>Outer Frame Box:</strong> Draws a rounded rectangle at <code>(panel_left, panel_top)</code>.",
+          "2. <strong>Top Label:</strong> Writes <code>◆ VISUAL ARCHITECTURE</code> at the top of the frame.",
+          "3. <strong>Insert Picture:</strong> Calls <code>slide.shapes.add_picture(image_path, ...)</code> inside the frame with a small <code>0.14 inch</code> margin.",
+          "4. <strong>Bottom Caption:</strong> Writes a 1-line explanation at the bottom of the frame."
+        ],
+        out: [
+          "A framed, labeled, and captioned image panel on the Right, Left, or next to a Table."
+        ],
+        activePart: "image",
+        miniTitle: "Try Clicking 'image_right' vs 'image_left' Above!",
+        miniHtml: `
+          Click the layout buttons under the slide blueprint on the left:<br/>
+          • In <strong><code>image_right</code></strong>: Cards are at <code>left = 0.75"</code> and Image Frame is at <code>left = 6.95"</code>.<br/>
+          • In <strong><code>image_left</code></strong>: Image Frame moves to <code>left = 0.75"</code> and Cards move to <code>left = 6.63"</code>!
+        `,
+        code: `def _render_framed_image_panel(slide, image_path, panel_left, panel_top, panel_width, panel_height, caption_text, ...):
+    # 1. Draw the outer picture frame box
+    frame = slide.shapes.add_shape(
+        MSO_SHAPE.ROUNDED_RECTANGLE,
+        Inches(panel_left), Inches(panel_top), Inches(panel_width), Inches(panel_height)
+    )
+    # 2. Add the top label ("◆ VISUAL ARCHITECTURE")
+    hdr_box = slide.shapes.add_textbox(Inches(panel_left + 0.16), Inches(panel_top + 0.06), ...)
+
+    # 3. Insert the PNG image slightly inside the frame (panel_left + 0.14")
+    if image_path and os.path.exists(image_path):
+        slide.shapes.add_picture(
+            image_path,
+            left=Inches(panel_left + 0.14), top=Inches(panel_top + 0.36),
+            width=Inches(panel_width - 0.28), height=Inches(panel_height - 0.86)
+        )
+    # 4. Add the bottom caption text inside the frame`
+      },
+      {
+        stepNum: "Step 7",
+        name: "Draw Styled Table",
+        fn: "_render_styled_table()",
+        title: "Step 7: Draw a Comparison Table (When layout == 'table')",
+        sig: "def _render_styled_table(slide, table_data, left, top, width, height)",
+        teacher: "What if a slide needs a comparison table instead of flashcards? When layout == 'table', the Boss calls _render_styled_table(). This function asks PowerPoint to create a grid of rows and columns, uses a first loop to paint the top header row dark blue with bold white titles, and uses a second loop to fill in all the data rows with alternating colors so it is easy to read across.",
+        input: [
+          "<code>table_data</code>: A dictionary with <code>'headers': ['Column 1', 'Column 2', ...]</code> and <code>'rows': [['Row 1A', 'Row 1B'], ...]</code>.",
+          "<code>left, top, width, height</code>: Position and size of the table on the slide."
+        ],
+        proc: [
+          "1. Counts rows and columns: <code>num_rows = len(rows) + 1</code> (adds 1 for the top header row).",
+          "2. Creates the table grid: <code>slide.shapes.add_table(num_rows, num_cols, ...)</code>.",
+          "3. <strong>Loop 1 (Top Header Row):</strong> Loops across Row 0 and colors each cell royal blue with bold text.",
+          "4. <strong>Loop 2 (Data Rows):</strong> Loops through each row and column, placing the text inside <code>table.cell(r_idx + 1, c_idx)</code> and alternating row colors."
+        ],
+        out: [
+          "A real PowerPoint comparison table on the left side of the slide (with an optional companion image on the right!)."
+        ],
+        activePart: "table",
+        miniTitle: "How PowerPoint Table Coordinates Work: table.cell(row, col)",
+        miniHtml: `
+          Just like a chessboard or Excel sheet:<br/>
+          • <code>table.cell(0, 0), table.cell(0, 1), table.cell(0, 2)</code> &rarr; Top Header Row (Row 0)<br/>
+          • <code>table.cell(1, 0), table.cell(1, 1), table.cell(1, 2)</code> &rarr; First Data Row (Row 1)
+        `,
+        code: `def _render_styled_table(slide, table_data, left, top, width, height):
+    headers  = table_data.get("headers", [])
+    rows     = table_data.get("rows", [])
+    num_rows = len(rows) + 1  # +1 for the top header row
+    num_cols = len(headers)
+
+    # 1. Create the PowerPoint table grid
+    table = slide.shapes.add_table(num_rows, num_cols, Inches(left), Inches(top), Inches(width), Inches(height)).table
+
+    # 2. Loop 1: Paint Row 0 (the Header Row)
+    for col_idx, header_text in enumerate(headers):
+        cell = table.cell(0, col_idx)
+        cell.text_frame.paragraphs[0].text = str(header_text)
+
+    # 3. Loop 2: Fill in Rows 1..N (the Data Rows)
+    for row_idx, row_values in enumerate(rows):
+        for col_idx in range(num_cols):
+            cell = table.cell(row_idx + 1, col_idx)
+            cell.text_frame.paragraphs[0].text = str(row_values[col_idx])`
+      },
+      {
+        stepNum: "Step 8",
+        name: "Footer & Save .pptx",
+        fn: "_render_bottom_takeaway_bar() + prs.save()",
+        title: "Step 8: Add the Bottom 'KEY INSIGHT' Strip & Save the File",
+        sig: "_render_bottom_takeaway_bar(slide, key_insight)  -->  prs.save(output_path)",
+        teacher: "Finally, at the bottom of each content slide (at top = 6.42 inches), we call _render_bottom_takeaway_bar() to draw a horizontal summary strip with a 'KEY INSIGHT' badge and a 1-sentence takeaway. Once the loop finishes building all slides in slides_data, the Boss calls prs.save(output_path) to write the finished .pptx file onto the computer!",
+        input: [
+          "<code>takeaway_text</code>: A 1-sentence summary for the bottom of the slide.",
+          "<code>file_name</code>: Where to save the final PowerPoint presentation."
+        ],
+        proc: [
+          "1. <strong>Draw Bottom Bar:</strong> Draws a wide rounded box at <code>left=0.75\", top=6.42\", width=11.83\", height=0.68\"</code>.",
+          "2. <strong>Draw 'KEY INSIGHT' Badge:</strong> Places a small colored label at <code>left=0.90\"</code>.",
+          "3. <strong>Add Summary Text:</strong> Places the 1-sentence takeaway text at <code>left=2.70\"</code>.",
+          "4. <strong>Save Presentation:</strong> After the <code>for</code> loop finishes all slides, calls <code>prs.save(output_path)</code>."
+        ],
+        out: [
+          "Anchors the bottom of the slide and saves the finished <code>.pptx</code> file to disk!"
+        ],
+        activePart: "footer",
+        miniTitle: "Complete Top-to-Bottom Vertical Map of a Slide (0.0\" to 7.5\")",
+        miniHtml: `
+          • <code>0.32" – 1.58"</code>: <strong>Top Header Banner</strong> (Step 4)<br/>
+          • <code>1.74" – 6.22"</code>: <strong>Middle Content Area</strong> — Cards, Framed Image, or Table (Steps 5, 6, 7)<br/>
+          • <code>6.42" – 7.10"</code>: <strong>Bottom 'KEY INSIGHT' Bar</strong> (Step 8)
+        `,
+        code: `def _render_bottom_takeaway_bar(slide, takeaway_text, accent_color):
+    if not takeaway_text:
+        return # If no takeaway sentence was given, do nothing
+
+    # 1. Wide footer box across the bottom (top = 6.42 inches)
+    banner = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.75), Inches(6.42), Inches(11.83), Inches(0.68))
+
+    # 2. Small "KEY INSIGHT" badge on the left (left = 0.90 inches)
+    tag = slide.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, Inches(0.90), Inches(6.55), Inches(1.65), Inches(0.42))
+
+    # 3. Summary sentence next to the badge (left = 2.70 inches)
+    tb = slide.shapes.add_textbox(Inches(2.70), Inches(6.48), Inches(9.70), Inches(0.56))
+
+# --- At the very end of create_premium_presentation() ---
+output_path = os.path.abspath(file_name)
+prs.save(output_path) # Saves the finished PowerPoint file to disk!`
+      }
+    ];
+
+    const layoutOptions = [
+      { id: "image_right", label: "image_right (Cards Left + Image Right)" },
+      { id: "image_left",  label: "image_left (Image Left + Cards Right)" },
+      { id: "table",       label: "table (Table Left + Image Right)" },
+      { id: "title",       label: "title (Opening Slide)" },
+      { id: "cards",       label: "cards (Cards Left + Summary Right)" },
+      { id: "ending",      label: "ending (Closing Slide)" }
+    ];
+
+    let currentStep = 0;
+    let currentLayout = "image_right";
+
+    function renderFlowchart() {
+      const container = document.getElementById("flowchart-chain");
+      container.innerHTML = "";
+      steps.forEach((s, i) => {
+        const div = document.createElement("div");
+        div.className = "flow-node" + (i === currentStep ? " active" : "");
+        div.innerHTML = `
+          <span class="step-num">${s.stepNum}</span>
+          <span class="step-name">${s.name}</span>
+          <span class="step-fn">${s.fn}</span>
+        `;
+        div.onclick = () => selectStep(i);
+        container.appendChild(div);
+      });
+    }
+
+    function renderLayoutButtons() {
+      const container = document.getElementById("layout-btns");
+      container.innerHTML = "";
+      layoutOptions.forEach(l => {
+        const btn = document.createElement("button");
+        btn.className = "l-btn" + (l.id === currentLayout ? " active" : "");
+        btn.textContent = l.label;
+        btn.onclick = () => {
+          currentLayout = l.id;
+          renderLayoutButtons();
+          renderBlueprintSVG();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function boxStyle(partName) {
+      const active = steps[currentStep].activePart;
+      if (active === partName || (active === "canvas" && partName === "bg")) {
+        return {
+          fill: "#dbeafe",
+          stroke: "#2563eb",
+          strokeWidth: 4,
+          textFill: "#1e40af"
+        };
+      }
+      return {
+        fill: "#f8fafc",
+        stroke: "#94a3b8",
+        strokeWidth: 2,
+        textFill: "#475569"
+      };
+    }
+
+    function renderBlueprintSVG() {
+      const wrap = document.getElementById("slide-blueprint");
+      const active = steps[currentStep].activePart;
+
+      // Automatically switch to 'table' preview when user clicks Step 7 (Table)
+      let layoutToShow = currentLayout;
+      if (active === "table") layoutToShow = "table";
+
+      const bgSt     = boxStyle("bg");
+      const hdrSt    = boxStyle("header");
+      const cardSt   = boxStyle("cards");
+      const imgSt    = boxStyle("image");
+      const tblSt    = boxStyle("table");
+      const footSt   = boxStyle("footer");
+
+      if (layoutToShow === "title") {
+        wrap.innerHTML = `
+          <svg viewBox="0 0 1333 750" style="width:100%; height:100%; display:block;">
+            <rect x="10" y="10" width="1313" height="730" rx="8" fill="${bgSt.fill}" stroke="${bgSt.stroke}" stroke-width="${bgSt.strokeWidth}" stroke-dasharray="8 4" />
+            <text x="666" y="55" text-anchor="middle" fill="${bgSt.textFill}" font-size="18" font-weight="700">Step 3: _apply_slide_background (13.33" × 7.5" Wallpaper)</text>
+            <rect x="115" y="125" width="1103" height="495" rx="16" fill="#eff6ff" stroke="#2563eb" stroke-width="3" />
+            <text x="666" y="210" text-anchor="middle" fill="#1e40af" font-size="20" font-weight="700">Layout = 'title' (Centered Hero Card at left=1.15", top=1.25")</text>
+            <text x="666" y="330" text-anchor="middle" fill="#0f172a" font-size="40" font-weight="800">Main Presentation Title (36pt Bold)</text>
+            <text x="666" y="430" text-anchor="middle" fill="#475569" font-size="22">Subtitle Textbox (16pt, centered at top=4.18")</text>
+            <text x="666" y="555" text-anchor="middle" fill="#2563eb" font-size="16" font-weight="700">Bottom Metadata Line (top=5.45")</text>
+          </svg>
+        `;
+        return;
+      }
+
+      // Header Blueprint (Step 4)
+      const headerBlueprint = `
+        <g>
+          <rect x="65" y="25" width="1203" height="138" rx="10" fill="${hdrSt.fill}" stroke="${hdrSt.stroke}" stroke-width="${hdrSt.strokeWidth}" />
+          <rect x="80" y="36" width="290" height="28" rx="6" fill="#ffffff" stroke="${hdrSt.stroke}" stroke-width="1.5" />
+          <text x="95" y="55" fill="${hdrSt.textFill}" font-size="14" font-weight="700">1. Section Tag (0.75", 0.32")</text>
+          <rect x="1110" y="36" width="145" height="28" rx="6" fill="#ffffff" stroke="${hdrSt.stroke}" stroke-width="1.5" />
+          <text x="1182" y="55" text-anchor="middle" fill="${hdrSt.textFill}" font-size="13" font-weight="700">2. SLIDE 02 / 08</text>
+          <text x="80" y="98" fill="#0f172a" font-size="26" font-weight="800">3. Main Slide Title (25pt Bold at top=0.66") — Step 4: _render_executive_header()</text>
+          <text x="80" y="132" fill="#475569" font-size="16">4. Subtitle Lead-in Text (12.5pt at top=1.17") + 5. Divider Line (at top=1.56")</text>
+        </g>
+      `;
+
+      function cardsBlueprint(leftPx, widthPx) {
+        return `
+          <g>
+            <rect x="${leftPx}" y="174" width="${widthPx}" height="448" rx="10" fill="${cardSt.fill}" stroke="${cardSt.stroke}" stroke-width="${cardSt.strokeWidth}" />
+            <text x="${leftPx + 18}" y="204" fill="${cardSt.textFill}" font-size="16" font-weight="800">Step 5: _render_feature_cards_column (left=${(leftPx/100).toFixed(2)}")</text>
+            ${[0, 1, 2].map(i => {
+              const y = 218 + i * 130;
+              return `
+                <rect x="${leftPx + 16}" y="${y}" width="${widthPx - 32}" height="116" rx="8" fill="#ffffff" stroke="${cardSt.stroke}" stroke-width="2" />
+                <rect x="${leftPx + 28}" y="${y + 16}" width="44" height="38" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5" />
+                <text x="${leftPx + 50}" y="${y + 41}" text-anchor="middle" fill="#2563eb" font-size="16" font-weight="800">0${i+1}</text>
+                <text x="${leftPx + 86}" y="${y + 38}" fill="#0f172a" font-size="18" font-weight="800">Bold Card Heading (from _split_bullet_title_and_body)</text>
+                <text x="${leftPx + 86}" y="${y + 68}" fill="#475569" font-size="15">Explanation text placed underneath the bold heading...</text>
+                <text x="${leftPx + 86}" y="${y + 95}" fill="#64748b" font-size="13" font-family="monospace">Card Height = (col_height - gaps) / 3</text>
+              `;
+            }).join("")}
+          </g>
+        `;
+      }
+
+      function imageBlueprint(leftPx, widthPx) {
+        return `
+          <g>
+            <rect x="${leftPx}" y="174" width="${widthPx}" height="448" rx="10" fill="${imgSt.fill}" stroke="${imgSt.stroke}" stroke-width="${imgSt.strokeWidth}" />
+            <text x="${leftPx + 20}" y="206" fill="${imgSt.textFill}" font-size="16" font-weight="800">Step 6: _render_framed_image_panel (left=${(leftPx/100).toFixed(2)}")</text>
+            <rect x="${leftPx + 20}" y="222" width="${widthPx - 40}" height="330" rx="8" fill="#ffffff" stroke="${imgSt.stroke}" stroke-width="2" stroke-dasharray="6 4" />
+            <text x="${leftPx + widthPx/2}" y="375" text-anchor="middle" fill="#0f172a" font-size="20" font-weight="800">AI Image Placed Here</text>
+            <text x="${leftPx + widthPx/2}" y="405" text-anchor="middle" fill="#475569" font-size="15">slide.shapes.add_picture(image_path)</text>
+            <text x="${leftPx + 20}" y="590" fill="#475569" font-size="14" font-weight="600">Bottom Caption Box (inside frame)</text>
+          </g>
+        `;
+      }
+
+      function tableBlueprint(leftPx, widthPx) {
+        return `
+          <g>
+            <rect x="${leftPx}" y="174" width="${widthPx}" height="448" rx="10" fill="${tblSt.fill}" stroke="${tblSt.stroke}" stroke-width="${tblSt.strokeWidth}" />
+            <text x="${leftPx + 20}" y="206" fill="${tblSt.textFill}" font-size="16" font-weight="800">Step 7: _render_styled_table (slide.shapes.add_table)</text>
+            <!-- Table Grid -->
+            <rect x="${leftPx + 20}" y="222" width="${widthPx - 40}" height="65" fill="#1e3a8a" />
+            <text x="${leftPx + 40}" y="262" fill="#ffffff" font-size="16" font-weight="700">Row 0 (Header Loop): Royal Blue Fill + Bold White Text</text>
+            <rect x="${leftPx + 20}" y="289" width="${widthPx - 40}" height="95" fill="#ffffff" stroke="#cbd5e1" />
+            <text x="${leftPx + 40}" y="342" fill="#0f172a" font-size="16">Row 1 (Data Loop): Even Row Fill + Column Values</text>
+            <rect x="${leftPx + 20}" y="386" width="${widthPx - 40}" height="95" fill="#f1f5f9" stroke="#cbd5e1" />
+            <text x="${leftPx + 40}" y="439" fill="#0f172a" font-size="16">Row 2 (Data Loop): Odd Row Fill + Column Values</text>
+            <rect x="${leftPx + 20}" y="483" width="${widthPx - 40}" height="95" fill="#ffffff" stroke="#cbd5e1" />
+            <text x="${leftPx + 40}" y="536" fill="#0f172a" font-size="16">Row 3 (Data Loop): Even Row Fill + Column Values</text>
+          </g>
+        `;
+      }
+
+      const footerBlueprint = `
+        <g>
+          <rect x="75" y="638" width="1183" height="72" rx="10" fill="${footSt.fill}" stroke="${footSt.stroke}" stroke-width="${footSt.strokeWidth}" />
+          <rect x="92" y="652" width="170" height="44" rx="8" fill="#2563eb" />
+          <text x="177" y="680" text-anchor="middle" fill="#ffffff" font-size="15" font-weight="800">KEY INSIGHT</text>
+          <text x="282" y="680" fill="#0f172a" font-size="18" font-weight="700">Step 8: _render_bottom_takeaway_bar (top=6.42", width=11.83")</text>
+        </g>
+      `;
+
+      let middleSVG = "";
+      if (layoutToShow === "image_right") {
+        middleSVG = cardsBlueprint(75, 595) + imageBlueprint(695, 563) + footerBlueprint;
+      } else if (layoutToShow === "image_left") {
+        middleSVG = imageBlueprint(75, 563) + cardsBlueprint(663, 595) + footerBlueprint;
+      } else if (layoutToShow === "table") {
+        middleSVG = tableBlueprint(75, 685) + imageBlueprint(780, 478) + footerBlueprint;
+      } else {
+        middleSVG = cardsBlueprint(75, 705) + `
+          <g>
+            <rect x="805" y="174" width="453" height="448" rx="10" fill="#f8fafc" stroke="#94a3b8" stroke-width="2" />
+            <text x="1031" y="380" text-anchor="middle" fill="#0f172a" font-size="20" font-weight="800">Right Summary Box</text>
+            <text x="1031" y="415" text-anchor="middle" fill="#475569" font-size="15">(Used in 'cards' &amp; 'ending' layouts)</text>
+          </g>
+        ` + footerBlueprint;
+      }
+
+      wrap.innerHTML = `
+        <svg viewBox="0 0 1333 750" style="width:100%; height:100%; display:block;">
+          <!-- Step 3: Background Layer -->
+          <rect x="8" y="8" width="1317" height="734" rx="8" fill="${bgSt.fill}" stroke="${bgSt.stroke}" stroke-width="${bgSt.strokeWidth}" stroke-dasharray="6 4" />
+          <text x="1305" y="732" text-anchor="end" fill="${bgSt.textFill}" font-size="13" font-weight="700">Step 3: _apply_slide_background (0,0 to 13.33" × 7.5")</text>
+          ${headerBlueprint}
+          ${middleSVG}
+        </svg>
+      `;
+    }
+
+    function selectStep(idx) {
+      currentStep = idx;
+      const s = steps[idx];
+
+      document.getElementById("d-badge").textContent = `STEP ${idx + 1} OF ${steps.length}`;
+      document.getElementById("d-title").textContent = s.title;
+      document.getElementById("d-sig").textContent = s.sig;
+      document.getElementById("d-teacher").textContent = s.teacher;
+
+      document.getElementById("d-input").innerHTML = s.input.map(x => `<li>${x}</li>`).join("");
+      document.getElementById("d-proc").innerHTML = s.proc.map(x => `<li>${x}</li>`).join("");
+      document.getElementById("d-out").innerHTML = s.out.map(x => `<li>${x}</li>`).join("");
+      document.getElementById("d-code").textContent = s.code;
+
+      document.getElementById("mini-title").textContent = s.miniTitle;
+      document.getElementById("mini-body").innerHTML = s.miniHtml;
+
+      renderFlowchart();
+      renderLayoutButtons();
+      renderBlueprintSVG();
+    }
+
+    function nextStep() {
+      selectStep((currentStep + 1) % steps.length);
+    }
+
+    function prevStep() {
+      selectStep((currentStep - 1 + steps.length) % steps.length);
+    }
+
+    selectStep(0);
+  </script>
+</body>
+</html>
