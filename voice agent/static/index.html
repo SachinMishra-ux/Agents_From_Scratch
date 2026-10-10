@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LangChain Voice Agent - Sandwich & Cafe</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" x2="12" y1="19" y2="22"></line>
+                    </svg>
+                </div>
+                <div>
+                    <h1>The Daily Melt Voice Agent</h1>
+                    <p class="subtitle">Artisanal Deli & Cafe &bull; SenseNova &bull; AssemblyAI &bull; Cartesia</p>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="/code-visualizer" target="_blank" class="clear-btn" style="text-decoration: none; color: #fff; background: #0D9488; border-color: #14B8A6; font-weight: 600;">
+                    💻 Code Architecture
+                </a>
+                <a href="/architecture" target="_blank" class="clear-btn" style="text-decoration: none; color: #fff; background: #2563EB; border-color: #3B82F6; font-weight: 600;">
+                    📊 System Architecture
+                </a>
+                <div class="status-badge" id="connectionBadge">
+                    <span class="status-dot"></span>
+                    <span id="connectionText">Connecting...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Left Panel: Chat & Real-Time Transcripts -->
+            <section class="chat-section">
+                <div class="chat-header">
+                    <h2>Live Conversation</h2>
+                    <button class="clear-btn" id="clearChatBtn" title="Clear conversation">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18m-2 0v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6m3 0V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        Clear
+                    </button>
+                </div>
+
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message assistant">
+                        <div class="msg-avatar">🥪</div>
+                        <div class="msg-bubble">
+                            <div class="msg-sender">Sam &bull; The Daily Melt</div>
+                            <div class="msg-text">Hello! Welcome to The Daily Melt Deli & Cafe. I can help you browse our sandwich menu, take your order, or check your cart. What can I get started for you today?</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Live STT / Agent Streaming Preview -->
+                <div class="streaming-preview" id="streamingPreview" style="display: none;">
+                    <div class="preview-badge" id="previewBadge">STT Live</div>
+                    <div class="preview-text" id="previewText">...</div>
+                </div>
+
+                <!-- Text Fallback / Simulator Bar -->
+                <div class="text-input-bar">
+                    <input type="text" id="textInput" placeholder="Type a message or order (e.g. 'What sandwiches do you have?')..." autocomplete="off">
+                    <button id="sendTextBtn" class="send-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                    </button>
+                </div>
+
+                <!-- Quick Prompts Chips -->
+                <div class="prompt-chips">
+                    <span class="chip-label">Quick Try:</span>
+                    <button class="chip" data-prompt="What sandwiches do you have on the menu?">🥪 View Menu</button>
+                    <button class="chip" data-prompt="Add 2 classic clubs and 1 espresso to my order.">➕ Order Sandwiches</button>
+                    <button class="chip" data-prompt="What is currently in my order and what's the total?">📋 View Cart</button>
+                    <button class="chip" data-prompt="Confirm my order for pickup under the name Sachin.">✅ Confirm Order</button>
+                </div>
+            </section>
+
+            <!-- Right Panel: Voice Control Center & Audio Visualizer -->
+            <section class="control-section">
+                <div class="card visualizer-card">
+                    <h3>Voice Engine</h3>
+                    <div class="agent-state-display" id="agentStateDisplay">
+                        <div class="state-orb state-idle" id="stateOrb"></div>
+                        <span class="state-label" id="stateLabel">IDLE</span>
+                    </div>
+
+                    <!-- Canvas Audio Visualizer -->
+                    <canvas id="audioVisualizer" width="320" height="100"></canvas>
+
+                    <p class="state-detail" id="stateDetail">Click Start Voice or Push to Talk to begin speaking.</p>
+
+                    <div class="voice-buttons">
+                        <button class="voice-btn primary-voice-btn" id="toggleVoiceBtn">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"></path>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                                <line x1="12" x2="12" y1="19" y2="22"></line>
+                            </svg>
+                            <span id="voiceBtnText">Start Microphone</span>
+                        </button>
+
+                        <button class="voice-btn push-talk-btn" id="pushTalkBtn">
+                            <span>Hold to Talk</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Architecture & Components Card -->
+                <div class="card info-card">
+                    <h3>Pipeline Architecture</h3>
+                    <div class="pipeline-flow">
+                        <div class="pipe-node active">
+                            <span class="node-title">Client Mic</span>
+                            <span class="node-sub">16kHz PCM</span>
+                        </div>
+                        <div class="pipe-arrow">&rarr;</div>
+                        <div class="pipe-node">
+                            <span class="node-title">AssemblyAI</span>
+                            <span class="node-sub">Real-Time STT</span>
+                        </div>
+                        <div class="pipe-arrow">&rarr;</div>
+                        <div class="pipe-node">
+                            <span class="node-title">LangChain</span>
+                            <span class="node-sub">create_agent</span>
+                        </div>
+                        <div class="pipe-arrow">&rarr;</div>
+                        <div class="pipe-node">
+                            <span class="node-title">Cartesia</span>
+                            <span class="node-sub">Sonic-3 TTS</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

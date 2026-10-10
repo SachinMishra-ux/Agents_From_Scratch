@@ -1,0 +1,1994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent Code Architecture & Dynamic Function Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --border: #CBD5E1;
+            --border-dark: #0F172A;
+            --primary: #2563EB;
+            --primary-bg: #EFF6FF;
+            --secondary: #7C3AED;
+            --secondary-bg: #F5F3FF;
+            --accent: #0D9488;
+            --accent-bg: #F0FDFA;
+            --warning: #D97706;
+            --warning-bg: #FFFBEB;
+            --success: #16A34A;
+            --success-bg: #F0FDF4;
+            --text-title: #0F172A;
+            --text-body: #334155;
+            --text-muted: #64748B;
+            --radius-lg: 14px;
+            --radius-md: 8px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.08), 0 2px 4px -2px rgba(0,0,0,0.04);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.09), 0 4px 6px -4px rgba(0,0,0,0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 36px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1320px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header .badge {
+            display: inline-block;
+            background: #EFF6FF;
+            color: #1D4ED8;
+            font-size: 0.8rem;
+            font-weight: 700;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 1px solid #BFDBFE;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .header h1 {
+            font-size: 2.35rem;
+            color: var(--text-title);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 860px;
+            margin: 0 auto 18px;
+        }
+
+        .nav-links {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            color: var(--text-title);
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.88rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .nav-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-1px);
+        }
+
+        /* Pipeline Banner */
+        .pipeline-banner {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .pipeline-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .pipeline-header h2 {
+            font-size: 1.22rem;
+            font-weight: 800;
+            color: var(--text-title);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .pipeline-header p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .sim-btn {
+            background: var(--primary);
+            color: #FFFFFF;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .sim-btn:hover {
+            background: #1D4ED8;
+            box-shadow: 0 4px 10px rgba(37,99,235,0.3);
+        }
+
+        .pipe-chain {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            position: relative;
+        }
+
+        @media (max-width: 1024px) {
+            .pipe-chain {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .chain-step {
+            background: #F8FAFC;
+            border: 2px solid #E2E8F0;
+            border-radius: 10px;
+            padding: 14px 12px;
+            text-align: left;
+            transition: all 0.25s ease;
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .chain-step:hover {
+            transform: translateY(-3px);
+            border-color: #94A3B8;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .chain-step.selected-phase {
+            border-color: var(--primary);
+            background: #EFF6FF;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+        }
+
+        .chain-step.active {
+            border-color: #10B981;
+            background: #ECFDF5;
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.25);
+            transform: scale(1.02);
+        }
+
+        .chain-step.completed {
+            border-color: #BFDBFE;
+            background: #F0FDF4;
+        }
+
+        .step-num {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 6px;
+        }
+
+        .step-num .phase-badge {
+            background: #E2E8F0;
+            color: #334155;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.68rem;
+        }
+
+        .chain-step.selected-phase .step-num .phase-badge {
+            background: #2563EB;
+            color: #FFFFFF;
+        }
+
+        .step-name {
+            font-size: 0.95rem;
+            font-weight: 800;
+            color: var(--text-title);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .step-func {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.73rem;
+            color: var(--primary);
+            background: #FFFFFF;
+            padding: 3px 6px;
+            border-radius: 4px;
+            border: 1px solid #DBEAFE;
+            display: inline-block;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        .step-data {
+            font-size: 0.75rem;
+            color: #475569;
+            line-height: 1.35;
+        }
+
+        /* Interactive Phase Inspector Box */
+        .phase-inspector {
+            background: #FFFFFF;
+            border: 2px solid #3B82F6;
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow-md);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .phase-inspector-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 14px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .phase-inspector-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .phase-inspector-title h3 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: var(--text-title);
+        }
+
+        .phase-inspector-tag {
+            background: #EFF6FF;
+            color: #1D4ED8;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 6px;
+            border: 1px solid #BFDBFE;
+        }
+
+        .jump-btn {
+            background: #0F172A;
+            color: #FFFFFF;
+            border: none;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .jump-btn:hover {
+            background: #2563EB;
+        }
+
+        .phase-grid {
+            display: grid;
+            grid-template-columns: 1.1fr 1fr;
+            gap: 18px;
+        }
+
+        @media (max-width: 900px) {
+            .phase-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .phase-flow-steps {
+            list-style: none;
+            counter-reset: phase-counter;
+        }
+
+        .phase-flow-steps li {
+            counter-increment: phase-counter;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 0.86rem;
+            color: #334155;
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 6px;
+            padding: 10px 12px;
+        }
+
+        .phase-flow-steps li::before {
+            content: counter(phase-counter);
+            background: #2563EB;
+            color: #FFFFFF;
+            font-weight: 800;
+            font-size: 0.75rem;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        .phase-functions-box {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            border-radius: 8px;
+            padding: 14px;
+        }
+
+        .phase-functions-box h4 {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: #0F172A;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .assoc-func-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: #FFFFFF;
+            border: 1px solid #CBD5E1;
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: #0F172A;
+            font-weight: 600;
+            margin: 3px 4px 3px 0;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .assoc-func-pill:hover {
+            border-color: #2563EB;
+            color: #2563EB;
+            background: #EFF6FF;
+        }
+
+        /* PCM Fundamentals Card */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 22px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Main Workspace Layout */
+        .workspace {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Sidebar */
+        .sidebar {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 20px;
+        }
+
+        .sidebar h3 {
+            font-size: 0.98rem;
+            font-weight: 800;
+            color: var(--text-title);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            font-family: inherit;
+            margin-bottom: 12px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-box:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+        .file-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .file-item {
+            padding: 10px 12px;
+            border-radius: var(--radius-md);
+            border: 1px solid transparent;
+            background: #F8FAFC;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+            font-weight: 600;
+            color: var(--text-body);
+            transition: all 0.2s ease;
+        }
+
+        .file-item:hover {
+            background: #F1F5F9;
+            color: var(--text-title);
+        }
+
+        .file-item.active {
+            background: var(--primary-bg);
+            border-color: #BFDBFE;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .file-badge {
+            font-size: 0.72rem;
+            font-weight: 700;
+            background: #E2E8F0;
+            color: #475569;
+            padding: 2px 7px;
+            border-radius: 12px;
+        }
+
+        .file-item.active .file-badge {
+            background: var(--primary);
+            color: #FFFFFF;
+        }
+
+        /* Content Panel */
+        .content-panel {
+            min-height: 500px;
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid #E2E8F0;
+            padding-bottom: 16px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .file-title-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .file-icon-box {
+            font-size: 2rem;
+            background: #F1F5F9;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .file-title h2 {
+            font-size: 1.35rem;
+            font-weight: 800;
+            color: var(--text-title);
+            line-height: 1.2;
+        }
+
+        .file-title p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .file-tag {
+            background: #F1F5F9;
+            color: #475569;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 6px;
+            border: 1px solid #E2E8F0;
+        }
+
+        .section-heading {
+            font-size: 0.92rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .functions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .func-card {
+            background: #FFFFFF;
+            border: 1px solid #E2E8F0;
+            border-radius: var(--radius-md);
+            padding: 18px;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .func-card:hover {
+            border-color: #94A3B8;
+            box-shadow: var(--shadow-md);
+        }
+
+        .func-card.highlighted-func {
+            border-color: #2563EB;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.25);
+            background: #FAFCFF;
+        }
+
+        .func-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .func-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.96rem;
+            font-weight: 700;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .func-kind {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .kind-func { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+        .kind-tool { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+        .kind-gen { background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; }
+        .kind-class { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+
+        .func-desc {
+            font-size: 0.88rem;
+            color: #334155;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .io-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 12px;
+            font-size: 0.8rem;
+        }
+
+        .io-table th, .io-table td {
+            padding: 6px 10px;
+            text-align: left;
+            border: 1px solid #E2E8F0;
+        }
+
+        .io-table th {
+            background: #F8FAFC;
+            font-weight: 700;
+            color: #475569;
+            width: 22%;
+        }
+
+        .io-table td {
+            background: #FFFFFF;
+            color: #1E293B;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+        }
+
+        .type-pill {
+            display: inline-block;
+            background: #F1F5F9;
+            color: #0F172A;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+        }
+
+        .code-snippet {
+            background: #0F172A;
+            color: #F8FAFC;
+            border-radius: 6px;
+            padding: 12px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            overflow-x: auto;
+        }
+
+        .code-snippet pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <span class="badge">Comprehensive Code Architecture</span>
+            <h1>Voice Agent Code & Streaming Visualizer</h1>
+            <p>A deep-dive, function-by-function educational breakdown of the <strong>Microphone &rarr; STT &rarr; LangChain Agent &rarr; TTS</strong> streaming architecture across every file in the codebase.</p>
+            
+            <div class="nav-links">
+                <a href="/" class="nav-btn">🥪 Open Voice Agent App</a>
+                <a href="/architecture" class="nav-btn">📊 System Flow Visualizer</a>
+            </div>
+        </header>
+
+        <!-- Interactive Streaming Simulation Banner (Clickable Phases) -->
+        <section class="pipeline-banner">
+            <div class="pipeline-header">
+                <div>
+                    <h2>⚡ Real-Time Streaming Data Pipeline (Code-Level)</h2>
+                    <p>Click any phase card below to inspect its exact Python/JS functions, data contracts, and internal execution flow!</p>
+                </div>
+                <button class="sim-btn" id="simulateCodeFlowBtn">
+                    <span>▶ Run Code Execution Simulation</span>
+                </button>
+            </div>
+
+            <div class="pipe-chain">
+                <!-- Step 1 -->
+                <div class="chain-step selected-phase" id="cstep-1" data-phase="1">
+                    <div class="step-num">
+                        <span>Phase 1</span>
+                        <span class="phase-badge">Client JS</span>
+                    </div>
+                    <div class="step-name">🎙️ Mic Capture</div>
+                    <div class="step-func">app.js &bull; downsampleBuffer()</div>
+                    <div class="step-data">Resamples 48kHz to 16kHz Int16 PCM and calls <code>ws.send()</code>.</div>
+                </div>
+
+                <!-- Step 2 -->
+                <div class="chain-step" id="cstep-2" data-phase="2">
+                    <div class="step-num">
+                        <span>Phase 2</span>
+                        <span class="phase-badge">FastAPI Gateway</span>
+                    </div>
+                    <div class="step-name">⚡ WS Dispatcher</div>
+                    <div class="step-func">server.py &bull; websocket_voice_endpoint()</div>
+                    <div class="step-data">Receives PCM bytes and pushes into <code>audio_queue</code>.</div>
+                </div>
+
+                <!-- Step 3 -->
+                <div class="chain-step" id="cstep-3" data-phase="3">
+                    <div class="step-num">
+                        <span>Phase 3</span>
+                        <span class="phase-badge">STT & VAD</span>
+                    </div>
+                    <div class="step-name">👂 AssemblyAI STT</div>
+                    <div class="step-func">stt.py &bull; stt_stream()</div>
+                    <div class="step-data">Streams audio; emits <code>STTOutputEvent</code> on sentence finish.</div>
+                </div>
+
+                <!-- Step 4 -->
+                <div class="chain-step" id="cstep-4" data-phase="4">
+                    <div class="step-num">
+                        <span>Phase 4</span>
+                        <span class="phase-badge">AI Brain</span>
+                    </div>
+                    <div class="step-name">🧠 LangChain Agent</div>
+                    <div class="step-func">agent.py &bull; agent_stream()</div>
+                    <div class="step-data">Invokes tools & yields streaming tokens as <code>AgentChunkEvent</code>.</div>
+                </div>
+
+                <!-- Step 5 -->
+                <div class="chain-step" id="cstep-5" data-phase="5">
+                    <div class="step-num">
+                        <span>Phase 5</span>
+                        <span class="phase-badge">Speech TTS</span>
+                    </div>
+                    <div class="step-name">🗣️ Cartesia TTS</div>
+                    <div class="step-func">tts.py &bull; tts_stream()</div>
+                    <div class="step-data">Synthesizes speech at sentence breaks and yields <code>TTSChunkEvent</code>.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Dynamic Phase Inspector (Updates when clicking pipeline cards) -->
+        <section class="phase-inspector" id="phaseInspector">
+            <!-- Populated dynamically by JS -->
+        </section>
+
+        <!-- Deep Dive: Audio Fundamentals & What is PCM? -->
+        <section class="card" style="margin-bottom: 28px; border-left: 5px solid #2563EB;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="font-size: 1.8rem; background: #EFF6FF; width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center;">🎙️</div>
+                    <div>
+                        <h2 style="font-size: 1.25rem; font-weight: 800; color: #0F172A;">Audio Fundamentals: What is 16kHz Int16 PCM Audio?</h2>
+                        <p style="font-size: 0.85rem; color: #64748B;">Understanding why and how we convert physical voice waves into digital numbers in <code>app.js</code> and <code>stt.py</code>.</p>
+                    </div>
+                </div>
+                <span class="file-tag" style="background: #EFF6FF; color: #1D4ED8; border-color: #BFDBFE;">Pulse-Code Modulation</span>
+            </div>
+
+            <!-- Visual Flowchart of Analog Wave to PCM Numbers -->
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 10px; padding: 18px; margin-bottom: 18px;">
+                <div style="display: grid; grid-template-columns: 1fr auto 1.2fr auto 1fr; gap: 14px; align-items: center; text-align: center;">
+                    <div style="background: #FFFFFF; border: 1px solid #CBD5E1; border-radius: 8px; padding: 12px;">
+                        <div style="font-size: 0.72rem; font-weight: 700; color: #64748B; text-transform: uppercase;">1. Vocal Waves</div>
+                        <div style="font-size: 1.3rem; margin: 4px 0;">〰️ 🗣️</div>
+                        <div style="font-size: 0.8rem; color: #0F172A; font-weight: 600;">Continuous Sound Wave</div>
+                    </div>
+                    
+                    <div style="color: #64748B; font-size: 1.2rem; font-weight: bold;">&rarr;</div>
+
+                    <div style="background: #EFF6FF; border: 1px solid #BFDBFE; border-radius: 8px; padding: 12px;">
+                        <div style="font-size: 0.72rem; font-weight: 700; color: #1D4ED8; text-transform: uppercase;">2. Sampling Snapshots</div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: #1E40AF; margin: 4px 0;">16,000 Readings / Sec</div>
+                        <div style="font-size: 0.75rem; color: #475569;">Linear interpolation in <code>downsampleBuffer</code></div>
+                    </div>
+
+                    <div style="color: #64748B; font-size: 1.2rem; font-weight: bold;">&rarr;</div>
+
+                    <div style="background: #0F172A; border-radius: 8px; padding: 12px; color: #F8FAFC; text-align: left;">
+                        <div style="font-size: 0.7rem; font-weight: 700; color: #94A3B8; text-transform: uppercase;">3. Int16 PCM Bytes</div>
+                        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; color: #38BDF8; margin-top: 4px;">[+18450, +8200, -12300]</div>
+                        <div style="font-size: 0.7rem; color: #94A3B8; margin-top: 2px;">Packed binary sent to WebSocket</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4 Breakdown Pillars -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px; margin-bottom: 16px;">
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.78rem; font-weight: 800; color: #2563EB; text-transform: uppercase; margin-bottom: 4px;">1. What is PCM?</div>
+                    <p style="font-size: 0.83rem; color: #334155; line-height: 1.45;">
+                        <strong>Pulse-Code Modulation (PCM)</strong> is uncompressed digital sound. Unlike MP3/AAC, PCM has <strong>zero decompression lag</strong>, enabling sub-second voice AI conversation.
+                    </p>
+                </div>
+
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.78rem; font-weight: 800; color: #D97706; text-transform: uppercase; margin-bottom: 4px;">2. 48kHz vs 16kHz</div>
+                    <p style="font-size: 0.83rem; color: #334155; line-height: 1.45;">
+                        Mac microphones record at <strong>48,000 samples/sec</strong>. Speech models only need <strong>16,000 samples/sec</strong>. Resampling cuts <strong>66% of network bandwidth</strong>.
+                    </p>
+                </div>
+
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.78rem; font-weight: 800; color: #7C3AED; text-transform: uppercase; margin-bottom: 4px;">3. Int16 Bit Depth</div>
+                    <p style="font-size: 0.83rem; color: #334155; line-height: 1.45;">
+                        Browser captures Float32 decimals <code>[-1.0, 1.0]</code>. In <code>convertToInt16</code>, we multiply by <code>32,767</code> to produce signed 16-bit integers <strong>[-32768, +32767]</strong>.
+                    </p>
+                </div>
+
+                <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 8px; padding: 12px;">
+                    <div style="font-size: 0.78rem; font-weight: 800; color: #059669; text-transform: uppercase; margin-bottom: 4px;">4. ws.send() Pipe</div>
+                    <p style="font-size: 0.83rem; color: #334155; line-height: 1.45;">
+                        Transfers raw <code>pcm16.buffer</code> binary directly across the persistent WebSocket tunnel to FastAPI with zero HTTP overhead.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Workspace: File Explorer on Left, Function Cards on Right -->
+        <div class="workspace">
+            <!-- Left Sidebar -->
+            <aside class="sidebar">
+                <h3>Code Files <span style="font-size: 0.75rem; color: #64748B;">(8 Files)</span></h3>
+                <input type="text" id="fileSearch" class="search-box" placeholder="Search functions or files...">
+                
+                <div class="file-list" id="fileList">
+                    <div class="file-item active" data-file="agent">
+                        <span>🧠 agent.py</span>
+                        <span class="file-badge">7 Items</span>
+                    </div>
+                    <div class="file-item" data-file="stt">
+                        <span>👂 stt.py</span>
+                        <span class="file-badge">5 Items</span>
+                    </div>
+                    <div class="file-item" data-file="tts">
+                        <span>🗣️ tts.py</span>
+                        <span class="file-badge">4 Items</span>
+                    </div>
+                    <div class="file-item" data-file="pipeline">
+                        <span>🥪 pipeline.py</span>
+                        <span class="file-badge">2 Items</span>
+                    </div>
+                    <div class="file-item" data-file="events">
+                        <span>📦 events.py</span>
+                        <span class="file-badge">8 Items</span>
+                    </div>
+                    <div class="file-item" data-file="server">
+                        <span>⚡ server.py</span>
+                        <span class="file-badge">6 Items</span>
+                    </div>
+                    <div class="file-item" data-file="appjs">
+                        <span>💻 static/app.js</span>
+                        <span class="file-badge">8 Items</span>
+                    </div>
+                    <div class="file-item" data-file="tests">
+                        <span>🧪 test_end_to_end.py</span>
+                        <span class="file-badge">4 Items</span>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Detail Panel -->
+            <main class="content-panel" id="contentPanel">
+                <!-- Dynamically populated by JS -->
+            </main>
+        </div>
+    </div>
+
+    <script>
+        // Database of all 8 files and their functions/classes
+        const codebaseData = {
+            agent: {
+                icon: "🧠",
+                filename: "agent.py",
+                title: "LangChain AI Brain & Sandwich Deli Tools Module",
+                role: "Configures SenseNova LLM, custom sandwich ordering domain tools (@tool), conversation memory with InMemorySaver, and token-by-token streaming generator.",
+                tag: "LangChain &bull; SenseNova &bull; @tool Decorator",
+                functions: [
+                    {
+                        name: "get_llm()",
+                        kind: "kind-func",
+                        kindLabel: "LLM Factory",
+                        desc: "Initializes and returns the SenseNova ChatModel using LangChain's ChatOpenAI wrapper with low temperature (0.1) for accurate, deterministic tool invocation.",
+                        inputs: "None (Reads SENSENOVA_API_KEY from environment)",
+                        returns: "BaseChatModel (Configured for https://token.sensenova.ai/v1)",
+                        snippet: `def get_llm() -> BaseChatModel:
+    return ChatOpenAI(
+        base_url="https://token.sensenova.ai/v1",
+        api_key=os.getenv("SENSENOVA_API_KEY"),
+        model="sensenova-6.8-flash-lite",
+        temperature=0.1
+    )`
+                    },
+                    {
+                        name: "get_sandwich_menu()",
+                        kind: "kind-tool",
+                        kindLabel: "@tool",
+                        desc: "LangChain tool that formats the available deli sandwiches, paninis, wraps, coffees, and bakery items with their current prices.",
+                        inputs: "None",
+                        returns: "str (Formatted menu items and prices string)",
+                        snippet: `@tool
+def get_sandwich_menu() -> str:
+    """Get the available menu items and their prices."""
+    items = [f"{item.title()} (\${price:.2f})" for item, price in MENU_ITEMS.items()]
+    return "Our menu includes: " + ", ".join(items) + "."`
+                    },
+                    {
+                        name: "add_to_order(item, quantity, special_instructions)",
+                        kind: "kind-tool",
+                        kindLabel: "@tool",
+                        desc: "Adds an item with quantity and customizations (e.g., 'no mayo', 'oat milk') to the in-memory shopping cart and updates item count.",
+                        inputs: "item: str, quantity: int = 1, special_instructions: str = ''",
+                        returns: "str (Confirmation message of added item & current count)",
+                        snippet: `@tool
+def add_to_order(item: str, quantity: int = 1, special_instructions: str = "") -> str:
+    """Add an item to the customer's sandwich/drink order."""
+    cleaned_item = item.lower().strip()
+    match = next((k for k in MENU_ITEMS if k in cleaned_item or cleaned_item in k), cleaned_item)
+    price = MENU_ITEMS.get(match, 8.00)
+    
+    CURRENT_ORDER.append({
+        "item": match.title(),
+        "quantity": max(1, quantity),
+        "price": price,
+        "instructions": special_instructions or "None"
+    })
+    return f"Added {quantity} {match.title()} to the order. Current count: {len(CURRENT_ORDER)}."`
+                    },
+                    {
+                        name: "view_current_order()",
+                        kind: "kind-tool",
+                        kindLabel: "@tool",
+                        desc: "Calculates the subtotal and itemized summary of everything currently inside the customer's cart.",
+                        inputs: "None",
+                        returns: "str (Current order summary and calculated total price)",
+                        snippet: `@tool
+def view_current_order() -> str:
+    """View items currently in the customer's order and calculate total cost."""
+    if not CURRENT_ORDER: return "The order is currently empty."
+    summary = [f"{i['quantity']}x {i['item']} (\${i['price']*i['quantity']:.2f})" for i in CURRENT_ORDER]
+    total = sum(i["price"] * i["quantity"] for i in CURRENT_ORDER)
+    return f"Current order: {', '.join(summary)}. Total is \${total:.2f}."`
+                    },
+                    {
+                        name: "confirm_and_place_order(customer_name, order_type)",
+                        kind: "kind-tool",
+                        kindLabel: "@tool",
+                        desc: "Finalizes the customer's sandwich order, sends it to the kitchen queue, calculates final total, and clears the cart.",
+                        inputs: "customer_name: str, order_type: str = 'pickup'",
+                        returns: "str (Order confirmation message with pickup details)",
+                        snippet: `@tool
+def confirm_and_place_order(customer_name: str, order_type: str = "pickup") -> str:
+    """Finalize the order and send it to the kitchen."""
+    if not CURRENT_ORDER: return "Cannot confirm an empty order."
+    total = sum(i["price"] * i["quantity"] for i in CURRENT_ORDER)
+    count = sum(i["quantity"] for i in CURRENT_ORDER)
+    CURRENT_ORDER.clear()
+    return f"Order confirmed for {customer_name}! {count} items for {order_type}. Total is \${total:.2f}."`
+                    },
+                    {
+                        name: "build_voice_agent()",
+                        kind: "kind-func",
+                        kindLabel: "Agent Builder",
+                        desc: "Constructs the LangChain agent using create_agent with SenseNova LLM, tools, deli system prompt, and InMemorySaver checkpointer for stateful conversation turns.",
+                        inputs: "None",
+                        returns: "Compiled LangGraph Agent with checkpointer memory",
+                        snippet: `def build_voice_agent():
+    return create_agent(
+        model=get_llm(),
+        tools=TOOLS,
+        system_prompt=SYSTEM_PROMPT,
+        checkpointer=InMemorySaver()
+    )`
+                    },
+                    {
+                        name: "agent_stream(event_stream, thread_id)",
+                        kind: "kind-gen",
+                        kindLabel: "Async Generator",
+                        desc: "Core streaming transformer: passes upstream events, listens for 'stt_output', invokes the agent with astream(stream_mode='messages'), and yields AgentChunkEvents token-by-token.",
+                        inputs: "event_stream: AsyncIterator[VoiceAgentEvent], thread_id: str = 'default'",
+                        returns: "AsyncIterator[VoiceAgentEvent] (Yields AgentChunkEvent & AgentCompleteEvent)",
+                        snippet: `async def agent_stream(event_stream: AsyncIterator[VoiceAgentEvent], thread_id: str = "default"):
+    async for event in event_stream:
+        yield event
+        if event.type == "stt_output" and event.transcript.strip():
+            config = {"configurable": {"thread_id": thread_id}}
+            input_msg = {"messages": [HumanMessage(content=event.transcript.strip())]}
+            
+            async for chunk, meta in voice_agent.astream(input_msg, config=config, stream_mode="messages"):
+                if isinstance(chunk, AIMessage) and chunk.content:
+                    yield AgentChunkEvent.create(text=chunk.content)
+            yield AgentCompleteEvent.create(response=full_response)`
+                    }
+                ]
+            },
+            stt: {
+                icon: "👂",
+                filename: "stt.py",
+                title: "Speech-to-Text (STT) & VAD Module",
+                role: "Integrates AssemblyAI v3 Real-Time Transcriber, configures Voice Activity Detection (VAD) with end_of_turn gating, and bridges background threads into asyncio queues.",
+                tag: "AssemblyAI v3 &bull; VAD &bull; 16kHz PCM",
+                functions: [
+                    {
+                        name: "AssemblyAISTTClient.__init__(api_key, sample_rate)",
+                        kind: "kind-class",
+                        kindLabel: "Class Constructor",
+                        desc: "Initializes the AssemblyAI RealTimeTranscriber client, sets up an internal asyncio.Queue, and captures the running event loop for thread safety.",
+                        inputs: "api_key: Optional[str], sample_rate: int = 16000",
+                        returns: "AssemblyAISTTClient Instance",
+                        snippet: `class AssemblyAISTTClient:
+    def __init__(self, api_key: Optional[str] = None, sample_rate: int = 16000):
+        self.api_key = api_key or os.getenv("ASSEMBLYAI_API_KEY")
+        self.sample_rate = sample_rate
+        self.queue: asyncio.Queue[VoiceAgentEvent] = asyncio.Queue()
+        self.loop = asyncio.get_running_loop()
+        self.client = aai_v3.RealTimeTranscriber(api_key=self.api_key)`
+                    },
+                    {
+                        name: "AssemblyAISTTClient._setup_event_handlers()",
+                        kind: "kind-func",
+                        kindLabel: "Event Handlers",
+                        desc: "Binds callbacks for Begin, SpeechStarted, Turn, Error, and Termination. Uses event.end_of_turn to distinguish interim partial words from finalized sentences.",
+                        inputs: "None",
+                        returns: "None",
+                        snippet: `def _setup_event_handlers(self):
+    def on_turn(client, event):
+        if event.end_of_turn:
+            self.loop.call_soon_threadsafe(self.queue.put_nowait, STTOutputEvent.create(event.transcript))
+        else:
+            self.loop.call_soon_threadsafe(self.queue.put_nowait, STTChunkEvent.create(event.transcript))`
+                    },
+                    {
+                        name: "AssemblyAISTTClient.connect()",
+                        kind: "kind-func",
+                        kindLabel: "Connection Init",
+                        desc: "Connects to AssemblyAI WebSocket with tuned VAD parameters: min_turn_silence=700ms (prevents mid-sentence interruption) and max_turn_silence=2000ms.",
+                        inputs: "None",
+                        returns: "None",
+                        snippet: `def connect(self):
+    self.client.connect(aai_v3.RealTimeParameters(
+        sample_rate=self.sample_rate,
+        encoding=aai_v3.Encoding.pcm_s16le,
+        min_turn_silence=700,
+        max_turn_silence=2000
+    ))
+    self._connected = True`
+                    },
+                    {
+                        name: "AssemblyAISTTClient.send_audio(audio_chunk)",
+                        kind: "kind-func",
+                        kindLabel: "Audio Streamer",
+                        desc: "Streams 16-bit Mono PCM audio bytes to AssemblyAI's write thread.",
+                        inputs: "audio_chunk: bytes",
+                        returns: "None",
+                        snippet: `def send_audio(self, audio_chunk: bytes):
+    if not self._connected:
+        self.connect()
+    if audio_chunk:
+        self.client.stream(audio_chunk)`
+                    },
+                    {
+                        name: "stt_stream(audio_stream, sample_rate)",
+                        kind: "kind-gen",
+                        kindLabel: "Producer-Consumer Stream",
+                        desc: "Asynchronously pumps incoming audio bytes to AssemblyAI in a background producer task while consuming and yielding STT events in the main stream.",
+                        inputs: "audio_stream: AsyncIterator[bytes], sample_rate: int = 16000",
+                        returns: "AsyncIterator[VoiceAgentEvent] (STTChunkEvent & STTOutputEvent)",
+                        snippet: `async def stt_stream(audio_stream: AsyncIterator[bytes], sample_rate: int = 16000):
+    stt = AssemblyAISTTClient(sample_rate=sample_rate)
+    stt.connect()
+    send_task = asyncio.create_task(_send_pump())
+    try:
+        async for event in stt.receive_events():
+            yield event
+    finally:
+        send_task.cancel()
+        stt.close()`
+                    }
+                ]
+            },
+            tts: {
+                icon: "🗣️",
+                filename: "tts.py",
+                title: "Text-to-Speech (TTS) Streaming Module",
+                role: "Interfaces with Cartesia Sonic-3 model to synthesize lifelike 44.1kHz WAV voice audio chunks with sentence-boundary early streaming.",
+                tag: "Cartesia Sonic-3 &bull; Sub-150ms Latency",
+                functions: [
+                    {
+                        name: "CartesiaTTSClient.__init__(voice_id, model_id, sample_rate)",
+                        kind: "kind-class",
+                        kindLabel: "Class Constructor",
+                        desc: "Configures Cartesia SDK client with voice model 'sonic-3', custom voice ID, and 44.1kHz sampling rate.",
+                        inputs: "voice_id: str, model_id: str = 'sonic-3', sample_rate: int = 44100",
+                        returns: "CartesiaTTSClient Instance",
+                        snippet: `class CartesiaTTSClient:
+    def __init__(self, voice_id="db6b0ed5-d5d3-463d-ae85-518a07d3c2b4", model_id="sonic-3", sample_rate=44100):
+        self.api_key = os.getenv("CARTESIA_API_KEY")
+        self.voice_id = voice_id
+        self.client = Cartesia(api_key=self.api_key)`
+                    },
+                    {
+                        name: "CartesiaTTSClient.synthesize_text_to_wav(text)",
+                        kind: "kind-func",
+                        kindLabel: "Audio Generator",
+                        desc: "Strips markdown/special characters and requests Cartesia API to synthesize text into binary WAV audio bytes.",
+                        inputs: "text: str",
+                        returns: "bytes (WAV audio binary stream)",
+                        snippet: `def synthesize_text_to_wav(self, text: str) -> bytes:
+    cleaned = re.sub(r"[*#_\`\\[\\]]", "", text).strip()
+    response = self.client.tts.generate(
+        model_id=self.model_id,
+        transcript=cleaned,
+        voice=self.voice_id,
+        output_format={"container": "wav", "encoding": "pcm_s16le", "sample_rate": self.sample_rate}
+    )
+    return response.read()`
+                    },
+                    {
+                        name: "CartesiaTTSClient.async_synthesize_text(text)",
+                        kind: "kind-func",
+                        kindLabel: "Async Wrapper",
+                        desc: "Runs audio synthesis inside a background thread executor so the FastAPI event loop is never blocked.",
+                        inputs: "text: str",
+                        returns: "Coroutine[bytes]",
+                        snippet: `async def async_synthesize_text(self, text: str) -> bytes:
+    loop = asyncio.get_running_loop()
+    return await loop.run_in_executor(None, self.synthesize_text_to_wav, text)`
+                    },
+                    {
+                        name: "tts_stream(event_stream, tts_client)",
+                        kind: "kind-gen",
+                        kindLabel: "Sentence-Streaming Generator",
+                        desc: "Buffers agent tokens until a sentence end (. / ! / ?) is reached, synthesizes the sentence immediately, and yields TTSChunkEvent for rapid playback.",
+                        inputs: "event_stream: AsyncIterator[VoiceAgentEvent], tts_client: Optional[CartesiaTTSClient]",
+                        returns: "AsyncIterator[VoiceAgentEvent] (Yields TTSChunkEvent)",
+                        snippet: `async def tts_stream(event_stream: AsyncIterator[VoiceAgentEvent], tts_client=None):
+    async for event in event_stream:
+        yield event
+        if event.type == "agent_chunk":
+            text_buffer += event.text
+            if sentence_end_pattern.search(text_buffer):
+                audio = await tts_client.async_synthesize_text(sentence)
+                yield TTSChunkEvent.create(audio=audio)`
+                    }
+                ]
+            },
+            pipeline: {
+                icon: "🥪",
+                filename: "pipeline.py",
+                title: "Sandwich Pipeline Composition Module",
+                role: "Chains STT, Agent, and TTS using LangChain RunnableGenerators into a single continuous stream.",
+                tag: "LangChain RunnableGenerator &bull; Async Pipeline",
+                functions: [
+                    {
+                        name: "build_voice_pipeline()",
+                        kind: "kind-func",
+                        kindLabel: "Pipeline Builder",
+                        desc: "Uses LangChain pipe syntax (|) to chain RunnableGenerator(stt_stream) | RunnableGenerator(agent_stream) | RunnableGenerator(tts_stream).",
+                        inputs: "None",
+                        returns: "RunnableGenerator Pipeline",
+                        snippet: `def build_voice_pipeline():
+    return (
+        RunnableGenerator(stt_stream)
+        | RunnableGenerator(agent_stream)
+        | RunnableGenerator(tts_stream)
+    )`
+                    },
+                    {
+                        name: "run_voice_pipeline(audio_stream, thread_id)",
+                        kind: "kind-gen",
+                        kindLabel: "Stream Runner",
+                        desc: "Sequentially wires async generators to process incoming raw audio bytes all the way to TTS audio bytes.",
+                        inputs: "audio_stream: AsyncIterator[bytes], thread_id: str = 'default'",
+                        returns: "AsyncIterator[VoiceAgentEvent]",
+                        snippet: `async def run_voice_pipeline(audio_stream: AsyncIterator[bytes], thread_id: str = "default"):
+    stt_events = stt_stream(audio_stream)
+    agent_events = agent_stream(stt_events, thread_id=thread_id)
+    async for event in tts_stream(agent_events):
+        yield event`
+                    }
+                ]
+            },
+            events: {
+                icon: "📦",
+                filename: "events.py",
+                title: "Typed Event Protocol Module",
+                role: "Defines the structured dataclass event classes that travel between browser, STT, Agent, and TTS.",
+                tag: "Dataclasses &bull; Event Serialization",
+                functions: [
+                    {
+                        name: "VoiceAgentEvent",
+                        kind: "kind-class",
+                        kindLabel: "Base Dataclass",
+                        desc: "Base class for all voice pipeline events with built-in to_dict() serialization for JSON WebSocket transmission.",
+                        inputs: "type: str = 'base'",
+                        returns: "VoiceAgentEvent Base Instance",
+                        snippet: `@dataclass
+class VoiceAgentEvent:
+    type: str = "base"
+    def to_dict(self) -> dict[str, Any]:
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}`
+                    },
+                    {
+                        name: "STTChunkEvent(transcript)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Partial real-time transcription emitted as user speaks words for instant UI live preview.",
+                        inputs: "transcript: str",
+                        returns: "STTChunkEvent (type='stt_chunk')",
+                        snippet: `@dataclass
+class STTChunkEvent(VoiceAgentEvent):
+    transcript: str = ""
+    type: str = "stt_chunk"
+    @classmethod
+    def create(cls, transcript: str): return cls(transcript=transcript, type="stt_chunk")`
+                    },
+                    {
+                        name: "STTOutputEvent(transcript)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Finalized speech turn emitted when VAD detects sentence completion. Triggers LangChain agent reasoning.",
+                        inputs: "transcript: str",
+                        returns: "STTOutputEvent (type='stt_output')",
+                        snippet: `@dataclass
+class STTOutputEvent(VoiceAgentEvent):
+    transcript: str = ""
+    type: str = "stt_output"
+    @classmethod
+    def create(cls, transcript: str): return cls(transcript=transcript, type="stt_output")`
+                    },
+                    {
+                        name: "AgentChunkEvent(text)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Individual token chunk emitted by LangChain agent during LLM streaming response generation.",
+                        inputs: "text: str",
+                        returns: "AgentChunkEvent (type='agent_chunk')",
+                        snippet: `@dataclass
+class AgentChunkEvent(VoiceAgentEvent):
+    text: str = ""
+    type: str = "agent_chunk"
+    @classmethod
+    def create(cls, text: str): return cls(text=text, type="agent_chunk")`
+                    },
+                    {
+                        name: "AgentCompleteEvent(response)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Signals the end of an LLM answer turn and provides the complete finalized text.",
+                        inputs: "response: str",
+                        returns: "AgentCompleteEvent (type='agent_complete')",
+                        snippet: `@dataclass
+class AgentCompleteEvent(VoiceAgentEvent):
+    response: str = ""
+    type: str = "agent_complete"
+    @classmethod
+    def create(cls, response: str): return cls(response=response, type="agent_complete")`
+                    },
+                    {
+                        name: "TTSChunkEvent(audio, format, sample_rate)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Binary audio chunk containing synthesized voice bytes (WAV/PCM) to be sent to browser speakers.",
+                        inputs: "audio: bytes, format: str = 'pcm', sample_rate: int = 44100",
+                        returns: "TTSChunkEvent (type='tts_chunk')",
+                        snippet: `@dataclass
+class TTSChunkEvent(VoiceAgentEvent):
+    audio: bytes = b""
+    format: str = "pcm"
+    sample_rate: int = 44100
+    type: str = "tts_chunk"
+    @classmethod
+    def create(cls, audio: bytes): return cls(audio=audio, format="pcm", sample_rate=44100, type="tts_chunk")`
+                    },
+                    {
+                        name: "StatusEvent(status, message)",
+                        kind: "kind-class",
+                        kindLabel: "@dataclass",
+                        desc: "Informs the frontend of pipeline state changes ('listening', 'thinking', 'speaking', 'idle').",
+                        inputs: "status: str, message: str",
+                        returns: "StatusEvent (type='status')",
+                        snippet: `@dataclass
+class StatusEvent(VoiceAgentEvent):
+    status: Literal["idle", "listening", "thinking", "speaking", "error"] = "idle"
+    message: str = ""
+    type: str = "status"`
+                    },
+                    {
+                        name: "merge_async_iters(*iterators)",
+                        kind: "kind-gen",
+                        kindLabel: "Stream Merger",
+                        desc: "Concurrently merges multiple asynchronous generators into a single queue-driven stream.",
+                        inputs: "*iterators: AsyncIterator[Any]",
+                        returns: "AsyncIterator[Any]",
+                        snippet: `async def merge_async_iters(*iterators: AsyncIterator[Any]) -> AsyncIterator[Any]:
+    queue = asyncio.Queue()
+    tasks = [asyncio.create_task(_pump(it)) for it in iterators]
+    while True:
+        item = await queue.get()
+        if item is sentinel: break
+        yield item`
+                    }
+                ]
+            },
+            server: {
+                icon: "⚡",
+                filename: "server.py",
+                title: "FastAPI WebSocket Gateway & Server",
+                role: "Manages WebSocket client connections, hosts static UI files, routes chat requests, and runs the sandwich pipeline.",
+                tag: "FastAPI &bull; WebSocket /ws &bull; REST API",
+                functions: [
+                    {
+                        name: "root() [GET /]",
+                        kind: "kind-func",
+                        kindLabel: "HTTP Route",
+                        desc: "Serves the main Voice Agent web application interface (static/index.html).",
+                        inputs: "None",
+                        returns: "FileResponse(index.html)",
+                        snippet: `@app.get("/")
+async def root():
+    return FileResponse(STATIC_DIR / "index.html")`
+                    },
+                    {
+                        name: "architecture_page() [GET /architecture]",
+                        kind: "kind-func",
+                        kindLabel: "HTTP Route",
+                        desc: "Serves the interactive high-level system architecture visualizer.",
+                        inputs: "None",
+                        returns: "FileResponse(architecture_visualizer.html)",
+                        snippet: `@app.get("/architecture")
+async def architecture_page():
+    return FileResponse(Path(__file__).resolve().parent / "architecture_visualizer.html")`
+                    },
+                    {
+                        name: "code_visualizer_page() [GET /code-visualizer]",
+                        kind: "kind-func",
+                        kindLabel: "HTTP Route",
+                        desc: "Serves this comprehensive interactive Code Architecture & Function Visualizer.",
+                        inputs: "None",
+                        returns: "FileResponse(code_architecture_visualizer.html)",
+                        snippet: `@app.get("/code-visualizer")
+async def code_visualizer_page():
+    return FileResponse(Path(__file__).resolve().parent / "code_architecture_visualizer.html")`
+                    },
+                    {
+                        name: "health_check() [GET /api/health]",
+                        kind: "kind-func",
+                        kindLabel: "HTTP Route",
+                        desc: "Diagnostic health check endpoint verifying configured API keys for SenseNova, AssemblyAI, and Cartesia.",
+                        inputs: "None",
+                        returns: "JSONResponse with diagnostic status of keys",
+                        snippet: `@app.get("/api/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "keys": {
+            "sensenova": bool(os.getenv("SENSENOVA_API_KEY")),
+            "assemblyai": bool(os.getenv("ASSEMBLYAI_API_KEY")),
+            "cartesia": bool(os.getenv("CARTESIA_API_KEY"))
+        }
+    }`
+                    },
+                    {
+                        name: "direct_chat(request) [POST /api/chat]",
+                        kind: "kind-func",
+                        kindLabel: "HTTP Route",
+                        desc: "REST test endpoint: executes agent reasoning and returns text plus base64 Cartesia WAV audio.",
+                        inputs: "JSON payload: {'text': str, 'thread_id': str}",
+                        returns: "JSON with agent_response and audio_base64",
+                        snippet: `@app.post("/api/chat")
+async def direct_chat(request: Request):
+    response = await voice_agent.ainvoke(input_msg, config=config)
+    audio = await tts.async_synthesize_text(agent_text)
+    return {"agent_response": agent_text, "audio_base64": b64_audio}`
+                    },
+                    {
+                        name: "websocket_voice_endpoint(websocket) [WS /ws]",
+                        kind: "kind-func",
+                        kindLabel: "WebSocket Endpoint",
+                        desc: "Main real-time communication hub: accepts connection, handles incoming audio bytes, dispatches events, and streams synthesized speech back.",
+                        inputs: "websocket: WebSocket",
+                        returns: "None (Persistent bidirectional stream)",
+                        snippet: `@app.websocket("/ws")
+async def websocket_voice_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    pipeline_task = asyncio.create_task(run_pipeline())
+    while True:
+        message = await websocket.receive()
+        if "bytes" in message:
+            await audio_queue.put(message["bytes"])`
+                    }
+                ]
+            },
+            appjs: {
+                icon: "💻",
+                filename: "static/app.js",
+                title: "Client-Side WebAudio & WebSocket Controller",
+                role: "Captures microphone audio, downsamples to 16kHz PCM, manages WebSocket events, and queues audio playback.",
+                tag: "Web Audio API &bull; 16kHz PCM Resampler &bull; Playback Queue",
+                functions: [
+                    {
+                        name: "connectWebSocket()",
+                        kind: "kind-func",
+                        kindLabel: "JS Function",
+                        desc: "Establishes WebSocket connection to /ws with binaryType='arraybuffer' and sets up message routing.",
+                        inputs: "None",
+                        returns: "None",
+                        snippet: `function connectWebSocket() {
+    ws = new WebSocket(wsUrl);
+    ws.binaryType = 'arraybuffer';
+    ws.onmessage = (event) => {
+        if (typeof event.data === 'string') handleServerEvent(JSON.parse(event.data));
+        else if (event.data instanceof ArrayBuffer) queueAudioForPlayback(event.data);
+    };
+}`
+                    },
+                    {
+                        name: "handleServerEvent(data)",
+                        kind: "kind-func",
+                        kindLabel: "Event Router",
+                        desc: "Dispatches incoming JSON events: updates status indicator, shows streaming transcript preview, and appends assistant responses.",
+                        inputs: "data: Object (JSON event payload)",
+                        returns: "None",
+                        snippet: `function handleServerEvent(data) {
+    switch (data.type) {
+        case 'status': updateAgentStatus(data.status, data.message); break;
+        case 'stt_chunk': showStreamingPreview('STT', data.transcript); break;
+        case 'stt_output': hideStreamingPreview(); addUserMessage(data.transcript); break;
+        case 'agent_chunk': appendAssistantToken(data.text); break;
+    }
+}`
+                    },
+                    {
+                        name: "downsampleBuffer(buffer, inputRate, targetRate)",
+                        kind: "kind-func",
+                        kindLabel: "DSP Resampler",
+                        desc: "High-precision linear interpolation algorithm that resamples browser mic buffer (48kHz/44.1kHz) down to 16kHz.",
+                        inputs: "buffer: Float32Array, inputRate: number, targetRate: number = 16000",
+                        returns: "Float32Array (16kHz Resampled Buffer)",
+                        snippet: `function downsampleBuffer(buffer, inputSampleRate, targetSampleRate = 16000) {
+    const sampleRateRatio = inputSampleRate / targetSampleRate;
+    const newLength = Math.round(buffer.length / sampleRateRatio);
+    const result = new Float32Array(newLength);
+    let offsetResult = 0, offsetBuffer = 0;
+    while (offsetResult < result.length) {
+        const nextOffsetBuffer = Math.round((offsetResult + 1) * sampleRateRatio);
+        let accum = 0, count = 0;
+        for (let i = offsetBuffer; i < nextOffsetBuffer && i < buffer.length; i++) {
+            accum += buffer[i]; count++;
+        }
+        result[offsetResult] = count > 0 ? accum / count : 0;
+        offsetResult++; offsetBuffer = nextOffsetBuffer;
+    }
+    return result;
+}`
+                    },
+                    {
+                        name: "convertToInt16(float32Array)",
+                        kind: "kind-func",
+                        kindLabel: "Type Converter",
+                        desc: "Scales floating-point audio numbers [-1.0, 1.0] into signed 16-bit integer bytes [-32768, 32767].",
+                        inputs: "float32Array: Float32Array",
+                        returns: "Int16Array",
+                        snippet: `function convertToInt16(float32Array) {
+    const int16 = new Int16Array(float32Array.length);
+    for (let i = 0; i < float32Array.length; i++) {
+        const s = Math.max(-1, Math.min(1, float32Array[i]));
+        int16[i] = s < 0 ? s * 0x8000 : s * 0x7FFF;
+    }
+    return int16;
+}`
+                    },
+                    {
+                        name: "startMicrophone()",
+                        kind: "kind-func",
+                        kindLabel: "Audio Capture",
+                        desc: "Initializes AudioContext, requests mic permissions, connects ScriptProcessor, downsamples, and streams 16-bit PCM Int16 bytes over WebSocket.",
+                        inputs: "None",
+                        returns: "Promise<void>",
+                        snippet: `async function startMicrophone() {
+    micStream = await navigator.mediaDevices.getUserMedia({ audio: { channelCount: 1 } });
+    audioProcessor.onaudioprocess = (e) => {
+        const pcm16 = convertToInt16(downsampleBuffer(e.inputBuffer.getChannelData(0), 48000, 16000));
+        ws.send(pcm16.buffer);
+    };
+}`
+                    },
+                    {
+                        name: "stopMicrophone()",
+                        kind: "kind-func",
+                        kindLabel: "Resource Cleanup",
+                        desc: "Stops audio tracks, disconnects ScriptProcessor nodes, and releases microphone hardware.",
+                        inputs: "None",
+                        returns: "None",
+                        snippet: `function stopMicrophone() {
+    if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
+    if (audioProcessor) { audioProcessor.disconnect(); audioProcessor = null; }
+}`
+                    },
+                    {
+                        name: "queueAudioForPlayback(arrayBuffer)",
+                        kind: "kind-func",
+                        kindLabel: "Playback Queue",
+                        desc: "Appends incoming WAV audio buffer chunks into a FIFO queue and triggers the sequential audio player.",
+                        inputs: "arrayBuffer: ArrayBuffer",
+                        returns: "None",
+                        snippet: `function queueAudioForPlayback(arrayBuffer) {
+    audioPlaybackQueue.push(arrayBuffer);
+    if (!isPlayingAudio) { playNextAudioChunk(); }
+}`
+                    },
+                    {
+                        name: "playNextAudioChunk()",
+                        kind: "kind-func",
+                        kindLabel: "Audio Player",
+                        desc: "Sequentially decodes WAV audio chunks using Web Audio decodeAudioData and plays them back smoothly without clipping.",
+                        inputs: "None",
+                        returns: "Promise<void>",
+                        snippet: `async function playNextAudioChunk() {
+    const arrayBuffer = audioPlaybackQueue.shift();
+    const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.onended = () => playNextAudioChunk();
+    source.start(0);
+}`
+                    }
+                ]
+            },
+            tests: {
+                icon: "🧪",
+                filename: "test_end_to_end.py",
+                title: "Integration Verification Test Suite",
+                role: "Automates 3-step verification of SenseNova LLM, tools calling, Cartesia TTS voice generation, and the full streaming sandwich pipeline.",
+                tag: "Asyncio &bull; Integration Tests &bull; Verification",
+                functions: [
+                    {
+                        name: "test_llm_and_tools()",
+                        kind: "kind-func",
+                        kindLabel: "Async Test",
+                        desc: "Tests 3 multi-turn conversation turns: menu browsing, adding 2 classic clubs via tools, and checking memory persistence.",
+                        inputs: "None",
+                        returns: "Coroutine[str]",
+                        snippet: `async def test_llm_and_tools():
+    agent = build_voice_agent()
+    res1 = await agent.ainvoke({"messages": [HumanMessage("What sandwiches do you have?")]})
+    res2 = await agent.ainvoke({"messages": [HumanMessage("Add 2 classic clubs")]})
+    assert len(CURRENT_ORDER) > 0`
+                    },
+                    {
+                        name: "test_cartesia_tts(sample_text)",
+                        kind: "kind-func",
+                        kindLabel: "Async Test",
+                        desc: "Synthesizes sample text into WAV audio using Cartesia and asserts byte length > 1000 bytes.",
+                        inputs: "sample_text: str",
+                        returns: "Coroutine[None]",
+                        snippet: `async def test_cartesia_tts(sample_text: str):
+    tts = CartesiaTTSClient()
+    audio = await tts.async_synthesize_text(sample_text)
+    assert len(audio) > 1000`
+                    },
+                    {
+                        name: "test_streaming_sandwich_pipeline()",
+                        kind: "kind-func",
+                        kindLabel: "Async Test",
+                        desc: "Simulates incoming STT event and verifies token-by-token agent streaming and chunked audio generation.",
+                        inputs: "None",
+                        returns: "Coroutine[None]",
+                        snippet: `async def test_streaming_sandwich_pipeline():
+    pipeline_stream = tts_stream(agent_stream(simulated_stt_events()))
+    async for event in pipeline_stream:
+        # Asserts tokens and audio chunks arrive concurrently`
+                    },
+                    {
+                        name: "main()",
+                        kind: "kind-func",
+                        kindLabel: "Test Runner",
+                        desc: "Executes all test suites in sequence with colorful terminal status output and latency measurements.",
+                        inputs: "None",
+                        returns: "Coroutine[None]",
+                        snippet: `async def main():
+    await test_llm_and_tools()
+    await test_cartesia_tts("Welcome to The Daily Melt Deli!")
+    await test_streaming_sandwich_pipeline()`
+                    }
+                ]
+            }
+        };
+
+        // Pipeline Phase Detail Metadata (Mapped directly to files and functions)
+        const pipelinePhases = {
+            1: {
+                phaseNum: "Phase 1",
+                name: "Microphone Audio Capture & DSP Resampling",
+                icon: "🎙️",
+                fileKey: "appjs",
+                fileName: "static/app.js",
+                badge: "Client-Side Browser Execution",
+                summary: "Captures physical microphone vibrations from the user's computer, downsamples the audio buffer from 48,000Hz to 16,000Hz, converts floating-point waves to Int16 PCM, and streams binary buffers through WebSocket.",
+                associatedFunctions: [
+                    "startMicrophone()",
+                    "downsampleBuffer(buffer, inputRate, targetRate)",
+                    "convertToInt16(float32Array)",
+                    "connectWebSocket()"
+                ],
+                flowSteps: [
+                    "<code>navigator.mediaDevices.getUserMedia({ audio: true })</code> requests hardware microphone access from the user.",
+                    "<code>AudioContext.createScriptProcessor(4096, 1, 1)</code> captures 48kHz Float32 raw audio buffers as the user speaks.",
+                    "<code>downsampleBuffer()</code> executes linear interpolation DSP to downsample 48kHz &rarr; 16kHz, reducing network payload by 66%.",
+                    "<code>convertToInt16()</code> multiplies [-1.0, 1.0] by 32,767 to produce standard signed 16-bit PCM integer bytes.",
+                    "<code>ws.send(pcm16.buffer)</code> transmits the raw binary array buffer across the WebSocket tunnel to FastAPI."
+                ]
+            },
+            2: {
+                phaseNum: "Phase 2",
+                name: "WebSocket Gateway & Concurrent Dispatcher",
+                icon: "⚡",
+                fileKey: "server.py",
+                fileName: "server.py",
+                badge: "FastAPI Async Hub",
+                summary: "Accepts persistent full-duplex TCP WebSocket connections, decouples incoming audio byte streams into non-blocking asyncio queues, and routes outgoing events/audio back to the browser.",
+                associatedFunctions: [
+                    "websocket_voice_endpoint(websocket) [WS /ws]",
+                    "root() [GET /]",
+                    "direct_chat(request) [POST /api/chat]"
+                ],
+                flowSteps: [
+                    "FastAPI accepts the WebSocket handshake at <code>/ws</code>.",
+                    "Creates an in-memory <code>audio_queue = asyncio.Queue()</code> to buffer incoming mic chunks without blocking.",
+                    "Spawns background task <code>run_pipeline()</code> which connects the Sandwich pipeline generator chain.",
+                    "Receives binary frames from the client loop and executes <code>await audio_queue.put(chunk)</code>.",
+                    "As STT text and LLM tokens are produced, encodes them into JSON strings and dispatches via <code>ws.send_text()</code>.",
+                    "As Cartesia synthesizes audio chunks, transmits binary WAV bytes directly to browser via <code>ws.send_bytes()</code>."
+                ]
+            },
+            3: {
+                phaseNum: "Phase 3",
+                name: "Speech-to-Text (STT) & Voice Activity Detection (VAD)",
+                icon: "👂",
+                fileKey: "stt",
+                fileName: "stt.py",
+                badge: "AssemblyAI v3 Engine",
+                summary: "Pumps 16kHz PCM audio bytes to AssemblyAI's streaming WebSocket, receives real-time transcription callbacks, and gates turn completion using VAD (end_of_turn).",
+                associatedFunctions: [
+                    "stt_stream(audio_stream, sample_rate)",
+                    "AssemblyAISTTClient.__init__(api_key, sample_rate)",
+                    "AssemblyAISTTClient._setup_event_handlers()",
+                    "AssemblyAISTTClient.connect()",
+                    "AssemblyAISTTClient.send_audio(audio_chunk)"
+                ],
+                flowSteps: [
+                    "<code>stt_stream()</code> instantiates <code>AssemblyAISTTClient</code> and establishes a secure WebSocket to AssemblyAI.",
+                    "Configures VAD parameters: <code>min_turn_silence=700ms</code> to prevent interrupting the speaker mid-sentence.",
+                    "Background worker <code>_send_pump()</code> reads bytes from <code>audio_stream</code> and calls <code>stt.send_audio()</code>.",
+                    "While speaking, AssemblyAI fires <code>RealTimeEventType.Turn</code>; interim words emit <code>STTChunkEvent</code>.",
+                    "When user pauses for &ge;700ms, <code>event.end_of_turn</code> becomes True, emitting <code>STTOutputEvent</code> to trigger the AI Agent."
+                ]
+            },
+            4: {
+                phaseNum: "Phase 4",
+                name: "LangChain AI Reasoning & Deli Tool Invocation",
+                icon: "🧠",
+                fileKey: "agent",
+                fileName: "agent.py",
+                badge: "SenseNova + LangChain",
+                summary: "Receives finalized user speech, invokes SenseNova LLM via LangChain's create_agent, accesses domain tools (menu, cart, ordering), persists memory checkpointer, and streams tokens.",
+                associatedFunctions: [
+                    "agent_stream(event_stream, thread_id)",
+                    "build_voice_agent()",
+                    "get_llm()",
+                    "get_sandwich_menu()",
+                    "add_to_order(item, quantity, special_instructions)",
+                    "view_current_order()",
+                    "confirm_and_place_order(customer_name, order_type)"
+                ],
+                flowSteps: [
+                    "<code>agent_stream()</code> intercepts upstream <code>STTOutputEvent</code> with the user's spoken sentence.",
+                    "Wraps transcript in <code>HumanMessage</code> and calls <code>voice_agent.astream(stream_mode='messages')</code>.",
+                    "If the user asks for food, LLM invokes <code>@tool</code> functions (e.g. <code>add_to_order</code> or <code>view_current_order</code>).",
+                    "LangGraph checkpointer (<code>InMemorySaver</code>) preserves conversational memory across multiple turns.",
+                    "Yields each incremental token chunk as <code>AgentChunkEvent(text)</code> for downstream instant TTS generation."
+                ]
+            },
+            5: {
+                phaseNum: "Phase 5",
+                name: "Cartesia Sonic-3 Real-Time TTS Voice Synthesis",
+                icon: "🗣️",
+                fileKey: "tts",
+                fileName: "tts.py",
+                badge: "Cartesia Sonic-3 Engine",
+                summary: "Buffers incoming LLM text tokens until sentence boundary punctuation (. / ! / ?), immediately synthesizes natural voice audio via Cartesia Sonic-3, and sends WAV chunks to browser speakers.",
+                associatedFunctions: [
+                    "tts_stream(event_stream, tts_client)",
+                    "CartesiaTTSClient.__init__(voice_id, model_id, sample_rate)",
+                    "CartesiaTTSClient.async_synthesize_text(text)",
+                    "CartesiaTTSClient.synthesize_text_to_wav(text)"
+                ],
+                flowSteps: [
+                    "<code>tts_stream()</code> consumes incoming <code>AgentChunkEvent</code> tokens and buffers text.",
+                    "Detects sentence boundaries (<code>.</code>, <code>!</code>, <code>?</code>, <code>\\n</code>) to split long answers into short voice segments.",
+                    "Calls <code>async_synthesize_text()</code> in a non-blocking thread executor so FastAPI remains lightning fast.",
+                    "Cartesia Sonic-3 generates ultra-lifelike 44.1kHz WAV PCM audio within 150ms.",
+                    "Yields <code>TTSChunkEvent(audio=bytes)</code> back to FastAPI &rarr; browser queues it in <code>audioPlaybackQueue</code>!"
+                ]
+            }
+        };
+
+        // Render Active Phase Inspector Banner
+        function renderPhaseInspector(phaseId) {
+            const phase = pipelinePhases[phaseId];
+            if (!phase) return;
+
+            const inspector = document.getElementById('phaseInspector');
+            
+            let funcPills = phase.associatedFunctions.map(f => {
+                return `<span class="assoc-func-pill" onclick="jumpToFileAndHighlight('${phase.fileKey}', '${f.split('(')[0].replace(/\[.*\]/, '').trim()}')">⚡ ${f}</span>`;
+            }).join('');
+
+            let stepsHtml = phase.flowSteps.map(s => `<li><span>${s}</span></li>`).join('');
+
+            inspector.innerHTML = `
+                <div class="phase-inspector-header">
+                    <div class="phase-inspector-title">
+                        <div style="font-size: 1.8rem; background: #EFF6FF; width: 44px; height: 44px; border-radius: 8px; display: flex; align-items: center; justify-content: center;">${phase.icon}</div>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <span class="phase-inspector-tag">${phase.phaseNum}</span>
+                                <span style="font-size: 0.8rem; color: #64748B; font-weight: 600;">Associated Code File: <strong>${phase.fileName}</strong></span>
+                            </div>
+                            <h3 style="margin-top: 2px;">${phase.name}</h3>
+                        </div>
+                    </div>
+                    <button class="jump-btn" onclick="jumpToFileAndHighlight('${phase.fileKey}')">
+                        📂 Open & Highlight ${phase.fileName}
+                    </button>
+                </div>
+
+                <p style="font-size: 0.88rem; color: #334155; margin-bottom: 16px; line-height: 1.55;">
+                    ${phase.summary}
+                </p>
+
+                <div class="phase-grid">
+                    <div>
+                        <h4 style="font-size: 0.85rem; font-weight: 800; color: #0F172A; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 10px;">
+                            🔄 Step-by-Step Data Flow Execution:
+                        </h4>
+                        <ul class="phase-flow-steps">
+                            ${stepsHtml}
+                        </ul>
+                    </div>
+
+                    <div class="phase-functions-box">
+                        <h4>🧩 Associated Functions & Classes (${phase.associatedFunctions.length}):</h4>
+                        <p style="font-size: 0.8rem; color: #64748B; margin-bottom: 10px;">Click any function below to jump directly to its code snippet and parameter docs:</p>
+                        <div>
+                            ${funcPills}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Jump to file in sidebar and scroll to function
+        window.jumpToFileAndHighlight = function(fileKey, funcPrefix) {
+            // Select file in sidebar
+            const fileItem = document.querySelector(`.file-item[data-file="${fileKey}"]`);
+            if (fileItem) {
+                document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
+                fileItem.classList.add('active');
+                renderFileDetails(fileKey);
+
+                if (funcPrefix) {
+                    setTimeout(() => {
+                        const cards = document.querySelectorAll('.func-card');
+                        for (let card of cards) {
+                            const nameEl = card.querySelector('.func-name');
+                            if (nameEl && nameEl.textContent.includes(funcPrefix)) {
+                                card.classList.add('highlighted-func');
+                                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                setTimeout(() => card.classList.remove('highlighted-func'), 3000);
+                                break;
+                            }
+                        }
+                    }, 100);
+                } else {
+                    document.getElementById('contentPanel').scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+        };
+
+        // Render functions of selected file
+        function renderFileDetails(fileKey) {
+            const data = codebaseData[fileKey];
+            if (!data) return;
+
+            const container = document.getElementById('contentPanel');
+            let functionsHtml = '';
+
+            data.functions.forEach(fn => {
+                functionsHtml += `
+                    <div class="func-card" id="func-${fn.name.replace(/[^a-zA-Z0-9]/g, '_')}">
+                        <div class="func-top">
+                            <span class="func-name">${fn.name}</span>
+                            <span class="func-kind ${fn.kind}">${fn.kindLabel}</span>
+                        </div>
+                        <p class="func-desc">${fn.desc}</p>
+                        
+                        <table class="io-table">
+                            <tr>
+                                <th>Inputs / Arguments</th>
+                                <td><span class="type-pill">${fn.inputs}</span></td>
+                            </tr>
+                            <tr>
+                                <th>Returns / Output</th>
+                                <td><span class="type-pill">${fn.returns}</span></td>
+                            </tr>
+                        </table>
+
+                        <div class="code-snippet">
+                            <pre>${fn.snippet}</pre>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = `
+                <div class="card">
+                    <div class="file-header">
+                        <div class="file-title-area">
+                            <div class="file-icon-box">${data.icon}</div>
+                            <div class="file-title">
+                                <h2>${data.filename}</h2>
+                                <p>${data.title}</p>
+                            </div>
+                        </div>
+                        <div class="file-tag">${data.tag}</div>
+                    </div>
+
+                    <p style="font-size: 0.92rem; color: #475569; margin-bottom: 22px; line-height: 1.6;">
+                        ${data.role}
+                    </p>
+
+                    <div class="section-heading">
+                        <span>⚡ Key Functions & Classes (${data.functions.length})</span>
+                    </div>
+
+                    <div class="functions-grid">
+                        ${functionsHtml}
+                    </div>
+                </div>
+            `;
+        }
+
+        // File list click handlers
+        document.querySelectorAll('.file-item').forEach(item => {
+            item.addEventListener('click', () => {
+                document.querySelectorAll('.file-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                const fileKey = item.getAttribute('data-file');
+                renderFileDetails(fileKey);
+            });
+        });
+
+        // Pipeline phase card click handlers
+        document.querySelectorAll('.chain-step').forEach(step => {
+            step.addEventListener('click', () => {
+                document.querySelectorAll('.chain-step').forEach(s => s.classList.remove('selected-phase'));
+                step.classList.add('selected-phase');
+                const phaseId = step.getAttribute('data-phase');
+                renderPhaseInspector(phaseId);
+            });
+        });
+
+        // Search Filter
+        document.getElementById('fileSearch').addEventListener('input', (e) => {
+            const query = e.target.value.toLowerCase();
+            document.querySelectorAll('.file-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                const fileKey = item.getAttribute('data-file');
+                const fileData = codebaseData[fileKey];
+                const hasFunc = fileData.functions.some(f => f.name.toLowerCase().includes(query) || f.desc.toLowerCase().includes(query));
+                
+                if (text.includes(query) || hasFunc) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+
+        // Code Execution Simulator Animation
+        let simTimer = null;
+        document.getElementById('simulateCodeFlowBtn').addEventListener('click', () => {
+            if (simTimer) clearInterval(simTimer);
+            let currentStep = 1;
+            
+            for (let i = 1; i <= 5; i++) {
+                const el = document.getElementById('cstep-' + i);
+                el.classList.remove('active', 'completed', 'selected-phase');
+            }
+
+            document.getElementById('cstep-1').classList.add('active', 'selected-phase');
+            renderPhaseInspector(1);
+
+            simTimer = setInterval(() => {
+                const prev = document.getElementById('cstep-' + currentStep);
+                prev.classList.remove('active');
+                prev.classList.add('completed');
+
+                currentStep++;
+                if (currentStep > 5) {
+                    clearInterval(simTimer);
+                    return;
+                }
+
+                const next = document.getElementById('cstep-' + currentStep);
+                document.querySelectorAll('.chain-step').forEach(s => s.classList.remove('selected-phase'));
+                next.classList.add('active', 'selected-phase');
+                renderPhaseInspector(currentStep);
+            }, 2000);
+        });
+
+        // Initial Render
+        renderPhaseInspector(1);
+        renderFileDetails('agent');
+    </script>
+</body>
+</html>

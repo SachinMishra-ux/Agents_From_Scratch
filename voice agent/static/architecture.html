@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Agent Architecture - Interactive Learning Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-page: #F8FAFC;
+            --bg-card: #FFFFFF;
+            --border: #E2E8F0;
+            --border-active: #3B82F6;
+            --text-title: #0F172A;
+            --text-body: #334155;
+            --text-muted: #64748B;
+            --primary: #2563EB;
+            --primary-bg: #EFF6FF;
+            --accent: #0D9488;
+            --accent-bg: #F0FDFA;
+            --success: #16A34A;
+            --warning: #D97706;
+            --radius: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-page);
+            color: var(--text-body);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            padding: 40px 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.2rem;
+            color: var(--text-title);
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Interactive Simulator Bar */
+        .sim-control {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 35px;
+            box-shadow: var(--shadow-sm);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .sim-info {
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .sim-info h3 {
+            font-size: 1rem;
+            color: var(--text-title);
+            margin-bottom: 4px;
+        }
+
+        .sim-info p {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .sim-btn-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: #FFFFFF;
+            border: none;
+            padding: 10px 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:hover {
+            background: #1D4ED8;
+            transform: translateY(-1px);
+        }
+
+        .btn-outline {
+            background: #FFFFFF;
+            color: var(--text-body);
+            border: 1px solid var(--border);
+        }
+
+        .btn-outline:hover {
+            background: #F1F5F9;
+            color: var(--text-title);
+        }
+
+        /* 4-Stage Card Grid */
+        .stage-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+            margin-bottom: 35px;
+            position: relative;
+        }
+
+        @media (max-width: 900px) {
+            .stage-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 550px) {
+            .stage-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .stage-card {
+            background: var(--bg-card);
+            border: 2px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stage-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: #94A3B8;
+        }
+
+        .stage-card.active {
+            border-color: var(--border-active);
+            box-shadow: var(--shadow-lg);
+            background: var(--primary-bg);
+        }
+
+        .stage-card.highlight-flow {
+            border-color: var(--success);
+            background: #F0FDF4;
+            transform: scale(1.02);
+        }
+
+        .stage-badge {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .stage-card.active .stage-badge {
+            color: var(--primary);
+        }
+
+        .stage-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            background: #F1F5F9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 14px;
+        }
+
+        .stage-card.active .stage-icon {
+            background: #FFFFFF;
+        }
+
+        .stage-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-title);
+            margin-bottom: 6px;
+        }
+
+        .stage-role {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .stage-tech {
+            margin-top: auto;
+            display: inline-block;
+            background: #F1F5F9;
+            color: var(--text-body);
+            font-size: 0.75rem;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-weight: 500;
+            align-self: flex-start;
+        }
+
+        /* Detail Explanation Panel */
+        .detail-panel {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 30px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 35px;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .detail-avatar {
+            font-size: 2rem;
+            width: 54px;
+            height: 54px;
+            border-radius: 12px;
+            background: var(--primary-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .detail-title h2 {
+            font-size: 1.4rem;
+            color: var(--text-title);
+            font-weight: 700;
+        }
+
+        .detail-title p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 24px;
+        }
+
+        @media (max-width: 768px) {
+            .detail-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .explanation-box h4, .analogy-box h4, .code-box h4 {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-title);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .analogy-box {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .analogy-box p {
+            font-size: 0.9rem;
+            color: #92400E;
+        }
+
+        .tech-points {
+            list-style: none;
+            margin-top: 12px;
+        }
+
+        .tech-points li {
+            position: relative;
+            padding-left: 20px;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: var(--text-body);
+        }
+
+        .tech-points li::before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        .code-box {
+            background: #0F172A;
+            border-radius: 8px;
+            padding: 16px;
+            color: #F8FAFC;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            overflow-x: auto;
+        }
+
+        .code-box pre {
+            margin: 0;
+            white-space: pre-wrap;
+        }
+
+        /* Sandwich Architecture Summary Bar */
+        .sandwich-bar {
+            background: #F8FAFC;
+            border: 2px dashed var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            text-align: center;
+        }
+
+        .sandwich-bar h3 {
+            font-size: 1.15rem;
+            color: var(--text-title);
+            margin-bottom: 8px;
+        }
+
+        .sandwich-bar p {
+            font-size: 0.92rem;
+            color: var(--text-muted);
+            max-width: 800px;
+            margin: 0 auto 16px;
+        }
+
+        .sandwich-steps {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .pill {
+            background: #FFFFFF;
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .pill.bread { background: #FEF3C7; border-color: #FDE68A; color: #92400E; }
+        .pill.meat { background: #E0E7FF; border-color: #C7D2FE; color: #3730A3; }
+
+        .arrow {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Page Title -->
+        <header class="header">
+            <h1>How the Voice Agent Works</h1>
+            <p>An interactive, beginner-friendly guide to the <strong>STT &rarr; LangChain Agent &rarr; TTS</strong> streaming sandwich architecture.</p>
+        </header>
+
+        <!-- Interactive Simulation Control -->
+        <div class="sim-control">
+            <div class="sim-info">
+                <h3 id="simStatus">Interactive Step-by-Step Walkthrough</h3>
+                <p id="simDescription">Click any card below or click "Play Conversation Flow" to watch data travel from your microphone to the agent and back to your speaker.</p>
+            </div>
+            <div class="sim-btn-group">
+                <button class="btn" id="playFlowBtn">
+                    <span>▶ Play Flow</span>
+                </button>
+                <button class="btn btn-outline" id="resetBtn">Reset</button>
+            </div>
+        </div>
+
+        <!-- 4 Step Architecture Cards -->
+        <div class="stage-grid">
+            <!-- Card 1: Ears / Client Mic -->
+            <div class="stage-card active" data-stage="0" id="card-0">
+                <div class="stage-badge">
+                    <span>Step 1</span>
+                    <span>Client</span>
+                </div>
+                <div class="stage-icon">🎙️</div>
+                <div class="stage-title">The Listener (Mic)</div>
+                <div class="stage-role">Captures speech & cleans audio</div>
+                <div class="stage-tech">16kHz PCM &bull; WebAudio</div>
+            </div>
+
+            <!-- Card 2: Ears to Text / STT -->
+            <div class="stage-card" data-stage="1" id="card-1">
+                <div class="stage-badge">
+                    <span>Step 2</span>
+                    <span>Speech to Text</span>
+                </div>
+                <div class="stage-icon">👂</div>
+                <div class="stage-title">The Transcriber</div>
+                <div class="stage-role">Turns sound waves into words & detects when you finish speaking (VAD)</div>
+                <div class="stage-tech">AssemblyAI v3 Streaming</div>
+            </div>
+
+            <!-- Card 3: The Brain / LangChain Agent -->
+            <div class="stage-card" data-stage="2" id="card-2">
+                <div class="stage-badge">
+                    <span>Step 3</span>
+                    <span>The Brain</span>
+                </div>
+                <div class="stage-icon">🧠</div>
+                <div class="stage-title">The AI Agent</div>
+                <div class="stage-role">Understands order, checks menu, uses tools & remembers cart</div>
+                <div class="stage-tech">LangChain &bull; SenseNova</div>
+            </div>
+
+            <!-- Card 4: The Mouth / TTS -->
+            <div class="stage-card" data-stage="3" id="card-3">
+                <div class="stage-badge">
+                    <span>Step 4</span>
+                    <span>Voice Output</span>
+                </div>
+                <div class="stage-icon">🗣️</div>
+                <div class="stage-title">The Speaker (TTS)</div>
+                <div class="stage-role">Converts text responses into lifelike human voice immediately</div>
+                <div class="stage-tech">Cartesia Sonic-3</div>
+            </div>
+        </div>
+
+        <!-- Detail Explanation Section (Changes on Click) -->
+        <div class="detail-panel" id="detailPanel">
+            <div class="detail-header">
+                <div class="detail-avatar" id="detailAvatar">🎙️</div>
+                <div class="detail-title">
+                    <h2 id="detailTitle">Step 1: The Listener (Browser Microphone & WebAudio)</h2>
+                    <p id="detailSubtitle">How your voice is captured and prepared for the AI</p>
+                </div>
+            </div>
+
+            <div class="detail-grid">
+                <div>
+                    <div class="explanation-box">
+                        <h4>What happens here?</h4>
+                        <p id="detailExplain">When you press the microphone button, your browser's microphone captures the vibrations of your voice in the air. It converts those physical sound waves into digital numbers (called PCM audio samples).</p>
+                        
+                        <ul class="tech-points" id="detailPoints">
+                            <li>Downsamples audio from 48,000 Hz to 16,000 Hz for optimal AI speech recognition.</li>
+                            <li>Applies Noise Cancellation and Echo Suppression so only your clear voice is sent.</li>
+                            <li>Sends live audio chunks in small 100-millisecond packages over a WebSocket connection.</li>
+                        </ul>
+                    </div>
+
+                    <div class="analogy-box">
+                        <h4>💡 Simple Analogy for Students</h4>
+                        <p id="detailAnalogy">Think of this like speaking into a walkie-talkie. Your voice is turned into an electric radio signal and sent over a wire to the sandwich shop.</p>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="code-box">
+                        <h4>Key Code Concept</h4>
+                        <pre id="detailCode">// Capture mic & downsample to 16kHz
+const pcm16 = downsampleBuffer(
+    inputData, 
+    audioContext.sampleRate, 
+    16000
+);
+// Stream binary bytes to server
+websocket.send(pcm16.buffer);</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary: The Sandwich Architecture -->
+        <div class="sandwich-bar">
+            <h3>Why is it called the "Sandwich Architecture"?</h3>
+            <p>Just like a sandwich has bread on top and bottom with the filling in the middle, our voice agent has speech on both ends with intelligent thinking in between!</p>
+            
+            <div class="sandwich-steps">
+                <span class="pill bread">🥖 Top Bread: Speech-to-Text (AssemblyAI)</span>
+                <span class="arrow">&rarr;</span>
+                <span class="pill meat">🥩 Filling: LangChain Agent (SenseNova AI + Tools)</span>
+                <span class="arrow">&rarr;</span>
+                <span class="pill bread">🥖 Bottom Bread: Text-to-Speech (Cartesia)</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Script -->
+    <script>
+        const stagesData = [
+            {
+                avatar: "🎙️",
+                title: "Step 1: The Listener (Browser Microphone)",
+                subtitle: "Capturing sound waves and preparing clean digital audio",
+                explain: "When you press the microphone button, the browser captures the sound waves of your voice. It converts those waves into digital audio numbers (16-bit PCM).",
+                points: [
+                    "What is PCM (Pulse-Code Modulation)? It is raw, uncompressed digital sound stored as numbers. Unlike MP3/AAC, PCM has zero decompression lag, making real-time voice streaming instant.",
+                    "48kHz vs 16kHz Resampling: Browser mics capture 48,000 snapshots/sec (studio rate). Speech AI models (AssemblyAI/Whisper) only need 16,000 snapshots/sec. Resampling down to 16kHz cuts 66% of network bandwidth.",
+                    "Int16 Bit Depth: Browser Web Audio captures decimals [-1.0, 1.0] (Float32). We multiply by 32,767 into signed 16-bit integers [-32768, +32767].",
+                    "Pumping to WebSocket: The binary Int16 PCM array is streamed in 100ms packets directly over WebSocket via ws.send(pcm16.buffer)."
+                ],
+                analogy: "Think of sound like a flipbook animation: 48kHz has 48 pages/sec (movie quality), while 16kHz has 16 pages/sec (plenty clear for human speech). Resampling means skipping the extra pages so you can mail the flipbook 3 times faster!",
+                code: `// 1. Resample 48kHz -> 16kHz
+const pcmFloat = downsampleBuffer(inputData, 48000, 16000);
+// 2. Convert Float32 [-1.0, 1.0] to Int16 [-32768, +32767]
+const pcm16 = new Int16Array(pcmFloat.length);
+for (let i = 0; i < pcmFloat.length; i++) {
+    pcm16[i] = pcmFloat[i] < 0 ? pcmFloat[i] * 0x8000 : pcmFloat[i] * 0x7FFF;
+}
+// 3. Send raw PCM bytes over WebSocket
+websocket.send(pcm16.buffer);`
+            },
+            {
+                avatar: "👂",
+                title: "Step 2: The Transcriber (AssemblyAI Real-Time STT + VAD)",
+                subtitle: "Translating sound into written text and detecting sentence boundaries",
+                explain: "AssemblyAI's AI ear listens to the incoming audio stream. It converts the sounds into words in real time and uses Voice Activity Detection (VAD) to know when you have finished speaking.",
+                points: [
+                    "Streams partial words live ('Yes...', 'Yes, I would like...') to display on your screen.",
+                    "Uses Voice Activity Detection (VAD) with silence detection to prevent interrupting you mid-sentence.",
+                    "Only when you finish speaking (end_of_turn = True), it packages your full sentence to send to the AI Brain."
+                ],
+                analogy: "Like a courtroom stenographer who rapidly types down everything spoken in the room, but waits until you take a breath before handing the note to the judge.",
+                code: `// AssemblyAI detects when you finish speaking
+def on_turn(client, event):
+    if event.end_of_turn:
+        # User finished complete sentence -> Trigger Agent!
+        yield STTOutputEvent(event.transcript)
+    else:
+        # Partial word preview
+        yield STTChunkEvent(event.transcript)`
+            },
+            {
+                avatar: "🧠",
+                title: "Step 3: The AI Brain (LangChain create_agent & SenseNova)",
+                subtitle: "Reasoning, taking food orders, checking menus, and calculating totals",
+                explain: "LangChain's create_agent receives your text. Powered by the SenseNova LLM, it decides whether to answer directly or use special Tools (like adding sandwiches to the order or checking item prices).",
+                points: [
+                    "Has access to tools: get_sandwich_menu, add_to_order, view_current_order, and confirm_order.",
+                    "Maintains Conversation Memory (InMemorySaver checkpointer) so it remembers previous items you asked for.",
+                    "Streams its answer word-by-word immediately using astream so the voice mouth can start speaking right away."
+                ],
+                analogy: "Like the smart counter clerk at a restaurant who takes your order, types it into the cash register, adds up the total, and remembers what you asked for 2 minutes ago.",
+                code: `// LangChain Agent with Tools & Checkpointer
+agent = create_agent(
+    model=get_llm(), # SenseNova
+    tools=[get_sandwich_menu, add_to_order, view_current_order],
+    checkpointer=InMemorySaver(),
+    system_prompt="You are a helpful sandwich shop assistant..."
+)`
+            },
+            {
+                avatar: "🗣️",
+                title: "Step 4: The Speaker (Cartesia Sonic-3 Streaming TTS)",
+                subtitle: "Transforming text into lifelike natural human speech",
+                explain: "Cartesia receives the streamed text words from the AI agent and instantly generates realistic human voice audio. The audio is streamed right back to your browser for playback.",
+                points: [
+                    "Ultra-low latency: Begins producing voice audio as soon as the first sentence is formed.",
+                    "Generates 44.1kHz crystal clear WAV audio with natural pacing and pitch.",
+                    "Web Audio API in the browser plays the audio chunks seamlessly through your speakers or headphones."
+                ],
+                analogy: "Like a voice actor reading a script the moment each line is written on paper, without waiting for the whole book to finish.",
+                code: `// Cartesia synthesizes text into voice audio
+response = cartesia_client.tts.generate(
+    model_id="sonic-3",
+    transcript=agent_text,
+    voice="db6b0ed5-d5d3-463d-ae85-518a07d3c2b4",
+    output_format={"container": "wav", "sample_rate": 44100}
+)`
+            }
+        ];
+
+        let currentStage = 0;
+        let flowInterval = null;
+
+        function updateStageView(stageIndex) {
+            currentStage = stageIndex;
+            const data = stagesData[stageIndex];
+
+            // Update Cards UI
+            document.querySelectorAll('.stage-card').forEach((card, idx) => {
+                if (idx === stageIndex) {
+                    card.classList.add('active');
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+
+            // Update Detail Panel
+            document.getElementById('detailAvatar').textContent = data.avatar;
+            document.getElementById('detailTitle').textContent = data.title;
+            document.getElementById('detailSubtitle').textContent = data.subtitle;
+            document.getElementById('detailExplain').textContent = data.explain;
+            document.getElementById('detailAnalogy').textContent = data.analogy;
+            document.getElementById('detailCode').textContent = data.code;
+
+            const pointsUl = document.getElementById('detailPoints');
+            pointsUl.innerHTML = '';
+            data.points.forEach(point => {
+                const li = document.createElement('li');
+                li.textContent = point;
+                pointsUl.appendChild(li);
+            });
+        }
+
+        // Add Click events to cards
+        document.querySelectorAll('.stage-card').forEach(card => {
+            card.addEventListener('click', () => {
+                if (flowInterval) clearInterval(flowInterval);
+                const stage = parseInt(card.getAttribute('data-stage'));
+                updateStageView(stage);
+            });
+        });
+
+        // Flow Player Simulation
+        document.getElementById('playFlowBtn').addEventListener('click', () => {
+            if (flowInterval) clearInterval(flowInterval);
+            let step = 0;
+            updateStageView(step);
+            
+            document.getElementById('simStatus').textContent = "▶ Simulating: User speaks 'I would like 2 Classic Clubs'";
+            document.getElementById('simDescription').textContent = "Watch the data flow sequentially through each stage of the Sandwich Architecture...";
+
+            flowInterval = setInterval(() => {
+                step++;
+                if (step >= stagesData.length) {
+                    clearInterval(flowInterval);
+                    document.getElementById('simStatus').textContent = "✅ Completed Full Audio Turn!";
+                    document.getElementById('simDescription').textContent = "The user spoke, speech was transcribed, the agent placed the order, and Cartesia spoke the reply back!";
+                    return;
+                }
+                updateStageView(step);
+            }, 2500);
+        });
+
+        document.getElementById('resetBtn').addEventListener('click', () => {
+            if (flowInterval) clearInterval(flowInterval);
+            updateStageView(0);
+            document.getElementById('simStatus').textContent = "Interactive Step-by-Step Walkthrough";
+            document.getElementById('simDescription').textContent = "Click any card below or click 'Play Conversation Flow' to explore each component.";
+        });
+    </script>
+</body>
+</html>
