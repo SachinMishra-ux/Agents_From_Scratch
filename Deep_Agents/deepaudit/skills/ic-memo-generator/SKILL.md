@@ -3,12 +3,12 @@ name: ic-memo-generator
 description: Guidelines and structure for synthesizing complex audit findings into an institutional Investment Committee Due Diligence Memorandum.
 allowed-tools: write_file read_file
 ---
-
 # Investment Committee (IC) Due Diligence Memorandum SOP
 
 This skill guides the final synthesis of the audit into a boardroom-ready Investment Committee Memorandum.
 
 ## When to Use
+
 - When all subagent analyses (Quant audit, SEC disclosure check, litigation scout) are complete.
 - When drafting the final deliverable to be saved to `reports/`.
 - Prior to triggering the Human-in-the-Loop review interrupt.

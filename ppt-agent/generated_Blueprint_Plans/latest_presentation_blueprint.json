@@ -1,104 +1,104 @@
 {
-  "topic": "Langchain Agents: Transforming the Future of AI Interaction (Enhanced)",
-  "target_audience": "Executive Leadership and Technical Stakeholders",
+  "topic": "Solar System: Planetary Exploration",
+  "target_audience": "Executive Stakeholders and Science Policy Advisors",
   "total_slides": 8,
   "slides": [
     {
       "slide_number": 1,
       "section_tag": "01 // INTRODUCTION",
-      "title": "Langchain Agents: Transforming the Future of AI Interaction",
+      "title": "Solar System: Planetary Exploration",
       "layout": "title",
       "needs_image": false,
       "image_position": "none",
       "visual_prompt": null,
       "planned_key_points": [
-        "Langchain Agents Overview",
-        "Future of AI Interaction",
-        "Executive Summary"
+        "Solar System Overview",
+        "Planetary Exploration History",
+        "Future Missions"
       ]
     },
     {
       "slide_number": 2,
-      "section_tag": "02 // ARCHITECTURE",
-      "title": "The Power of create_agent Functionality",
+      "section_tag": "02 // MECHANICS",
+      "title": "How the Solar System Works",
       "layout": "image_right",
       "needs_image": true,
       "image_position": "right",
-      "visual_prompt": "A high-tech, professional diagram showing the Langchain create_agent function architecture, with nodes representing LLM, tools, and memory, connected by glowing data flow lines, dark background, executive style.",
+      "visual_prompt": "A high-resolution, cinematic 3D illustration of the solar system showing the Sun at the center with planets in their orbits, glowing orbital paths, and a deep space background with subtle nebula clouds.",
       "planned_key_points": [
-        "create_agent function architecture",
-        "Dynamic tool selection capabilities",
-        "Agent reasoning loops"
+        "Gravitational Dynamics: How the Sun anchors the system",
+        "Orbital Mechanics: The dance of planets and moons",
+        "Energy Distribution: Solar radiation and planetary heat"
       ]
     },
     {
       "slide_number": 3,
-      "section_tag": "03 // EXECUTION FLOW",
-      "title": "Langchain Agent Execution Flow",
+      "section_tag": "03 // ORBITS",
+      "title": "Planetary Orbits & Dynamics",
       "layout": "image_left",
       "needs_image": true,
       "image_position": "left",
-      "visual_prompt": "A sleek, modern flowchart illustrating the Langchain Agent execution flow, showing the cycle of thought, action, observation, and final response, dark background, professional infographic style.",
+      "visual_prompt": "A detailed scientific diagram showing elliptical planetary orbits around the Sun, with vector arrows indicating velocity and gravitational pull, clean white lines on a dark blue background.",
       "planned_key_points": [
-        "Sequential execution flow",
-        "Error handling and retries",
-        "Context-aware decision making"
+        "Kepler's Laws: Understanding elliptical paths",
+        "Orbital Resonance: Gravitational interactions between bodies",
+        "Velocity & Distance: The relationship between speed and orbit duration"
       ]
     },
     {
       "slide_number": 4,
       "section_tag": "04 // COMPARISON",
-      "title": "Langchain vs. Langgraph: Strategic Comparison",
+      "title": "Comparative Planetary Analysis",
       "layout": "table",
       "needs_image": true,
       "image_position": "table_companion",
-      "visual_prompt": "A professional comparison infographic showing the differences between Langchain and Langgraph, using a split-screen design with icons and key performance metrics, dark background, executive style.",
+      "visual_prompt": "A clean, professional infographic comparing the characteristics of inner terrestrial planets versus outer gas giants, using icons for temperature, size, and atmosphere.",
       "planned_key_points": [
-        "Langchain vs Langgraph comparison",
-        "State management differences",
-        "Scalability and complexity handling"
+        "Inner vs Outer Planets Comparison",
+        "Atmospheric Composition Table",
+        "Gravity and Surface Conditions"
       ]
     },
     {
       "slide_number": 5,
-      "section_tag": "05 // MIDDLEWARE",
-      "title": "Langchain Middleware Concept",
+      "section_tag": "05 // FORMATION",
+      "title": "Solar System Formation",
       "layout": "image_left",
       "needs_image": true,
       "image_position": "left",
-      "visual_prompt": "A conceptual diagram showing how middleware intercepts and transforms data in Langchain, with clear input/output layers and processing nodes, dark background, professional style.",
+      "visual_prompt": "A dramatic artistic representation of the early solar system, showing a swirling protoplanetary disk around a young, bright Sun, with glowing dust and gas clouds.",
       "planned_key_points": [
-        "Middleware architecture in Langchain",
-        "Interception and transformation of data",
-        "Custom middleware for enterprise security"
+        "Nebular Hypothesis: The birth of the solar system from a molecular cloud",
+        "Accretion Process: How dust and gas formed protoplanets",
+        "Early Solar System: The chaotic environment of the young Sun"
       ]
     },
     {
       "slide_number": 6,
-      "section_tag": "06 // ROUTING",
-      "title": "Langchain Router Pattern",
+      "section_tag": "06 // EVOLUTION",
+      "title": "Planetary Evolution",
       "layout": "image_right",
       "needs_image": true,
       "image_position": "right",
-      "visual_prompt": "A diagram illustrating the Langchain router pattern, showing a central router directing requests to different LLMs or tools based on task requirements, dark background, professional style.",
+      "visual_prompt": "A split-screen illustration showing the evolution of a planet from a molten, volcanic state to a cooled, geologically active world with an atmosphere.",
       "planned_key_points": [
-        "Router pattern for dynamic routing",
-        "Optimizing model selection based on task",
-        "Scalability through intelligent routing"
+        "Planetary Differentiation: How cores, mantles, and crusts formed",
+        "Geological Activity: Volcanism and tectonic shifts over eons",
+        "Atmospheric Evolution: The transition from primordial to secondary atmospheres"
       ]
     },
     {
       "slide_number": 7,
       "section_tag": "07 // CAPABILITIES",
-      "title": "Advanced HITL Capabilities in Langchain Agents",
+      "title": "Earth & Jupiter: Exploration Capabilities",
       "layout": "cards",
       "needs_image": false,
       "image_position": "none",
       "visual_prompt": null,
       "planned_key_points": [
-        "Human-in-the-loop (HITL) integration",
-        "Approval workflows for agent actions",
-        "Real-time intervention capabilities"
+        "Earth's Habitable Zone: Conditions for life",
+        "Jupiter's Gravitational Influence: Protecting the inner system",
+        "Exploration Challenges: Distance and radiation shielding"
       ]
     },
     {
@@ -110,9 +110,9 @@
       "image_position": "none",
       "visual_prompt": null,
       "planned_key_points": [
-        "Summary of key benefits",
-        "Future directions for AI agents",
-        "Strategic implementation roadmap"
+        "Summary of Key Findings",
+        "Upcoming Exploration Missions (Europa Clipper, Mars Sample Return)",
+        "The Future of Interplanetary Travel"
       ]
     }
   ]

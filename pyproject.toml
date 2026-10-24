@@ -36,6 +36,5 @@ dependencies = [
     "python-multipart>=0.0.29",
     "python-pptx>=1.0.2",
     "rich>=15.0.0",
-    "serpapi>=1.0.2",
     "twilio>=9.10.9",
 ]

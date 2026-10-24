@@ -5,10 +5,11 @@
 ---
 
 ## Table of Contents
-1. [System Overview & Architecture](#1-system-overview--architecture)
-2. [Agent Breakdown & Taxonomy](#2-agent-breakdown--taxonomy)
-3. [Tools, Skills & MCP Access Matrix](#3-tools-skills--mcp-access-matrix)
-4. [End-to-End Data Flow & Sequence Diagram](#4-end-to-end-data-flow--sequence-diagram)
+
+1. [System Overview &amp; Architecture](#1-system-overview--architecture)
+2. [Agent Breakdown &amp; Taxonomy](#2-agent-breakdown--taxonomy)
+3. [Tools, Skills &amp; MCP Access Matrix](#3-tools-skills--mcp-access-matrix)
+4. [End-to-End Data Flow &amp; Sequence Diagram](#4-end-to-end-data-flow--sequence-diagram)
 5. [Core DeepAgent Principles](#5-core-deepagent-principles)
    - [Context Window Offloading](#a-context-window-offloading)
    - [Progressive Skills Engine](#b-progressive-skills-engine)
@@ -20,11 +21,12 @@
 
 ## 1. System Overview & Architecture
 
-Corporate financial audits require deep qualitative synthesis across hundreds of pages of disclosures, combined with rigorous quantitative mathematics (solvency metrics, accrual anomaly tests, earnings manipulation indices). 
+Corporate financial audits require deep qualitative synthesis across hundreds of pages of disclosures, combined with rigorous quantitative mathematics (solvency metrics, accrual anomaly tests, earnings manipulation indices).
 
 Monolithic LLM agents suffer from **context window dilution**, losing numerical precision and hallucinating when juggling raw 10-K tables, SEC footnotes, and algebraic computations in a single prompt history.
 
 **DeepAudit-AI solves this through hierarchical multi-agent delegation**:
+
 - A **Lead Orchestrator** maintains high-level planning, coordinates the overall audit roadmap, and enforces executive reporting standards.
 - Specialized **Domain Subagents** are spawned with isolated context windows to execute narrow, mathematically intense tasks (Altman Z-Score, Sloan Accrual anomaly, Beneish forensic indices) and return concise executive conclusions back to the orchestrator.
 - A **FastMCP Server** exposes a secure, read-only SQL layer to corporate financial databases.
@@ -46,7 +48,7 @@ flowchart TB
 
     subgraph DeepAgentGraph ["LangGraph Multi-Agent Harness (agent.py)"]
         ORCH["👑 Lead Forensic Auditor<br/>(DeepAudit-AI Orchestrator)"]
-        
+      
         subgraph SubAgents ["Specialized Sub-Agents (Isolated Context)"]
             QUANT["📊 SubAgent 1: Quant Solvency Auditor<br/>(quant_auditor)"]
             ACCRUAL["🔍 SubAgent 2: Accruals & Forensics Auditor<br/>(accrual_forensic_auditor)"]
@@ -79,7 +81,7 @@ flowchart TB
     %% Connections
     UI <-->|HTTP / SSE Stream| FASTAPI
     FASTAPI <-->|Thread Streaming & Resume| DeepAgentGraph
-    
+  
     ORCH -->|Delegates via task()| QUANT
     ORCH -->|Delegates via task()| ACCRUAL
     QUANT -.->|Concise 4-bullet summary| ORCH
@@ -110,11 +112,11 @@ flowchart TB
 
 ## 2. Agent Breakdown & Taxonomy
 
-| Agent | Architecture Role | Responsibilities | Context Boundary |
-| :--- | :--- | :--- | :--- |
-| **👑 Lead Forensic Auditor** (`DeepAudit-AI`) | Primary Orchestrator | • Formulates audit checklist (`write_todos`)<br/>• Orchestrates task delegation via `task()`<br/>• Gathers corporate profiles & macro disclosures<br/>• Conducts SEC litigation / regulatory scouting<br/>• Synthesizes subagent findings into boardroom IC Memorandum<br/>• Submits draft for Human-in-the-Loop signoff | Global graph state. Maintains high-level audit roadmap. Offloads deep numerical operations to subagents to prevent token bloat. |
-| **📊 Quant Solvency Auditor** (`quant_auditor`) | Domain Subagent | • Queries 3-year balance sheets and capital ratios<br/>• Evaluates short-term liquidity & asset productivity<br/>• Computes **Altman Z-Score** solvency classification<br/>• Validates **Basel III CET1 Capital Adequacy** ($\ge 12\%$) | Ephemeral, isolated context. Receives specific prompt from orchestrator; executes queries and math; returns a 3-4 bullet synthesis. Memory is discarded post-task. |
-| **🔍 Accruals & Earnings Forensic Auditor** (`accrual_forensic_auditor`) | Domain Subagent | • Analyzes multi-year cash flow vs. net earnings divergence<br/>• Calculates **Sloan Accrual Anomaly** ($[NI - CFO] / AvgAssets$)<br/>• Computes **Beneish Forensic Manipulation Indices** (SGI, AQI, TATA)<br/>• Flags aggressive revenue or deferred cost capitalization | Ephemeral, isolated context. Executes database queries and forensic formulas; returns a structured 3-4 bullet anomaly assessment. |
+| Agent                                                                            | Architecture Role    | Responsibilities                                                                                                                                                                                                                                                                                          | Context Boundary                                                                                                                                                   |
+| :------------------------------------------------------------------------------- | :------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **👑 Lead Forensic Auditor** (`DeepAudit-AI`)                            | Primary Orchestrator | • Formulates audit checklist (`write_todos`)• Orchestrates task delegation via `task()`• Gathers corporate profiles & macro disclosures• Conducts SEC litigation / regulatory scouting• Synthesizes subagent findings into boardroom IC Memorandum• Submits draft for Human-in-the-Loop signoff | Global graph state. Maintains high-level audit roadmap. Offloads deep numerical operations to subagents to prevent token bloat.                                    |
+| **📊 Quant Solvency Auditor** (`quant_auditor`)                          | Domain Subagent      | • Queries 3-year balance sheets and capital ratios• Evaluates short-term liquidity & asset productivity• Computes **Altman Z-Score** solvency classification• Validates **Basel III CET1 Capital Adequacy** ($\ge 12\%$)                                                                | Ephemeral, isolated context. Receives specific prompt from orchestrator; executes queries and math; returns a 3-4 bullet synthesis. Memory is discarded post-task. |
+| **🔍 Accruals & Earnings Forensic Auditor** (`accrual_forensic_auditor`) | Domain Subagent      | • Analyzes multi-year cash flow vs. net earnings divergence• Calculates **Sloan Accrual Anomaly** ($[NI - CFO] / AvgAssets$)• Computes **Beneish Forensic Manipulation Indices** (SGI, AQI, TATA)• Flags aggressive revenue or deferred cost capitalization                             | Ephemeral, isolated context. Executes database queries and forensic formulas; returns a structured 3-4 bullet anomaly assessment.                                  |
 
 ---
 
@@ -153,20 +155,29 @@ DeepAudit-AI enforces the **Principle of Least Privilege**: agents receive only 
 ```
 
 ### Progressive Skills Overview
+
 - **`sec-10k-audit/SKILL.md`**: Provides Standard Operating Procedures for navigating SEC Form 10-K Item 7 (MD&A) and Item 8 (Financial Statements, Notes, Credit Reserves).
 - **`forensic-accounting/SKILL.md`**: Implements quantitative formulas, variable weights, and interpretation thresholds:
   - **Altman Z-Score**:
-    $$Z = 1.2 X_1 + 1.4 X_2 + 3.3 X_3 + 0.6 X_4 + 0.999 X_5$$
+    $$
+    Z = 1.2 X_1 + 1.4 X_2 + 3.3 X_3 + 0.6 X_4 + 0.999 X_5
+    $$
+
     *(Safe $> 2.99$, Grey $1.81 - 2.99$, Distress $< 1.81$)*
   - **Sloan Accrual Ratio**:
-    $$\text{Ratio} = \frac{\text{Net Income} - \text{Operating Cash Flow}}{\text{Average Total Assets}} \times 100\%$$
+    $$
+    \text{Ratio} = \frac{\text{Net Income} - \text{Operating Cash Flow}}{\text{Average Total Assets}} \times 100\%
+    $$
+
     *(High Cash Quality $< -3\%$, Normal $-3\%$ to $+8\%$, High Distortion $> +10\%$)*
   - **Beneish Forensic Indices**: Sales Growth Index (SGI), Asset Quality Index (AQI), Total Accruals to Total Assets (TATA).
   - **CET1 Capital Adequacy**: Benchmark $\ge 12.0\%$ (JPM FY2023 = $15.0\%$).
 - **`ic-memo-generator/SKILL.md`**: Dictates the executive structure, section hierarchy, markdown formatting, and sign-off block required for the Investment Committee Due Diligence Memorandum.
 
 ### FastMCP Server (`mcp_server.py`)
+
 Built on Anthropic's **FastMCP** framework (`FastMCP("financial_database")`), providing standardized protocol tools over stdio/SSE:
+
 - `query_financial_db(sql_query)`: Guarded SQL executor permitting only read-only queries (`SELECT`, `WITH`).
 - `get_company_profile(ticker)`: Extracts corporate profile, reporting currency, sector, and latest fiscal year.
 - `get_historical_financials(ticker)`: Returns 3-year balance sheets, income statements, and cash flow records.
@@ -206,7 +217,7 @@ sequenceDiagram
     Note over Orch,Sub2: Phase 3: Parallel / Delegated Forensic Analysis
     Orch->>Sub1: task(subagent_type="quant_auditor", prompt="Compute Altman Z & Capital Adequacy")
     Srv-->>UI: Emits "subagent_start" (Quant Auditor card illuminates Cyan)
-    
+  
     Sub1->>DB: query_financial_db (Fetch 2023 Assets, Liabilities, EBIT, CET1)
     DB-->>Sub1: $3.87T Assets, $3.54T Liabilities, $158.1B Revenue, 15.0% CET1
     Sub1->>Sub1: calculate_altman_z_score(...) -> Z = 3.96 (Safe Zone)
@@ -231,7 +242,7 @@ sequenceDiagram
     Note over Orch,UI: Phase 5: Synthesis & HITL Intercept
     Orch->>Orch: Synthesizes findings using ic-memo-generator skill
     Orch->>Disk: write_file("reports/JPM_2023_Due_Diligence_Memo.md")
-    
+  
     Note over Orch: HumanInTheLoopMiddleware Intercept
     Srv-->>UI: Emits "interrupt" event with draft markdown
     UI->>Human: Opens Interactive HITL Review Modal (Editable Textarea)
@@ -253,21 +264,27 @@ sequenceDiagram
 ## 5. Core DeepAgent Principles
 
 ### A. Context Window Offloading
+
 In monolithic agent setups, extracting balance sheets across 3 fiscal years consumes thousands of tokens. Adding intermediate arithmetic, debug steps, and SQL error loops quickly degrades the LLM's attention span.
 
 **DeepAudit-AI delegates via `task()`**:
+
 - The Lead Orchestrator never sees raw SQL rows or intermediate equation variables.
 - SubAgents spin up in private contexts, execute their queries, compute math deterministically via Python functions, and return a clean **markdown synthesis**.
 - The Orchestrator’s prompt remains compact ($\approx 2,000\text{ tokens}$), preserving focus for high-level diligence synthesis.
 
 ### B. Progressive Skills Engine
+
 Skills are loaded dynamically from `/skills/<skill-name>/SKILL.md`. Rather than stuffing every conceivable accounting formula into the system prompt:
+
 - Skills define **when to use** and standard operating procedures.
 - DeepAgents progressively loads skill rules when matching keywords or file tasks arise.
 - Mathematical functions (`ratios.py`, `beneish_sloan.py`) are strictly decoupled from prompt generation and executed via dedicated `@tool` calls.
 
 ### C. Human-in-the-Loop (HITL) Checkpointing
+
 Using LangGraph's `MemorySaver` checkpointer and `interrupt_on={"write_file": True}`:
+
 - The agent is halted the moment it attempts to publish the final due diligence report.
 - The execution thread freezes in state; the UI extracts the proposed file contents and presents them in an **institutional markdown editor**.
 - The human investment committee can:
@@ -282,12 +299,14 @@ Using LangGraph's `MemorySaver` checkpointer and `interrupt_on={"write_file": Tr
 An interactive architecture visualizer is provided in [`architecture.html`](./architecture.html).
 
 ### Features:
+
 - **Clickable Component Inspector**: Inspect system prompts, tool permissions, mathematical formulas, and isolation barriers for every agent.
 - **Interactive Step-by-Step Data Flow Simulator**: Step through all 7 phases with animated data packets and visual signal highlights.
 - **Formulas & Mathematical Proofs**: Explore Altman Z, Sloan Accrual, and Beneish M-Score equations with threshold color coding.
 - **HITL State Machine Diagram**: View the exact LangGraph pause-and-resume lifecycle.
 
 To launch the visualizer:
+
 ```bash
 # macOS
 open Deep_Agents/deepaudit/architecture.html
@@ -305,11 +324,14 @@ Or access it directly from the live dashboard navigation bar.
 To run the complete system with the FastMCP Database Server decoupled from the audit dashboard, open two terminals:
 
 ### Step 1: Start the FastMCP Database Server (Terminal 1)
+
 ```bash
 # Terminal 1: Starts FastMCP on port 8001 over SSE
 python Deep_Agents/deepaudit/mcp_server.py
 ```
+
 Output:
+
 ```text
 ============================================================
 🚀 DeepAudit-AI FastMCP Database Server Active
@@ -323,10 +345,12 @@ Output:
 ```
 
 ### Step 2: Start the DeepAudit-AI Streaming Dashboard (Terminal 2)
+
 ```bash
 # Terminal 2: Starts the Bloomberg UI and connects to the MCP Server
 python Deep_Agents/deepaudit/run_dashboard.py
 ```
+
 Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 
 > [!NOTE]
@@ -335,4 +359,3 @@ Open **[http://localhost:8000](http://localhost:8000)** in your browser.
 ---
 
 *Authored for institutional forensic due diligence and autonomous multi-agent financial research.*
-

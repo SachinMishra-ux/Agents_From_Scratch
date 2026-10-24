@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset='utf-8'>
+<title>Production RAG & LangGraph Assessment</title>
+<style>
+  body { font-family: 'Calibri', Arial, sans-serif; font-size: 11pt; color: #111827; line-height: 1.4; margin: 30px 40px; }
+  h1 { font-size: 18pt; color: #1e3a8a; margin-bottom: 4px; text-align: center; }
+  .subtitle { font-size: 11pt; color: #4b5563; text-align: center; margin-bottom: 25px; border-bottom: 1.5px solid #d1d5db; padding-bottom: 10px; }
+  .q-block { margin-bottom: 18px; page-break-inside: avoid; }
+  .q-num { font-weight: bold; color: #1e3a8a; }
+  .q-text { margin-bottom: 6px; }
+  .code-snippet { background-color: #f3f4f6; border-left: 3px solid #4b5563; font-family: 'Consolas', 'Courier New', monospace; font-size: 9.5pt; padding: 8px 12px; margin: 6px 0 8px 0; white-space: pre-wrap; color: #111827; }
+  .options { margin-left: 18px; list-style-type: none; padding-left: 0; margin-top: 4px; }
+  .opt-item { margin-bottom: 4px; }
+  .opt-key { font-weight: bold; color: #1e40af; }
+  h2 { font-size: 14pt; color: #1e3a8a; border-bottom: 1.5px solid #1e3a8a; padding-bottom: 4px; margin-top: 30px; margin-bottom: 15px; }
+  .ans-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 10pt; }
+  .ans-table th { background-color: #f3f4f6; border: 1px solid #d1d5db; padding: 6px 10px; text-align: left; color: #1e3a8a; }
+  .ans-table td { border: 1px solid #d1d5db; padding: 6px 10px; vertical-align: top; }
+  .ans-key { font-weight: bold; color: #047857; text-align: center; font-size: 11pt; }
+</style>
+</head>
+<body>
+<h1>Production RAG & LangGraph Assessment</h1>
+<div class='subtitle'>15 Straightforward Examination Questions &bull; Core RAG & LangGraph Patterns &bull; Answer Key Included</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q1.</span> When deploying Google's Gemini embedding models in an enterprise production RAG system, what is a primary consideration when choosing between a public preview model (e.g., 'models/gemini-embedding-2') and an enterprise-provisioned embedding service (e.g., Azure OpenAI Embeddings or Google Vertex AI)?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> Preview models lack cosine similarity support, whereas enterprise models support vector arithmetic.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Enterprise-provisioned services provide guaranteed SLAs, private VPC networking, zero data retention for training, and immutable version pinning to prevent embedding drift.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> Gemini embedding models can only produce binary (0 or 1) vector representations.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> Enterprise embedding models do not enforce any request-per-minute (RPM) or token rate limits.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q2.</span> Consider the following code snippet from the repository used to resolve a batch serialization bug in langchain-google-genai:<br><br>What is the primary operational trade-off of this code implementation in production?</div>
+<div class='code-snippet'>class PatchedGoogleGenerativeAIEmbeddings(GoogleGenerativeAIEmbeddings):
+    def embed_documents(self, texts: list[str]) -> list[list[float]]:
+        # Workaround for batch embedding bug
+        return [self.embed_query(t) for t in texts]
+
+embeddings = PatchedGoogleGenerativeAIEmbeddings(model="models/gemini-embedding-2")</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> It alters the vector dimensionality from 768 to 1536, breaking FAISS compatibility.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> It converts concurrent batch requests into sequential single-item HTTP calls, increasing total ingestion time and consuming RPM quota faster.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> It causes Google AI Studio to reject queries because embed_query requires a different API key.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It stores all embedded vectors in a local Redis cache automatically.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q3.</span> In the vectorstore setup, FAISS indexes are loaded using:<br><br>vectorstore = FAISS.load_local(path, embeddings, allow_dangerous_deserialization=True)<br><br>Why does LangChain mandate setting allow_dangerous_deserialization=True, and what risk does it carry in production?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> It allows FAISS to exceed 32 GB of system RAM without operating system warnings.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> FAISS uses Python's pickle module to deserialize index metadata; unpickling an untrusted or tampered file can execute arbitrary code (Remote Code Execution) on the server.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> It automatically disables SSL/TLS encryption for all network traffic.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It converts dense floating-point vectors into uncompressed plaintext strings.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q4.</span> In RAG_embedding/embedding.py, document chunks are embedded in small batches of 5 with an explicit delay (time.sleep(10)) before calling vectorstore.merge_from(db). Why is this pattern necessary for production document ingestion?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> To prevent HTTP 429 (Too Many Requests / Quota Exhaustion) errors from embedding APIs and ensure partial ingestion progress is preserved.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> To allow the operating system to clear GPU video memory after each batch.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> Because FAISS crashes if it indexes more than 5 documents in a single index.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> To give the PDF text loader enough time to parse the next set of pages.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q5.</span> In the codebase, documents are chunked using chunk_size_words=2500 (~15,000 characters). When building a financial RAG system querying specific metrics (e.g., quarterly revenue figures), what is the main risk of such large chunks?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> RecursiveCharacterTextSplitter will throw an uncaught integer overflow exception.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Semantic dilution: pinpoint numerical data is averaged over 2,500 words, lowering vector similarity scores and increasing LLM context distraction.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> FAISS indexes cannot store any vector computed from text longer than 512 characters.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It forces the embedding model to drop all numerical digits from the text.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q6.</span> In a LangGraph StateGraph, how does an individual node function (e.g., question_rewriter or retrieve) update the centralized AgentState?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> It modifies a global Python variable directly without returning anything.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> It returns a dictionary containing only the modified state keys, which LangGraph merges into the shared state based on defined channel reducers.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> It must serialize the entire state dictionary to a JSON file on disk.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It writes raw SQL UPDATE statements to the SQLite checkpoint database.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q7.</span> Why is a question_rewriter node placed immediately before the vector retrieval step in a conversational multi-turn RAG pipeline?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> Vector databases require queries to be written strictly in uppercase letters.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Follow-up questions often contain pronouns or implicit context (e.g., 'What was their profit?'); rewriting reformulates them into standalone, unambiguous queries optimized for vector search.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> It translates natural language into structured SQL syntax for FAISS.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It removes all question marks so that the query matches document titles.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q8.</span> Consider the following LangGraph conditional routing snippet from Advance_RAG/workflow.py:<br><br>Which LangGraph method call correctly connects this conditional router to the question_classifier node?</div>
+<div class='code-snippet'>def on_topic_router(state: AgentState):
+    on_topic = state.get("on_topic", "").strip().lower()
+    if on_topic == "yes":
+        return "retrieve"
+    else:
+        return "off_topic_response"
+
+# How to connect to question_classifier node in StateGraph 'g'?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> g.add_edge('question_classifier', on_topic_router)</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> g.add_conditional_edges('question_classifier', on_topic_router, {'retrieve': 'retrieve', 'off_topic_response': 'off_topic_response'})</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> g.set_entry_point(on_topic_router)</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> g.add_node('on_topic_router', ['retrieve', 'off_topic_response'])</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q9.</span> In the retrieval_grader node, relevance scoring uses llm.with_structured_output(GradeDocument) where GradeDocument is a Pydantic model with a binary score. Why is this preferred over free-form prompt engineering (e.g., 'Reply with YES or NO')?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> Free-form strings always crash the Python runtime with a TypeError.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Structured output guarantees schema validation via API-level tool/function calling, avoiding failures caused by conversational filler, explanations, or irregular capitalization.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> Structured output runs locally on the CPU without consuming LLM API tokens.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It enables the LLM to search the internet without an external API wrapper.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q10.</span> In LangGraph cyclical workflows (e.g., refining queries when documents are graded irrelevant), what safeguard prevents an infinite loop if the exit condition fails to trigger?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> The operating system forcibly kills the process after 60 seconds.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> LangGraph enforces a recursion_limit (default 25 steps) configured in invoke/stream, raising a GraphRecursionError if exceeded.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> FAISS automatically deletes the vector index upon 5 failed queries.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> The Python garbage collector terminates all while loops after 100 iterations.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q11.</span> In Corrective RAG (CRAG), as implemented in Advance_RAG/workflow.py, what corrective action occurs when local document retrieval and query refinement fail to yield relevant documents?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> The system aborts and returns an unhandled 500 error to the user.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> The graph routes to a search_internet node (using a web search tool like SerpAPI) to retrieve fresh external web results.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> The system automatically retrains the embedding model on the fly.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It prompts the user to enter their personal database credentials.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q12.</span> When comparing Self-RAG and Corrective RAG (CRAG) for an air-gapped financial environment where external internet access is strictly prohibited and hallucinations carry heavy regulatory penalties, which architecture is preferred and why?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> CRAG, because it always requires live Google search fallback.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Self-RAG, because its internal reflection checkpoints (e.g., is_sup / hallucination check) verify that answers are strictly grounded in internal documents without outbound web reliance.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> Neither, because both require open internet access to run vector similarity.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> CRAG, because Self-RAG only works on non-financial documents.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q13.</span> In Advance_RAG/workflow.py, role-based access control (RBAC) is implemented by retrieving top-K documents and then filtering doc.metadata['role'] in Python. What is the primary production flaw of this post-retrieval filtering?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> Python dictionaries cannot store string metadata keys.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> Top-K Starvation: If the top-K retrieved chunks belong to unauthorized roles, post-filtering leaves zero documents for generation; filtering should instead be pushed into the vector store as pre-filtering.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> FAISS throws a C++ segmentation fault whenever doc.metadata is accessed in Python.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> Post-filtering exposes user credentials in the application logs.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q14.</span> In Advance_RAG/new_workflow.py, when len(state['messages']) > 8, a summarize_conversation node condenses prior messages into state['summary'] and retains only the last 2 messages. What production problem does this solve?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> It prevents context window overflow, reduces inference latency, and caps LLM token costs in long multi-turn sessions while retaining conversation context.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> It converts chat messages into FAISS vector files automatically.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> It stops the user from asking any questions with more than 8 words.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> It encrypts the chat history using AES-256 for database storage.</li>
+</ul>
+</div>
+<div class='q-block'>
+<div class='q-text'><span class='q-num'>Q15.</span> For a multi-container, horizontally scaled production deployment of LangGraph (e.g. running on Kubernetes), why is SqliteSaver replaced with a database checkpointer like PostgresSaver?</div>
+<ul class='options'>
+<li class='opt-item'><span class='opt-key'>[A]</span> SQLite cannot store strings containing numbers or punctuation.</li>
+<li class='opt-item'><span class='opt-key'>[B]</span> SQLite is an in-process, single-file database that suffers from write-lock contention under concurrency and cannot be shared across stateless pod replicas; PostgresSaver provides distributed, concurrent state storage.</li>
+<li class='opt-item'><span class='opt-key'>[C]</span> SqliteSaver is limited to a maximum of 10 conversational turns per day.</li>
+<li class='opt-item'><span class='opt-key'>[D]</span> PostgresSaver eliminates the need for vector embeddings in RAG systems.</li>
+</ul>
+</div>
+<div style='page-break-before: always;'></div>
+<h2>Answer Key & Concise Explanations</h2>
+<table class='ans-table'>
+<tr><th style='width: 45px;'>#</th><th style='width: 65px; text-align: center;'>Answer</th><th>Straightforward Explanation / Rationale</th></tr>
+<tr>
+<td style='font-weight:bold;'>Q1</td>
+<td class='ans-key'>[B]</td>
+<td>Enterprise services provide formal SLAs, private VPC endpoints, compliance certifications, and static model version pinning. Public preview models may experience silent updates or breaking changes, which cause embedding drift and invalidate pre-built vector databases.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q2</td>
+<td class='ans-key'>[B]</td>
+<td>Overriding embed_documents with a list comprehension over embed_query fixes client-side batch formatting bugs by issuing N individual HTTP requests. However, this serializes the requests, increasing network latency and consuming per-minute request limits (RPM).</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q3</td>
+<td class='ans-key'>[B]</td>
+<td>FAISS serializes docstore metadata into a Python .pkl (pickle) file. Deserializing untrusted pickle files exposes the host to arbitrary bytecode execution (RCE). In production, indexes must be cryptographically verified or loaded from trusted, locked storage.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q4</td>
+<td class='ans-key'>[A]</td>
+<td>Embedding APIs enforce strict Request-Per-Minute (RPM) and Token-Per-Minute (TPM) quotas. Bulk ingestion without batching and rate-limiting leads to 429 errors that fail the entire job. Incremental batching with sleep prevents rate-limit errors and saves intermediate progress.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q5</td>
+<td class='ans-key'>[B]</td>
+<td>Averaging 2,500 words into a single embedding vector dilutes fine-grained semantic details (like financial metrics), hurting retrieval accuracy. Smaller chunks (e.g., 200–500 words) or parent-document retrieval yield higher precision for fact-based lookup.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q6</td>
+<td class='ans-key'>[B]</td>
+<td>LangGraph nodes receive the current state and return a dictionary of partial updates. LangGraph updates the state channels by either overwriting values or applying reducers (like operator.add for lists).</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q7</td>
+<td class='ans-key'>[B]</td>
+<td>In multi-turn chat, users frequently ask ambiguous follow-up questions ('How did that change in Q4?'). Without rewriting against chat history, dense vector search fails to retrieve relevant documents due to missing contextual keywords.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q8</td>
+<td class='ans-key'>[B]</td>
+<td>LangGraph uses add_conditional_edges(source_node, routing_function, path_map) to evaluate a decision function and direct flow to target nodes based on its returned string.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q9</td>
+<td class='ans-key'>[B]</td>
+<td>Prompting an LLM for free text often yields conversational preambles (e.g., 'Sure! The answer is: Yes'). In production, structured output enforces a strict JSON schema via API tool-calling protocols, guaranteeing clean, parseable outputs.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q10</td>
+<td class='ans-key'>[B]</td>
+<td>LangGraph includes a configurable recursion_limit in the invoke/stream config (defaulting to 25). If a cyclic graph fails to exit within that step budget, it raises a GraphRecursionError, preventing runaway API costs and infinite loops.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q11</td>
+<td class='ans-key'>[B]</td>
+<td>Corrective RAG (CRAG) evaluates retrieval quality. When internal vector retrieval fails to produce relevant context, CRAG falls back to external web search engines to rescue the query rather than returning a dead-end failure.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q12</td>
+<td class='ans-key'>[B]</td>
+<td>Self-RAG uses self-reflection tokens to check whether the answer is strictly supported (is_sup) by retrieved internal documents. CRAG's primary feature is an external web search fallback, which cannot be used in an air-gapped, zero-internet environment.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q13</td>
+<td class='ans-key'>[B]</td>
+<td>Post-filtering fetches K documents globally and then discards unauthorized ones. If all K items belong to restricted roles, the user receives an empty result despite valid authorized documents existing deeper in the index. Pre-filtering inside the vector search avoids this.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q14</td>
+<td class='ans-key'>[A]</td>
+<td>Unbounded conversation history causes linear-to-quadratic token growth, driving up costs and latency. Summarizing past turns into a concise state summary while keeping only recent messages bounds token usage without losing conversational continuity.</td>
+</tr>
+<tr>
+<td style='font-weight:bold;'>Q15</td>
+<td class='ans-key'>[B]</td>
+<td>SQLite locks the database file during writes and cannot be accessed concurrently across multiple stateless container instances (Kubernetes pods). Production multi-tenant systems require a centralized networked database like PostgreSQL.</td>
+</tr>
+</table>
+</body>
+</html>
